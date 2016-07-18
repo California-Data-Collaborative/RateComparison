@@ -9,6 +9,9 @@ df <- read_data("data/mnwd_test.csv", usage_col="usage_ccf", month_col="usage_mo
 
 shinyServer(function(input, output, clientData, session) {
 
-  
+  output$textTest <- renderText({
+    split <- strsplit(input$budgetPrice, "\n")
+    print( paste(split) )
+  })  
 
 })
