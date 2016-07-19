@@ -4,6 +4,8 @@ shinyUI(fluidPage(
   titlePanel("Rate Comparison"),
   
   fluidRow(
+    
+#----------------------- Input widget panel -----------------------    
     column(4,
       wellPanel( 
         fluidRow(
@@ -97,11 +99,12 @@ shinyUI(fluidPage(
       )#end wellPanel
     ),#end column
     
+#----------------------- Output panels ------------------
     column( 8, #"main panel",
         tabsetPanel(type="tabs",
-                    tabPanel("Overall",
+                    tabPanel("Residential",
                              fluidRow(
-                               textOutput("textTest")
+                               plotlyOutput("revenue_time_series", height=350)
                              ),
                              fluidRow(
                                # column(12, plotlyOutput("savings_boxplot", height=350) )
