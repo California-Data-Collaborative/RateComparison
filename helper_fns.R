@@ -19,7 +19,8 @@ read_data <- function(filename, usage_col, month_col, year_col, et_col, hhsize_c
     dplyr::rename_(.dots=setNames(list(et_col), "et_amount")) %>%
     dplyr::rename_(.dots=setNames(list(hhsize_col), "hhsize")) %>%
     dplyr::rename_(.dots=setNames(list(irr_area_col), "irr_area")) %>%
-    dplyr::rename_(.dots=setNames(list(rate_code_col), "rate_code"))
+    dplyr::rename_(.dots=setNames(list(rate_code_col), "rate_code")) %>%
+    dplyr::mutate(usage_date = as.Date(usage_date))
   
   print("...loaded.")
   return(data)
@@ -30,8 +31,7 @@ read_data <- function(filename, usage_col, month_col, year_col, et_col, hhsize_c
 #******************************************************************
 calculate_variable_bill <- function(data, rate_type, tier_start_str=NULL, tier_price_str,
                                     gpcd=NULL, plant_factor=NULL){
-  print("Calculating Variable bill.")
-  
+
   tier_prices <- parse_numerics(tier_price_str)
   
   #call correct bill calculator function
@@ -39,13 +39,13 @@ calculate_variable_bill <- function(data, rate_type, tier_start_str=NULL, tier_p
     bills <- calculate_flat_charge(data, tier_prices[1])
   }
   else if(rate_type == "Tiered"){
-    tier_starts <- parse_numerics(tier_price_str)
+    tier_starts <- parse_numerics(tier_start_str)
     #check that prices are same length as tiers
     stopifnot(length(tier_starts)==length(tier_prices))
     bills <- calculate_tiered_charge(data, tier_starts, tier_prices)
   }
   else if(rate_type == "Budget"){
-    tier_starts <- get_budget_tiers(data, parse_strings(tier_price_str), gpcd, plant_factor)
+    tier_starts <- get_budget_tiers(data, parse_strings(tier_start_str), gpcd, plant_factor)
     #check that prices are same length as tiers
     stopifnot(ncol(tier_starts)==length(tier_prices))
     bills <- calculate_tiered_charge(data, tier_starts, tier_prices, budget_based=TRUE)

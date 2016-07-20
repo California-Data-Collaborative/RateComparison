@@ -104,11 +104,11 @@ shinyUI(fluidPage(
         tabsetPanel(type="tabs",
                     tabPanel("Residential",
                              fluidRow(
-                               plotlyOutput("revenue_time_series", height=350)
-                             ),
-                             fluidRow(
-                               # column(12, plotlyOutput("savings_boxplot", height=350) )
+                               column(12, plotlyOutput("revenue_time_series", height=350) )
                              )
+#                              fluidRow(
+#                                column(12, plotlyOutput("savings_boxplot", height=350) )
+#                              )
                              
                     ),
                     
