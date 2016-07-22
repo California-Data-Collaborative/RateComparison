@@ -32,6 +32,12 @@ read_data <- function(filename, cust_col, usage_col, month_col, year_col, et_col
   return(data)
 }
 
+monthStart <- function(x) {
+  x <- as.POSIXlt(x)
+  x$mday <- 1
+  as.Date(x)
+}
+
 #******************************************************************
 # Calculate the variable portion of a bill
 #******************************************************************

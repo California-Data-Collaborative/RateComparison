@@ -48,12 +48,12 @@ plot_bill_change_histogram <- function(data){
   if(sum(data$changes) < 1){
     p <- ggplot() + 
       geom_vline(xintercept = 0, color="#CC0000") +
-      xlab("Change in bill amount ($)")
+      xlab("Change in total amount paid ($)")
   }
   else{
     p <- ggplot(data, aes(x=changes)) + geom_histogram() + 
       geom_vline(xintercept = mean(data$changes, na.rm=TRUE), color="#CC0000") +
-      xlab("Change in bill amount ($)") + ylab("") +
+      xlab("Change in total amount paid ($)") + ylab("") +
       theme(axis.ticks = element_blank(), axis.text.y = element_blank())
   }
   
@@ -66,9 +66,17 @@ plot_bill_change_histogram <- function(data){
 }
 
 plot_bill_change_boxplot <- function(data){
-  qplot(change_group, changes, data = data, geom = "boxplot") +
-    coord_flip() + xlab("") + ylab("") + 
-    theme(axis.ticks = element_blank(), axis.text.y = element_blank())
+  if(sum(data$changes) < 1){
+    p <- ggplot() + 
+      geom_vline(xintercept = 0, color="#CC0000") +
+      xlab("")
+  }
+  else{
+    p <- ggplot(data, aes(change_group, changes)) + geom_boxplot(outlier.size=1) +
+      coord_flip() + xlab("") + ylab("") + 
+      theme(axis.ticks = element_blank(), axis.text.y = element_blank())
+  }
+  p
 }
 
 

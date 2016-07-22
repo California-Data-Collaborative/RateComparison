@@ -21,6 +21,16 @@ shinyUI(fluidPage(
           )
         ),#end row
         
+        fluidRow(
+          column(1),
+          column(10,
+                 sliderInput("timeSlider", label = "Time Range", min = as.Date("2014-01-01"), 
+                             max = as.Date("2015-12-31"), 
+                             value = c(as.Date("2014-01-01"), as.Date("2015-12-31")), timeFormat="%Y-%m")
+          ),
+          column(1)
+        ),
+        
         # FLATE RATES
         conditionalPanel(
           condition = "input.rateType == 'Flat'",
@@ -117,6 +127,7 @@ shinyUI(fluidPage(
                                column(5, 
                                       plotlyOutput("bill_change_boxplot", height=100),
                                       plotlyOutput("bill_change_histogram", height=250) )
+                                      
                              )
                              
                     ),

@@ -10,6 +10,18 @@ df <- read_data("data/mnwd_test.csv", cust_col="cust_loc_id", usage_col="usage_c
 
 shinyServer(function(input, output, clientData, session) {
   
+  min_date <- min(df$usage_date)
+  max_date <- max(df$usage_date)
+  print(min_date, max_date)
+  updateSliderInput(session, "timeSlider", label = "Time Range", min = min_date, 
+                    max = max_date, value = c(min_date, max_date))
+#   sliderMonth <- reactiveValues()
+#   observe({
+#     full.date <- as.POSIXct(input$timeSlider, tz="GMT")
+#     sliderMonth$Month <- as.character(monthStart(full.date))
+#   })
+#   
+  
   indoor <- reactive({
     get_indoor_tier(df, input$galPerCapitaSlider)
   })
@@ -18,6 +30,9 @@ shinyServer(function(input, output, clientData, session) {
     get_outdoor_tier(df, input$plantFactorSlider)
   })
   
+  #******************************************************************
+  # 
+  #******************************************************************
   variable_charge <- reactive({ 
     
     if(input$rateType == "Flat"){
@@ -50,7 +65,9 @@ shinyServer(function(input, output, clientData, session) {
   
   df_plots <- reactive({
     combined <- dplyr::bind_cols(df, total_bill_info(), baseline_bill_info()) %>%
-           filter(rate_code %in% c("RESIDENTIAL_SINGLE", "RESIDENTIAL_MULTI") )
+           filter(rate_code %in% c("RESIDENTIAL_SINGLE", "RESIDENTIAL_MULTI"),
+                  usage_date >= input$timeSlider[1],
+                  usage_date <= input$timeSlider[2])
     combined
   })
   
