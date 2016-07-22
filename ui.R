@@ -15,7 +15,9 @@ shinyUI(fluidPage(
                               selected = "Flat")
           ),
           column(7, 
-                 numericInput("fixedCharge", label = "Fixed Charge ($)", value = 30.5)
+                 numericInput("fixedCharge", label = "Fixed Charge ($)", value = 11.39),
+                 radioButtons("displayType", label = "Display", selected = "Revenue", inline=TRUE,
+                              choices = list("Revenue" = "Revenue", "Usage" = "Usage"))
           )
         ),#end row
         
@@ -58,11 +60,11 @@ shinyUI(fluidPage(
           fluidRow(
             column(6, 
                    sliderInput("galPerCapitaSlider", label = "GPCD", min = 0, 
-                               max = 75, value = 55, step=5)
+                               max = 75, value = 60, step=5)
             ),
             column(6, 
                    sliderInput("plantFactorSlider", label = "Plant Factor", min = 0, 
-                               max = 1, value = 0.8, step=0.05)
+                               max = 1, value = 0.7, step=0.05)
             )
           ),#end row
           fluidRow(
@@ -71,7 +73,7 @@ shinyUI(fluidPage(
                      strong("Tier start")
                    ),
                    fluidRow(
-                     HTML('<textarea id="budgetTiers" rows="6" cols="15" style="resize: none;">0\nIndoor\n100%\n125%</textarea>')
+                     HTML('<textarea id="budgetTiers" rows="6" cols="15" style="resize: none;">0\nIndoor\n101%\n126%\n151%</textarea>')
                    )
             ),
             column(6,
@@ -79,7 +81,7 @@ shinyUI(fluidPage(
                      strong("Tier prices ($)")
                    ),
                    fluidRow(
-                     HTML('<textarea id="budgetPrice" rows="6" cols="15" style="resize: none;">1.85\n2.33\n4.68\n6.77</textarea>')
+                     HTML('<textarea id="budgetPrice" rows="6" cols="15" style="resize: none;">1.49\n1.70\n2.62\n4.38\n9.17</textarea>')
                    )
             )
           ),#end row
@@ -104,11 +106,18 @@ shinyUI(fluidPage(
         tabsetPanel(type="tabs",
                     tabPanel("Residential",
                              fluidRow(
-                               column(12, plotlyOutput("revenue_time_series", height=350) )
+                               column(12, plotlyOutput("revenue_time_series", height=250) )
+                             ),
+                             fluidRow(
+                               column(4,
+                                      radioButtons("barType", label = "",  selected = "Absolute", inline=TRUE,
+                                                   choices = list("Absolute" = "Absolute", "Percent" = "Percent")),
+                                      plotlyOutput("barchart_by_tiers", height=350) ),
+                               column(3),
+                               column(5, 
+                                      plotlyOutput("bill_change_boxplot", height=100),
+                                      plotlyOutput("bill_change_histogram", height=250) )
                              )
-#                              fluidRow(
-#                                column(12, plotlyOutput("savings_boxplot", height=350) )
-#                              )
                              
                     ),
                     
