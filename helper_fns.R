@@ -132,24 +132,42 @@ get_usage_in_tiers <- function(data, tier_starts, budget_based=FALSE){
 }
 
 #******************************************************************
-# d
+# Split text box input into a vector of strings
 #******************************************************************
 parse_strings <- function(str){
   return( unlist(strsplit(str, "[\n| ]+")) )
 }
 
+#******************************************************************
+# Convert vector of numeric strings into actual numerics
+#******************************************************************
 parse_numerics <- function(str){
   return( suppressWarnings(as.numeric(parse_strings(str))) )
 }
 
+#******************************************************************
+# Calculate indoor tier as function of gpcd
+#******************************************************************
 get_indoor_tier <- function(data, gpcd){
   return(data$hhsize*gpcd*30.4/748)
 }
 
+#******************************************************************
+# Calculate outdoor tier as a function of plant factor
+#******************************************************************
 get_outdoor_tier <- function(data, plant_factor){
   return(data$irr_area*data$et_amount*plant_factor*0.62/748)
 }
 
+#******************************************************************
+# Calculate the the tier starting values (in CCF) for a budget
+# based rate.
+#
+# Uses indoor and outoor tiers in CCF, along with a vector of 
+# strings marking relative starting values like "Indoor" and "125%" 
+# and converts them to a matrix of CCF tier starting values for
+# each customer.
+#******************************************************************
 get_budget_tiers <- function(data, tier_start_strs, indoor_tier, outdoor_tier){
   budget <- indoor_tier+outdoor_tier
   budget_tiers <- matrix(0, nrow(data), length(tier_start_strs))
