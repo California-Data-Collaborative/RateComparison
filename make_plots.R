@@ -5,7 +5,10 @@ library(scales)
 library(reshape2)
 library(stringi)
 
-
+#******************************************************************
+# Line chart showing revenue over time for both baseline
+# and hypothetical rate structures
+#******************************************************************
 plot_revenue_over_time <- function(data){
   start.time <- Sys.time()
   
@@ -41,6 +44,10 @@ plot_revenue_over_time <- function(data){
   p
 }
 
+#******************************************************************
+# Histogram of changes (hypothetical - baseline) in total amount 
+# paid during the time period for each customer
+#******************************************************************
 plot_bill_change_histogram <- function(data){
   
   start.time <- Sys.time()
@@ -65,6 +72,11 @@ plot_bill_change_histogram <- function(data){
   p
 }
 
+#******************************************************************
+# Small boxplot of changes (hypothetical - baseline) in total amount 
+# paid during the time period for each customer. Designed to 
+# complement the histogram
+#******************************************************************
 plot_bill_change_boxplot <- function(data){
   if(sum(data$changes) < 1){
     p <- ggplot() + 
@@ -79,7 +91,9 @@ plot_bill_change_boxplot <- function(data){
   p
 }
 
-
+#******************************************************************
+# Barchart showing total revenue/usage in each tier in both rates
+#******************************************************************
 plot_barchart_by_tiers <- function(data, display_type, bar_ype){
 
   if(display_type=="Revenue"){
@@ -111,6 +125,10 @@ plot_barchart_by_tiers <- function(data, display_type, bar_ype){
   }
 }
 
+#******************************************************************
+# Given a label like "X1", or "BR3", returns the tier name as 
+# "Tier 1" or "Tier 3" respectively
+#******************************************************************
 get_tier_name <- function(labels){
   return(paste("Tier", stri_sub(labels, -1, -1) ))
 }
