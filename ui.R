@@ -1,6 +1,7 @@
 
 
 shinyUI(navbarPage(
+  #color #2c3e50
   HTML(paste('<img src="CaDC_logo_bluegrey.png" ',
              'href="http://californiadatacollaborative.com/" ', 'height="60" ',
              'style="position: relative; top:-20px; right:-15px">')),

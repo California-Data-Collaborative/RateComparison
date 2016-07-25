@@ -10,28 +10,24 @@ df <- read_data("data/mnwd_test.csv", cust_col="cust_loc_id", usage_col="usage_c
 
 shinyServer(function(input, output, clientData, session) {
   
+  # Update the time slider with the actual date values in the data
   min_date <- min(df$usage_date)
   max_date <- max(df$usage_date)
   print(min_date, max_date)
   updateSliderInput(session, "timeSlider", label = "Time Range", min = min_date, 
                     max = max_date, value = c(min_date, max_date))
-#   sliderMonth <- reactiveValues()
-#   observe({
-#     full.date <- as.POSIXct(input$timeSlider, tz="GMT")
-#     sliderMonth$Month <- as.character(monthStart(full.date))
-#   })
-#   
-  
+
+  # Get the indoor tier cutoffs
   indoor <- reactive({
     get_indoor_tier(df, input$galPerCapitaSlider)
   })
-  
+  # Get the outdoor tier cutoffs
   outdoor <- reactive({
     get_outdoor_tier(df, input$plantFactorSlider)
   })
   
   #******************************************************************
-  # 
+  # Calculate variable potion of the bill, dependent on rate type
   #******************************************************************
   variable_charge <- reactive({ 
     
@@ -57,12 +53,18 @@ shinyServer(function(input, output, clientData, session) {
     bill_info
   })
   
+  #******************************************************************
+  # Calculate total bill
+  #******************************************************************
   total_bill_info <- reactive({
     bill_info <- variable_charge() 
     bill_info$total_bill <- bill_info$variable_bill + input$fixedCharge
     return(bill_info)
   })
   
+  #******************************************************************
+  # Get the filtered dataframe with all billing and tier information
+  #******************************************************************
   df_plots <- reactive({
     combined <- dplyr::bind_cols(df, total_bill_info(), baseline_bill_info()) %>%
            filter(rate_code %in% c("RESIDENTIAL_SINGLE", "RESIDENTIAL_MULTI"),
@@ -71,6 +73,9 @@ shinyServer(function(input, output, clientData, session) {
     combined
   })
   
+  #******************************************************************
+  # Calculate bills and tiers for the MNWD residential baseline rate
+  #******************************************************************
   baseline_bill_info <- reactive({
     bill_info <- calculate_variable_bill(data=df, rate_type="Budget", 
                                  tier_start_str="0\nIndoor\n101%\n126%\n151%",
@@ -87,6 +92,9 @@ shinyServer(function(input, output, clientData, session) {
     return(bill_info)
   })
 
+  #******************************************************************
+  # Line plot of revenue over time
+  #******************************************************************
   output$revenue_time_series <- renderPlotly({
     # print(glimpse(df_plots()[1,]))
     p <- plot_revenue_over_time( df_plots() )
@@ -94,12 +102,16 @@ shinyServer(function(input, output, clientData, session) {
     p
   }) 
   
+  #******************************************************************
+  # Bar chart of revenue/usage by tier
+  #******************************************************************
   output$barchart_by_tiers <- renderPlotly({
     plot_barchart_by_tiers( df_plots(), input$displayType, input$barType )
   })
   
-  
-  # Changes to bills
+  #******************************************************************
+  # Reactive dataframe of changes to amount paid
+  #******************************************************************
   df_change <- reactive({
     
     start.time <- Sys.time()
@@ -119,10 +131,12 @@ shinyServer(function(input, output, clientData, session) {
     df_change
   })
   
+  # Plot histogram
   output$bill_change_histogram <- renderPlotly({
     plot_bill_change_histogram( df_change() )
   })
   
+  # Plot boxplot
   output$bill_change_boxplot <- renderPlotly({
     plot_bill_change_boxplot( df_change() )
   })
