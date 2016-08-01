@@ -3,21 +3,9 @@
 source("helper_fns.R", local=TRUE)
 source("make_plots.R", local=TRUE)
 
-# Read data from file and rename the columns to be compatable with internal calls
-df <- read_data("data/mnwd_test.csv", cust_col="cust_loc_id", usage_col="usage_ccf", month_col="usage_month", 
-                year_col="usage_year", et_col="usage_et_amount", hhsize_col="cust_loc_hhsize", 
-                irr_area_col="cust_loc_irr_area_sf", rate_code_col= "cust_loc_class")
-
 
 
 shinyServer(function(input, output, clientData, session) {
-  
-  # Update the time slider with the actual date values in the data
-  min_date <- min(df$usage_date)
-  max_date <- max(df$usage_date)
-  print(min_date, max_date)
-  updateSliderInput(session, "timeSlider", label = "Time Range", min = min_date, 
-                    max = max_date, value = c(min_date, max_date))
 
   # Get the indoor tier cutoffs
   indoor <- reactive({
@@ -25,7 +13,7 @@ shinyServer(function(input, output, clientData, session) {
   })
   # Get the outdoor tier cutoffs
   outdoor <- reactive({
-    get_outdoor_tier(df, input$plantFactorSlider)
+    get_outdoor_tier(df, input$ETFactorSlider)
   })
   
   #******************************************************************
@@ -44,7 +32,7 @@ shinyServer(function(input, output, clientData, session) {
     }
     else if(input$rateType == "Budget"){
       print(paste("Rate type: ", input$rateType, input$budgetTiers, input$budgetPrice, 
-                  input$galPerCapitaSlider, input$plantFactorSlider))
+                  input$galPerCapitaSlider, input$ETFactorSlider))
       bill_info <- calculate_variable_bill(data=df, rate_type=input$rateType, 
                                    tier_start_str=input$budgetTiers,
                                    tier_price_str=input$budgetPrice,
@@ -115,7 +103,6 @@ shinyServer(function(input, output, clientData, session) {
   # Reactive dataframe of changes to amount paid
   #******************************************************************
   df_change <- reactive({
-    
     start.time <- Sys.time()
     
     df_change <- df_plots() %>% group_by(cust_id) %>% 

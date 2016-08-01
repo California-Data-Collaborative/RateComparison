@@ -49,7 +49,6 @@ plot_revenue_over_time <- function(data){
 # paid during the time period for each customer
 #******************************************************************
 plot_bill_change_histogram <- function(data){
-  
   start.time <- Sys.time()
   
   if(sum(data$changes) < 1){

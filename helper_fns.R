@@ -1,42 +1,10 @@
-library(dplyr)
+
 library(ggplot2)
 # library(reshape2)
 # library(DT)
 
 
 #---------------------------------- FUNCTIONS ----------------------------------------------
-
-#******************************************************************
-# Read in the data and map the columns to application columns
-#******************************************************************
-read_data <- function(filename, cust_col, usage_col, month_col, year_col, et_col, hhsize_col, irr_area_col, 
-                      rate_code_col){
-  print("Reading data...")
-  start.time <- Sys.time()
-  
-  data <- tbl_df(read.csv(filename)) %>% 
-    dplyr::rename_(.dots=setNames(list(cust_col), "cust_id")) %>%
-    dplyr::rename_(.dots=setNames(list(usage_col), "usage_ccf")) %>%
-    dplyr::rename_(.dots=setNames(list(month_col), "usage_month")) %>%
-    dplyr::rename_(.dots=setNames(list(year_col), "usage_year")) %>%
-    dplyr::rename_(.dots=setNames(list(et_col), "et_amount")) %>%
-    dplyr::rename_(.dots=setNames(list(hhsize_col), "hhsize")) %>%
-    dplyr::rename_(.dots=setNames(list(irr_area_col), "irr_area")) %>%
-    dplyr::rename_(.dots=setNames(list(rate_code_col), "rate_code")) %>%
-    dplyr::mutate(usage_date = as.Date(usage_date))
-  
-  end.time <- Sys.time()
-  time.taken <- end.time - start.time
-  print(time.taken)
-  print("...loaded.")
-  return(data)
-}
-
-monthStart <- function(x) {
-  x <- as.POSIXlt(x)
-  x$mday <- 1
-  as.Date(x)
-}
 
 #******************************************************************
 # Calculate the variable portion of a bill
@@ -153,10 +121,10 @@ get_indoor_tier <- function(data, gpcd){
 }
 
 #******************************************************************
-# Calculate outdoor tier as a function of plant factor
+# Calculate outdoor tier as a function of ET factor
 #******************************************************************
-get_outdoor_tier <- function(data, plant_factor){
-  return(data$irr_area*data$et_amount*plant_factor*0.62/748)
+get_outdoor_tier <- function(data, et_factor){
+  return(data$irr_area*data$et_amount*et_factor*0.62/748)
 }
 
 #******************************************************************

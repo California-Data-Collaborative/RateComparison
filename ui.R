@@ -29,9 +29,8 @@ shinyUI(navbarPage(
                fluidRow(
                  column(1),
                  column(10,
-                        sliderInput("timeSlider", label = "Time Range", min = as.Date("2014-01-01"), 
-                                    max = as.Date("2015-12-31"), 
-                                    value = c(as.Date("2014-01-01"), as.Date("2015-12-31")), timeFormat="%Y-%m")
+                        sliderInput("timeSlider", label = "Time Range", min = min_date, 
+                                    max = max_date, value = c(min_date, max_date), timeFormat="%Y-%m")
                  ),
                  column(1)
                ),
@@ -78,7 +77,7 @@ shinyUI(navbarPage(
                                       max = 75, value = 60, step=5)
                    ),
                    column(6, 
-                          sliderInput("plantFactorSlider", label = "Plant Factor", min = 0, 
+                          sliderInput("ETFactorSlider", label = "ET Factor", min = 0, 
                                       max = 1, value = 0.7, step=0.05)
                    )
                  ),#end row
@@ -107,7 +106,7 @@ shinyUI(navbarPage(
                  fluidRow(br(),
                           em("Indoor = GPCD * HHSize * (365/12/748)"),
                           br(),
-                          em("Outdoor = PlantFactor * ET * LA  * (1/748)")
+                          em("Outdoor = ET_Factor * ET * LA  * (1/748)")
                  )
                  
                )#end conditionalPanel
