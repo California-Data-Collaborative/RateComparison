@@ -160,7 +160,7 @@ lvmwd_baseline <- function(){
   bill_2015_1 <- calculate_variable_bill(data=tmp, 
                                        rate_type="Tiered", 
                                        tier_start_str="0\n16\n67\n200",
-                                       tier_price_str="2.23\n2.72\n3.73\n5.26")
+                                       tier_price_str="2.31\n2.80\n3.81\n5.34")
   num_tiers <- length(parse_strings("0\n16\n67\n200"))
   colnames(bill_2015_1) <- c( paste("B", 1:num_tiers, sep=""),
                             paste("BR", 1:num_tiers, sep=""),
@@ -173,7 +173,7 @@ lvmwd_baseline <- function(){
   bill_2015_2 <- calculate_variable_bill(data=tmp, 
                                        rate_type="Tiered", 
                                        tier_start_str="0\n8\n34\n100",
-                                       tier_price_str="2.23\n2.72\n3.73\n5.26")
+                                       tier_price_str="2.31\n2.80\n3.81\n5.34")
   num_tiers <- length(parse_strings("0\n16\n67\n200"))
   colnames(bill_2015_2) <- c( paste("B", 1:num_tiers, sep=""),
                             paste("BR", 1:num_tiers, sep=""),
