@@ -51,7 +51,7 @@ plot_revenue_over_time <- function(data){
 plot_bill_change_histogram <- function(data){
   start.time <- Sys.time()
   
-  if(sum(data$changes) < 1){
+  if(sum(abs(data$changes)) < 1){
     p <- ggplot() + 
       geom_vline(xintercept = 0, color="#CC0000") +
       xlab("Change in total amount paid ($)")
@@ -77,7 +77,7 @@ plot_bill_change_histogram <- function(data){
 # complement the histogram
 #******************************************************************
 plot_bill_change_boxplot <- function(data){
-  if(sum(data$changes) < 1){
+  if(sum(abs(data$changes)) < 1){
     p <- ggplot() + 
       geom_vline(xintercept = 0, color="#CC0000") +
       xlab("")
