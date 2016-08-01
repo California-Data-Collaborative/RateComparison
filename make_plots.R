@@ -104,6 +104,7 @@ plot_barchart_by_tiers <- function(data, display_type, bar_ype){
          mutate(type=ifelse(grepl("B.*", variable), "Baseline", "Hypothetical"),
                 Tier = get_tier_name(variable),
                 value = value/1000000.0)
+    lab_str <- "Revenue During Time Period (Million $)"
   }
   else{
     # Select usage in each tier
@@ -112,12 +113,14 @@ plot_barchart_by_tiers <- function(data, display_type, bar_ype){
          mutate(id=1)
     d <- melt(d, id.vars="id" ) %>% 
          mutate(type=ifelse(grepl("B.*", variable), "Baseline", "Hypothetical"),
-                Tier = get_tier_name(variable))
+                Tier = get_tier_name(variable),
+                value = value*0.00229569/1000)
+    lab_str <- "Usage During Time Period (Thousand AF)"
   }
   
   if(bar_ype == "Absolute"){
     ggplot(d, aes(type, value, fill=Tier)) + geom_bar(stat="identity") +
-      xlab("") + ylab("Revenue During Time Period (Million $)")
+      xlab("") + ylab(lab_str)
   }
   else{
     
