@@ -4,7 +4,7 @@ library(shiny)
 library(dplyr)
 
 
-utility_code <- "MNWD"
+utility_code <- "LVMWD"
 
 
 #******************************************************************
@@ -24,7 +24,8 @@ read_data <- function(filename, cust_col, usage_col, month_col, year_col, et_col
     dplyr::rename_(.dots=setNames(list(hhsize_col), "hhsize")) %>%
     dplyr::rename_(.dots=setNames(list(irr_area_col), "irr_area")) %>%
     dplyr::rename_(.dots=setNames(list(rate_code_col), "rate_code")) %>%
-    dplyr::mutate(usage_date = as.Date(usage_date))
+    dplyr::mutate(usage_date = as.Date(usage_date)) %>%
+    dplyr::arrange(usage_date)
   
   end.time <- Sys.time()
   time.taken <- end.time - start.time

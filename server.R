@@ -141,8 +141,10 @@ mnwd_baseline <- function(){
 }
 
 lvmwd_baseline <- function(){
-  browser()
-  bill_2014 <- calculate_variable_bill(data=filter(df, usage_year < 2015), 
+  
+  #2014 rate
+  tmp <- filter(df, usage_year < 2015)
+  bill_2014 <- calculate_variable_bill(data=tmp, 
                                        rate_type="Tiered", 
                                        tier_start_str="0\n16\n67\n200",
                                        tier_price_str="2.19\n2.60\n3.56\n5.02")
@@ -150,18 +152,36 @@ lvmwd_baseline <- function(){
   colnames(bill_2014) <- c( paste("B", 1:num_tiers, sep=""),
                             paste("BR", 1:num_tiers, sep=""),
                             "baseline_variable_bill")
-  bill_2014$baseline_bill <- bill_2014$baseline_variable_bill + 30.21
+  bill_2014 <- bill_2014 %>% mutate(baseline_bill=baseline_variable_bill + 30.21) 
+
   
-  bill_2015 <- calculate_variable_bill(data=filter(df, usage_year >= 2015, usage_year < 2016), 
+  #2015 before the September switch to monthly billing
+  tmp <- filter(df, usage_year >= 2015, usage_year < 2016, usage_month < 9)
+  bill_2015_1 <- calculate_variable_bill(data=tmp, 
                                        rate_type="Tiered", 
                                        tier_start_str="0\n16\n67\n200",
                                        tier_price_str="2.23\n2.72\n3.73\n5.26")
   num_tiers <- length(parse_strings("0\n16\n67\n200"))
-  colnames(bill_2015) <- c( paste("B", 1:num_tiers, sep=""),
+  colnames(bill_2015_1) <- c( paste("B", 1:num_tiers, sep=""),
                             paste("BR", 1:num_tiers, sep=""),
                             "baseline_variable_bill")
-  bill_2015$baseline_bill <- bill_2015$baseline_variable_bill + 31.73
+  bill_2015_1 <- bill_2015_1 %>% mutate(baseline_bill=baseline_variable_bill + 31.73) 
+
   
+  #2015 after the September switch to monthly billing
+  tmp <- filter(df, usage_date >= as.Date("2015-09-01"), usage_year < 2016)
+  bill_2015_2 <- calculate_variable_bill(data=tmp, 
+                                       rate_type="Tiered", 
+                                       tier_start_str="0\n8\n34\n100",
+                                       tier_price_str="2.23\n2.72\n3.73\n5.26")
+  num_tiers <- length(parse_strings("0\n16\n67\n200"))
+  colnames(bill_2015_2) <- c( paste("B", 1:num_tiers, sep=""),
+                            paste("BR", 1:num_tiers, sep=""),
+                            "baseline_variable_bill")
+  bill_2015_2$baseline_bill <- bill_2015_2$baseline_variable_bill + 15.87
+
+  
+  #2016 budgets
   tmp <- filter(df, usage_year >= 2016)
   bill_2016 <- calculate_variable_bill(data=tmp, 
                                    rate_type="Budget", 
@@ -174,6 +194,7 @@ lvmwd_baseline <- function(){
                             paste("BR", 1:num_tiers, sep=""),
                             "baseline_variable_bill")
   bill_2016$baseline_bill <- bill_2016$baseline_variable_bill + 18.30
+
   
-  return( bind_rows(bill_2014, bill_2015, bill_2016) )
+  return( bind_rows(bill_2014, bill_2015_1, bill_2015_2, bill_2016) )
 }

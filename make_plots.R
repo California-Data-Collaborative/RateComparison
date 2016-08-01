@@ -25,8 +25,8 @@ plot_revenue_over_time <- function(data){
   print("Calcing monthly_revenue")
   print(time.taken)
   start.time <- Sys.time()
-  
-  p <- ggplot(monthly_revenue, aes(x=usage_date, y=value, color=Revenue)) + 
+
+    p <- ggplot(monthly_revenue, aes(x=usage_date, y=value, color=Revenue)) + 
     # geom_ribbon(aes(x=usage_date, ymax=rev_mill, ymin=base_rev_mill), fill="grey", alpha=.5) +
     geom_line() + 
     scale_linetype_manual(values = c("Baseline"="dashed", "Hypothetical"="solid")) +
