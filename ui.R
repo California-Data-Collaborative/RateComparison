@@ -113,6 +113,14 @@ shinyUI(navbarPage(
                  
                )#end conditionalPanel
                
+#                conditionalPanel(
+#                  condition = "input.rateType == 'Tiered' || input.rateType == 'Budget'",
+#                  fluidRow(
+#                    column(12,
+#                           actionButton("updateTiers", "Update Tiers")
+#                    )
+#                  )#end row
+#                )
                
              )#end wellPanel
       ),#end column
@@ -120,21 +128,24 @@ shinyUI(navbarPage(
       #----------------------- Output panels ------------------
       column( 8, #"main panel",
               tabsetPanel(type="tabs",
-                          tabPanel("Residential",
+                          tabPanel("Single-Family",
                                    fluidRow(
                                      column(12, plotlyOutput("revenue_time_series", height=250) )
                                    ),
                                    fluidRow(
                                      column(4,
+                                            plotlyOutput("barchart_by_tiers", height=350),
                                             radioButtons("barType", label = "",  selected = "Absolute", inline=TRUE,
-                                                         choices = list("Absolute" = "Absolute", "Percent" = "Percent")),
-                                            plotlyOutput("barchart_by_tiers", height=350) ),
-                                     column(3),
+                                                         choices = list("Absolute" = "Absolute", "Percent" = "Percent"))
+                                     ),
+                                     column(3,
+                                            plotlyOutput("fixed_revenue_barchart", height=350)
+                                     ),
                                      column(5, 
                                             plotlyOutput("bill_change_boxplot", height=100),
                                             plotlyOutput("bill_change_histogram", height=250) )
                                      
-                                   )
+                                     )
                                    
                           ),
                           

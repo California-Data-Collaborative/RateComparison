@@ -93,7 +93,7 @@ plot_bill_change_boxplot <- function(data){
 #******************************************************************
 # Barchart showing total revenue/usage in each tier in both rates
 #******************************************************************
-plot_barchart_by_tiers <- function(data, display_type, bar_ype){
+plot_barchart_by_tiers <- function(data, display_type, bar_type){
 
   if(display_type=="Revenue"){
     # Select revenue in each tier
@@ -118,9 +118,38 @@ plot_barchart_by_tiers <- function(data, display_type, bar_ype){
     lab_str <- "Usage During Time Period (Thousand AF)"
   }
   
-  if(bar_ype == "Absolute"){
+  if(bar_type == "Absolute"){
     ggplot(d, aes(type, value, fill=Tier)) + geom_bar(stat="identity") +
       xlab("") + ylab(lab_str)
+  }
+  else{
+    
+  }
+}
+
+#******************************************************************
+# Barchart showing fixed revenue
+#******************************************************************
+plot_fixed_revenue <- function(data, bar_type){
+
+  # Select revenue in each tier
+  d <- colSums(data %>% select(baseline_variable_bill, baseline_bill, variable_bill, total_bill), 
+               na.rm=TRUE)
+  d <- tbl_df(data.frame(lapply(d, function(x) t(data.frame(x))))) %>%
+       mutate(baseline_fixed=baseline_bill-baseline_variable_bill,
+              hypthetical_fixed=total_bill-variable_bill, id=1) %>%
+       mutate(Baseline=100*baseline_fixed/baseline_bill,
+              Hypothetical=100*hypthetical_fixed/total_bill) %>%
+       select(Baseline, Hypothetical, id)
+  d <- melt(d, id.vars="id" ) 
+  lab_str <- "Percent Fixed Revenue"
+
+  
+  if(bar_type == "Absolute"){
+    ggplot(d, aes(variable, value, fill=variable)) + geom_bar(stat="identity") +
+      xlab("") + ylab(lab_str) + #coord_flip() + 
+      scale_fill_manual( values=c("Hypothetical"="steelblue", "Baseline"="black") ) +
+      guides(fill=FALSE)
   }
   else{
     

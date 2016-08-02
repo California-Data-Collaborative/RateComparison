@@ -19,27 +19,33 @@ shinyServer(function(input, output, clientData, session) {
   # Calculate variable potion of the bill, dependent on rate type
   #******************************************************************
   variable_charge <- reactive({ 
-    
-    if(input$rateType == "Flat"){
-      bill_info <- calculate_variable_bill(data=df, rate_type=input$rateType, 
-                                   tier_price_str=as.character(input$flatRate))
-    }
-    else if(input$rateType == "Tiered"){
-      bill_info <- calculate_variable_bill(data=df, rate_type=input$rateType, 
-                                   tier_start_str=input$tieredTiers,
-                                   tier_price_str=input$tieredPrice)
-    }
-    else if(input$rateType == "Budget"){
-      print(paste("Rate type: ", input$rateType, input$budgetTiers, input$budgetPrice, 
-                  input$galPerCapitaSlider, input$ETFactorSlider))
-      bill_info <- calculate_variable_bill(data=df, rate_type=input$rateType, 
-                                   tier_start_str=input$budgetTiers,
-                                   tier_price_str=input$budgetPrice,
-                                   indoor_tier=indoor(), 
-                                   outdoor_tier=outdoor())
-    }
+    bill_info <- calculate_variable_bill(data=df, rate_type=input$rateType, 
+                                 tier_starts=tier_info()$starts,
+                                 tier_prices=tier_info()$prices )
+
     print( paste("Variable Revenue:",sum(bill_info$variable_bill, na.rm=TRUE)) )
     bill_info
+  })
+  
+  tier_info <- reactive({
+    tier_info <- list()
+    if(input$rateType == "Flat"){
+      tier_info$starts <- NULL
+      tier_info$prices <- parse_numerics(as.character(input$flatRate))
+    }
+    else if(input$rateType == "Tiered"){
+      tier_info$starts <- parse_numerics(input$tieredTiers)
+      tier_info$prices <- parse_numerics(input$tieredPrice)
+    }
+    else if(input$rateType == "Budget"){
+      tier_info$starts <- budget_tier_starts()
+      tier_info$prices <- parse_numerics(input$budgetPrice)
+    }
+    tier_info
+  })
+  
+  budget_tier_starts <- reactive({
+    get_budget_tiers(df, parse_strings(input$budgetTiers), indoor(), outdoor())
   })
   
   #******************************************************************
@@ -119,17 +125,21 @@ shinyServer(function(input, output, clientData, session) {
   output$bill_change_boxplot <- renderPlotly({
     plot_bill_change_boxplot( df_change() )
   })
+  
+  output$fixed_revenue_barchart <- renderPlotly({
+    plot_fixed_revenue(df_plots(), input$barType)
+  })
 
 })
 
 
 
 mnwd_baseline <- function(){
+  tier_starts <- get_budget_tiers(df, parse_strings("0\nIndoor\n101%\n126%\n151%"), 
+                                  get_indoor_tier(df, 60), get_outdoor_tier(df, 0.7))
   bill_info <- calculate_variable_bill(data=df, rate_type="Budget", 
-                                       tier_start_str="0\nIndoor\n101%\n126%\n151%",
-                                       tier_price_str="1.49\n1.70\n2.62\n4.38\n9.17",
-                                       indoor_tier=get_indoor_tier(df, 60), 
-                                       outdoor_tier=get_outdoor_tier(df, 0.7))
+                                       tier_starts=tier_starts,
+                                       tier_prices=parse_numerics("1.49\n1.70\n2.62\n4.38\n9.17"))
   
   num_tiers <- length(parse_strings("1.49\n1.70\n2.62\n4.38\n9.17"))
   colnames(bill_info) <- c( paste("B", 1:num_tiers, sep=""),
@@ -146,8 +156,8 @@ lvmwd_baseline <- function(){
   tmp <- filter(df, usage_year < 2015)
   bill_2014 <- calculate_variable_bill(data=tmp, 
                                        rate_type="Tiered", 
-                                       tier_start_str="0\n16\n67\n200",
-                                       tier_price_str="2.19\n2.60\n3.56\n5.02")
+                                       tier_starts=parse_numerics("0\n16\n67\n200"),
+                                       tier_prices=parse_numerics("2.19\n2.60\n3.56\n5.02") )
   num_tiers <- length(parse_strings("0\n16\n67\n200"))
   colnames(bill_2014) <- c( paste("B", 1:num_tiers, sep=""),
                             paste("BR", 1:num_tiers, sep=""),
@@ -159,8 +169,8 @@ lvmwd_baseline <- function(){
   tmp <- filter(df, usage_year >= 2015, usage_year < 2016, usage_month < 9)
   bill_2015_1 <- calculate_variable_bill(data=tmp, 
                                        rate_type="Tiered", 
-                                       tier_start_str="0\n16\n67\n200",
-                                       tier_price_str="2.31\n2.80\n3.81\n5.34")
+                                       tier_starts=parse_numerics("0\n16\n67\n200"),
+                                       tier_prices=parse_numerics("2.31\n2.80\n3.81\n5.34") )
   num_tiers <- length(parse_strings("0\n16\n67\n200"))
   colnames(bill_2015_1) <- c( paste("B", 1:num_tiers, sep=""),
                             paste("BR", 1:num_tiers, sep=""),
@@ -172,8 +182,8 @@ lvmwd_baseline <- function(){
   tmp <- filter(df, usage_date >= as.Date("2015-09-01"), usage_year < 2016)
   bill_2015_2 <- calculate_variable_bill(data=tmp, 
                                        rate_type="Tiered", 
-                                       tier_start_str="0\n8\n34\n100",
-                                       tier_price_str="2.31\n2.80\n3.81\n5.34")
+                                       tier_starts=parse_numerics("0\n8\n34\n100"),
+                                       tier_prices=parse_numerics("2.31\n2.80\n3.81\n5.34") )
   num_tiers <- length(parse_strings("0\n16\n67\n200"))
   colnames(bill_2015_2) <- c( paste("B", 1:num_tiers, sep=""),
                             paste("BR", 1:num_tiers, sep=""),
@@ -183,12 +193,12 @@ lvmwd_baseline <- function(){
   
   #2016 budgets
   tmp <- filter(df, usage_year >= 2016)
+  tier_starts <- get_budget_tiers(tmp, parse_strings("0\nIndoor\n101%\n151%"), 
+                                  get_indoor_tier(tmp, 55), get_outdoor_tier(tmp, 0.8))
   bill_2016 <- calculate_variable_bill(data=tmp, 
                                    rate_type="Budget", 
-                                   tier_start_str="0\nIndoor\n101%\n151%",
-                                   tier_price_str="2.36\n3.18\n3.96\n4.98",
-                                   indoor_tier=get_indoor_tier(tmp, 55), 
-                                   outdoor_tier=get_outdoor_tier(tmp, 0.8))
+                                   tier_starts=tier_starts,
+                                   tier_prices=parse_numerics("2.36\n3.18\n3.96\n4.98") )
   num_tiers <- length(parse_strings("2.36\n3.18\n3.96\n4.98"))
   colnames(bill_2016) <- c( paste("B", 1:num_tiers, sep=""),
                             paste("BR", 1:num_tiers, sep=""),

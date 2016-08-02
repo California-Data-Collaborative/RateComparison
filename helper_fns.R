@@ -9,23 +9,18 @@ library(ggplot2)
 #******************************************************************
 # Calculate the variable portion of a bill
 #******************************************************************
-calculate_variable_bill <- function(data, rate_type, tier_start_str=NULL, tier_price_str,
-                                    indoor_tier=NULL, outdoor_tier=NULL){
+calculate_variable_bill <- function(data, rate_type, tier_starts=NULL, tier_prices){
 
-  tier_prices <- parse_numerics(tier_price_str)
-  
   #call correct bill calculator function
   if(rate_type == "Flat"){
     bill_info <- calculate_flat_charge(data, tier_prices[1])
   }
   else if(rate_type == "Tiered"){
-    tier_starts <- parse_numerics(tier_start_str)
     #check that prices are same length as tiers
     stopifnot(length(tier_starts)==length(tier_prices))
     bill_info <- calculate_tiered_charge(data, tier_starts, tier_prices)
   }
   else if(rate_type == "Budget"){
-    tier_starts <- get_budget_tiers(data, parse_strings(tier_start_str), indoor_tier, outdoor_tier)
     #check that prices are same length as tiers
     stopifnot(ncol(tier_starts)==length(tier_prices))
     bill_info <- calculate_tiered_charge(data, tier_starts, tier_prices, budget_based=TRUE)
@@ -139,7 +134,7 @@ get_outdoor_tier <- function(data, et_factor){
 get_budget_tiers <- function(data, tier_start_strs, indoor_tier, outdoor_tier){
   budget <- indoor_tier+outdoor_tier
   budget_tiers <- matrix(0, nrow(data), length(tier_start_strs))
-  
+ 
   for(i in 1:length(tier_start_strs)){
     t <- tier_start_strs[i]
     
