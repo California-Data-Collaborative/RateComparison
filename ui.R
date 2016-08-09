@@ -20,7 +20,10 @@ shinyUI(navbarPage(
                                      selected = "Flat")
                  ),
                  column(7, 
-                        numericInput("fixedCharge", label = "Fixed Charge ($)", value = 18.30),
+                        # LVMWD
+                        #numericInput("fixedCharge", label = "Fixed Charge ($)", value = 18.30),
+                        # SMWD
+                        numericInput("fixedCharge", label = "Fixed Charge ($)", value = 8.72),
                         radioButtons("displayType", label = "Display", selected = "Revenue", inline=TRUE,
                                      choices = list("Revenue" = "Revenue", "Usage" = "Usage"))
                  )
@@ -54,7 +57,10 @@ shinyUI(navbarPage(
                             strong("Tier start (CCF)")
                           ),
                           fluidRow(
-                            HTML('<textarea id="tieredTiers" rows="6" cols="15" style="resize: none;">0\n16\n67\n200</textarea>')
+                            # LVMWD
+                            # HTML('<textarea id="tieredTiers" rows="6" cols="15" style="resize: none;">0\n16\n67\n200</textarea>')
+                            # SMWD
+                            HTML('<textarea id="tieredTiers" rows="6" cols="15" style="resize: none;">0\n7\n21\n36\n71</textarea>')
                           )
                    ),
                    column(6,
@@ -62,7 +68,10 @@ shinyUI(navbarPage(
                             strong("Tier prices")
                           ),
                           fluidRow(
-                            HTML('<textarea id="tieredPrice" rows="6" cols="15" style="resize: none;">2.31\n2.80\n3.81\n5.34</textarea>')
+                            # LVMWD
+                            # HTML('<textarea id="tieredPrice" rows="6" cols="15" style="resize: none;">2.31\n2.80\n3.81\n5.34</textarea>')
+                            # SMWD
+                            HTML('<textarea id="tieredPrice" rows="6" cols="15" style="resize: none;">2.04\n2.29\n2.77\n3.28\n4.50</textarea>')
                           )
                    )
                  )#end row
@@ -87,8 +96,12 @@ shinyUI(navbarPage(
                             strong("Tier start")
                           ),
                           fluidRow(
+                            # MNWD
                             # HTML('<textarea id="budgetTiers" rows="6" cols="15" style="resize: none;">0\nIndoor\n101%\n126%\n151%</textarea>')
-                            HTML('<textarea id="budgetTiers" rows="6" cols="15" style="resize: none;">0\nIndoor\n101%\n151%</textarea>')
+                            # LVMWD
+                            # HTML('<textarea id="budgetTiers" rows="6" cols="15" style="resize: none;">0\nIndoor\n101%\n151%</textarea>')
+                            # SMWD
+                            HTML('<textarea id="budgetTiers" rows="6" cols="15" style="resize: none;">0\nIndoor\n101%\n151%\n201%</textarea>')
                           )
                    ),
                    column(6,
@@ -96,8 +109,12 @@ shinyUI(navbarPage(
                             strong("Tier prices ($)")
                           ),
                           fluidRow(
+                            # MNWD
                             # HTML('<textarea id="budgetPrice" rows="6" cols="15" style="resize: none;">1.49\n1.70\n2.62\n4.38\n9.17</textarea>')
-                            HTML('<textarea id="budgetPrice" rows="6" cols="15" style="resize: none;">2.36\n3.18\n3.96\n4.98</textarea>')
+                            # LVMWD
+                            # HTML('<textarea id="budgetPrice" rows="6" cols="15" style="resize: none;">2.36\n3.18\n3.96\n4.98</textarea>')
+                            # SMWD
+                            HTML('<textarea id="budgetPrice" rows="6" cols="15" style="resize: none;">1.86\n2.11\n2.61\n3.21\n4.67</textarea>')
                           )
                    )
                  ),#end row
@@ -108,7 +125,7 @@ shinyUI(navbarPage(
                  fluidRow(br(),
                           em("Indoor = GPCD * HHSize * (365/12/748)"),
                           br(),
-                          em("Outdoor = ET_Factor * ET * LA  * (1/748)")
+                          em("Outdoor = ET_Factor * ET * LA  * (0.62/748)")
                  )
                  
                )#end conditionalPanel

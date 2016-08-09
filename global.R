@@ -4,7 +4,7 @@ library(shiny)
 library(dplyr)
 
 
-utility_code <- "LVMWD"
+utility_code <- "SMWD"
 
 
 #******************************************************************
@@ -25,7 +25,8 @@ read_data <- function(filename, cust_col, usage_col, month_col, year_col, et_col
     dplyr::rename_(.dots=setNames(list(irr_area_col), "irr_area")) %>%
     dplyr::rename_(.dots=setNames(list(rate_code_col), "rate_code")) %>%
     dplyr::mutate(usage_date = as.Date(usage_date)) %>%
-    dplyr::arrange(usage_date)
+    dplyr::arrange(usage_date) %>%
+    filter(usage_date < as.Date("2016-01-01"))
   
   end.time <- Sys.time()
   time.taken <- end.time - start.time
@@ -37,7 +38,8 @@ read_data <- function(filename, cust_col, usage_col, month_col, year_col, et_col
 
 test_file <- switch(utility_code,
                     "MNWD"="data/mnwd_test.csv",
-                    "LVMWD"="data/lvmwd_test.csv")
+                    "LVMWD"="data/lvmwd_test.csv",
+                    "SMWD"="data/smwd_test.csv")
 
 # Read data from file and rename the columns to be compatable with internal calls
 df <- read_data(test_file, cust_col="cust_loc_id", usage_col="usage_ccf", month_col="usage_month", 
