@@ -104,7 +104,7 @@ plot_barchart_by_tiers <- function(data, display_type, bar_type){
          mutate(type=ifelse(grepl("B.*", variable), "Baseline", "Hypothetical"),
                 Tier = get_tier_name(variable),
                 value = value/1000000.0)
-    lab_str <- "Revenue During Time Period (Million $)"
+    lab_str <- "Variable Rev. During Time Period (Mill. $)"
   }
   else{
     # Select usage in each tier

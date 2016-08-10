@@ -20,10 +20,12 @@ shinyUI(navbarPage(
                                      selected = "Flat")
                  ),
                  column(7, 
+                        # MNWD
+                        numericInput("fixedCharge", label = "Fixed Charge ($)", value = 11.39),
                         # LVMWD
-                        #numericInput("fixedCharge", label = "Fixed Charge ($)", value = 18.30),
+                        # numericInput("fixedCharge", label = "Fixed Charge ($)", value = 18.30),
                         # SMWD
-                        numericInput("fixedCharge", label = "Fixed Charge ($)", value = 8.72),
+                        # numericInput("fixedCharge", label = "Fixed Charge ($)", value = 8.72),
                         radioButtons("displayType", label = "Display", selected = "Revenue", inline=TRUE,
                                      choices = list("Revenue" = "Revenue", "Usage" = "Usage"))
                  )
@@ -97,11 +99,11 @@ shinyUI(navbarPage(
                           ),
                           fluidRow(
                             # MNWD
-                            # HTML('<textarea id="budgetTiers" rows="6" cols="15" style="resize: none;">0\nIndoor\n101%\n126%\n151%</textarea>')
+                            HTML('<textarea id="budgetTiers" rows="6" cols="15" style="resize: none;">0\nIndoor\n101%\n126%\n151%</textarea>')
                             # LVMWD
                             # HTML('<textarea id="budgetTiers" rows="6" cols="15" style="resize: none;">0\nIndoor\n101%\n151%</textarea>')
                             # SMWD
-                            HTML('<textarea id="budgetTiers" rows="6" cols="15" style="resize: none;">0\nIndoor\n101%\n151%\n201%</textarea>')
+                            # HTML('<textarea id="budgetTiers" rows="6" cols="15" style="resize: none;">0\nIndoor\n101%\n151%\n201%</textarea>')
                           )
                    ),
                    column(6,
@@ -110,11 +112,11 @@ shinyUI(navbarPage(
                           ),
                           fluidRow(
                             # MNWD
-                            # HTML('<textarea id="budgetPrice" rows="6" cols="15" style="resize: none;">1.49\n1.70\n2.62\n4.38\n9.17</textarea>')
+                            HTML('<textarea id="budgetPrice" rows="6" cols="15" style="resize: none;">1.49\n1.70\n2.62\n4.38\n9.17</textarea>')
                             # LVMWD
                             # HTML('<textarea id="budgetPrice" rows="6" cols="15" style="resize: none;">2.36\n3.18\n3.96\n4.98</textarea>')
                             # SMWD
-                            HTML('<textarea id="budgetPrice" rows="6" cols="15" style="resize: none;">1.86\n2.11\n2.61\n3.21\n4.67</textarea>')
+                            # HTML('<textarea id="budgetPrice" rows="6" cols="15" style="resize: none;">1.86\n2.11\n2.61\n3.21\n4.67</textarea>')
                           )
                    )
                  ),#end row

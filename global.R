@@ -4,7 +4,7 @@ library(shiny)
 library(dplyr)
 
 
-utility_code <- "SMWD"
+utility_code <- "MNWD"
 
 
 #******************************************************************
