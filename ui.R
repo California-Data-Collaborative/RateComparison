@@ -20,12 +20,7 @@ shinyUI(navbarPage(
                                      selected = "Flat")
                  ),
                  column(7, 
-                        # MNWD
-                        numericInput("fixedCharge", label = "Fixed Charge ($)", value = 11.39),
-                        # LVMWD
-                        # numericInput("fixedCharge", label = "Fixed Charge ($)", value = 18.30),
-                        # SMWD
-                        # numericInput("fixedCharge", label = "Fixed Charge ($)", value = 8.72),
+                        numericInput("fixedCharge", label = "Fixed Charge ($)", value = default_fixed_charge),
                         radioButtons("displayType", label = "Display", selected = "Revenue", inline=TRUE,
                                      choices = list("Revenue" = "Revenue", "Usage" = "Usage"))
                  )
@@ -59,10 +54,7 @@ shinyUI(navbarPage(
                             strong("Tier start (CCF)")
                           ),
                           fluidRow(
-                            # LVMWD
-                            # HTML('<textarea id="tieredTiers" rows="6" cols="15" style="resize: none;">0\n16\n67\n200</textarea>')
-                            # SMWD
-                            HTML('<textarea id="tieredTiers" rows="6" cols="15" style="resize: none;">0\n7\n21\n36\n71</textarea>')
+                            HTML(default_tiered_tiers_html)
                           )
                    ),
                    column(6,
@@ -70,10 +62,7 @@ shinyUI(navbarPage(
                             strong("Tier prices")
                           ),
                           fluidRow(
-                            # LVMWD
-                            # HTML('<textarea id="tieredPrice" rows="6" cols="15" style="resize: none;">2.31\n2.80\n3.81\n5.34</textarea>')
-                            # SMWD
-                            HTML('<textarea id="tieredPrice" rows="6" cols="15" style="resize: none;">2.04\n2.29\n2.77\n3.28\n4.50</textarea>')
+                            HTML(default_tiered_prices_html)
                           )
                    )
                  )#end row
@@ -84,12 +73,12 @@ shinyUI(navbarPage(
                  condition = "input.rateType == 'Budget'",
                  fluidRow(
                    column(6, 
-                          sliderInput("galPerCapitaSlider", label = "GPCD", min = 0, 
-                                      max = 75, value = 60, step=5)
+                          sliderInput("galPerCapitaSlider", label = "GPCD", min = 25, 
+                                      max = 75, value = default_gpcd, step=5)
                    ),
                    column(6, 
                           sliderInput("ETFactorSlider", label = "ET Factor", min = 0, 
-                                      max = 1, value = 0.7, step=0.05)
+                                      max = 1, value = default_et_factor, step=0.05)
                    )
                  ),#end row
                  fluidRow(
@@ -98,12 +87,7 @@ shinyUI(navbarPage(
                             strong("Tier start")
                           ),
                           fluidRow(
-                            # MNWD
-                            HTML('<textarea id="budgetTiers" rows="6" cols="15" style="resize: none;">0\nIndoor\n101%\n126%\n151%</textarea>')
-                            # LVMWD
-                            # HTML('<textarea id="budgetTiers" rows="6" cols="15" style="resize: none;">0\nIndoor\n101%\n151%</textarea>')
-                            # SMWD
-                            # HTML('<textarea id="budgetTiers" rows="6" cols="15" style="resize: none;">0\nIndoor\n101%\n151%\n201%</textarea>')
+                            HTML(default_budget_tiers_html)
                           )
                    ),
                    column(6,
@@ -111,12 +95,7 @@ shinyUI(navbarPage(
                             strong("Tier prices ($)")
                           ),
                           fluidRow(
-                            # MNWD
-                            HTML('<textarea id="budgetPrice" rows="6" cols="15" style="resize: none;">1.49\n1.70\n2.62\n4.38\n9.17</textarea>')
-                            # LVMWD
-                            # HTML('<textarea id="budgetPrice" rows="6" cols="15" style="resize: none;">2.36\n3.18\n3.96\n4.98</textarea>')
-                            # SMWD
-                            # HTML('<textarea id="budgetPrice" rows="6" cols="15" style="resize: none;">1.86\n2.11\n2.61\n3.21\n4.67</textarea>')
+                            HTML(default_budget_prices_html)
                           )
                    )
                  ),#end row
