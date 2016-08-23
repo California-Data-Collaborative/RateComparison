@@ -11,7 +11,7 @@ source("utility_code.R")
 # Read in the data and map the columns to application columns
 #******************************************************************
 read_data <- function(filename, cust_col, usage_col, month_col, year_col, et_col, hhsize_col, irr_area_col, 
-                      rate_code_col){
+                      rate_code_col, less_than_date){
   print("Reading data...")
   start.time <- Sys.time()
   
@@ -26,7 +26,7 @@ read_data <- function(filename, cust_col, usage_col, month_col, year_col, et_col
     dplyr::rename_(.dots=setNames(list(rate_code_col), "rate_code")) %>%
     dplyr::mutate(usage_date = as.Date(usage_date)) %>%
     dplyr::arrange(usage_date) %>%
-    filter(usage_date < as.Date("2016-01-01"))
+    filter(usage_date < as.Date(less_than_date))
   
   end.time <- Sys.time()
   time.taken <- end.time - start.time
@@ -35,6 +35,11 @@ read_data <- function(filename, cust_col, usage_col, month_col, year_col, et_col
   return(data)
 }
 
+
+less_than_date <- switch(utility_code,
+                    "MNWD"="2017-01-01",
+                    "LVMWD"="2017-01-01",
+                    "SMWD"="2016-01-01")
 
 test_file <- switch(utility_code,
                     "MNWD"="data/mnwd_test.csv",
@@ -83,7 +88,8 @@ default_budget_prices_html <- switch(utility_code,
 # Read data from file and rename the columns to be compatable with internal calls
 df <- read_data(test_file, cust_col="cust_loc_id", usage_col="usage_ccf", month_col="usage_month", 
                 year_col="usage_year", et_col="usage_et_amount", hhsize_col="cust_loc_hhsize", 
-                irr_area_col="cust_loc_irr_area_sf", rate_code_col= "cust_loc_class")
+                irr_area_col="cust_loc_irr_area_sf", rate_code_col= "cust_loc_class", 
+                less_than_date=less_than_date)
 
 
 # Update the time slider with the actual date values in the data
