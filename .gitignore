@@ -10,6 +10,7 @@ data/*
 # History files
 .Rhistory
 .Rapp.history
+utility_code.R
 
 # Session Data files
 .RData
