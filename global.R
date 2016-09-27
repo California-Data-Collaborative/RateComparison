@@ -10,8 +10,10 @@ source("utility_code.R")
 #******************************************************************
 # Read in the data and map the columns to application columns
 #******************************************************************
+
 read_data <- function(filename, cust_col, usage_col, month_col, year_col, et_col=NULL, 
-                      hhsize_col=NULL, irr_area_col=NULL, rate_code_col, less_than_date){
+                      hhsize_col=NULL, irr_area_col=NULL, rate_code_col, cust_class_col, less_than_date){
+  
   print("Reading data...")
   start.time <- Sys.time()
   
@@ -21,6 +23,7 @@ read_data <- function(filename, cust_col, usage_col, month_col, year_col, et_col
     dplyr::rename_(.dots=setNames(list(month_col), "usage_month")) %>%
     dplyr::rename_(.dots=setNames(list(year_col), "usage_year")) %>%
     dplyr::rename_(.dots=setNames(list(rate_code_col), "rate_code")) %>%
+    dplyr::rename_(.dots=setNames(list(cust_class_col), "cust_class")) %>%
     dplyr::mutate(usage_date = as.Date(usage_date)) %>%
     dplyr::arrange(usage_date) %>%
     filter(usage_date < as.Date(less_than_date))
@@ -117,14 +120,13 @@ default_budget_prices_html <- switch(utility_code,
 if(is_budget){
   df <- read_data(test_file, cust_col="cust_loc_id", usage_col="usage_ccf", month_col="usage_month", 
                   year_col="usage_year", et_col="usage_et_amount", hhsize_col="cust_loc_hhsize", 
-                  irr_area_col="cust_loc_irr_area_sf", rate_code_col= "cust_loc_class", 
+                  irr_area_col="cust_loc_irr_area_sf", rate_code_col= "cust_loc_class", cust_class_col = "cust_loc_class_from_utility",
                   less_than_date=less_than_date)
 } else{
   df <- read_data(test_file, cust_col="cust_loc_id", usage_col="usage_ccf", month_col="usage_month", 
-                  year_col="usage_year", rate_code_col= "cust_loc_class", 
+                  year_col="usage_year", rate_code_col= "cust_loc_class", cust_class_col = "cust_loc_class_from_utility",
                   less_than_date=less_than_date)
 }
-
 
 
 # Update the time slider with the actual date values in the data
