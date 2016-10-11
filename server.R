@@ -73,6 +73,7 @@ shinyServer(function(input, output, clientData, session) {
   #******************************************************************
   baseline_bill_info <- reactive({
     switch(utility_code,
+           "IRWD"=irwd_baseline(),
            "MNWD"=mnwd_baseline(),
            "LVMWD"=lvmwd_baseline(),
            "SMWD"=smwd_baseline(),
@@ -284,4 +285,52 @@ smc_baseline <- function(){
   bill_2016$baseline_bill <- bill_2016$baseline_variable_bill + 0
   
   return( bind_rows(bill_2015, bill_2016) )
+}
+
+
+irwd_baseline <- function(){
+  #FY2014  
+  tmp <- filter(df, usage_date < as.Date("2014-07-01"))
+  tier_starts <- get_budget_tiers(tmp, parse_strings("0\n41%\n101%\n151%\n201%"), 
+                                  get_indoor_tier(tmp, 50), get_outdoor_tier(tmp, 0.8))
+  bill_2014 <- calculate_variable_bill(data=tmp, 
+                                       rate_type="Budget", 
+                                       tier_starts=tier_starts,
+                                       tier_prices=parse_numerics("0.91\n1.27\n2.86\n4.80\n9.84") )
+  num_tiers <- length(parse_strings("0\n41%\n101%\n151%\n201%"))
+  colnames(bill_2014) <- c( paste("B", 1:num_tiers, sep=""),
+                            paste("BR", 1:num_tiers, sep=""),
+                            "baseline_variable_bill")
+  bill_2014 <- bill_2014 %>% mutate(baseline_bill=baseline_variable_bill + 9.85) 
+  
+  
+  #FY2015
+  tmp <- filter(df, usage_date < as.Date("2015-07-01"), usage_date >= as.Date("2014-07-01"))
+  tier_starts <- get_budget_tiers(tmp, parse_strings("0\n41%\n101%\n131%\n161%"), 
+                                  get_indoor_tier(tmp, 50), get_outdoor_tier(tmp, 0.8))
+  bill_2015 <- calculate_variable_bill(data=tmp, 
+                                       rate_type="Budget", 
+                                       tier_starts=tier_starts,
+                                       tier_prices=parse_numerics("0.88\n1.34\n3.91\n6.22\n12.60") )
+  num_tiers <- length(parse_strings("0\n41%\n101%\n151%\n201%"))
+  colnames(bill_2015) <- c( paste("B", 1:num_tiers, sep=""),
+                            paste("BR", 1:num_tiers, sep=""),
+                            "baseline_variable_bill")
+  bill_2015 <- bill_2015 %>% mutate(baseline_bill=baseline_variable_bill + 10.50) 
+  
+  #FY2016
+  tmp <- filter(df, usage_date < as.Date("2016-07-01"), usage_date >= as.Date("2015-07-01"))
+  tier_starts <- get_budget_tiers(tmp, parse_strings("0\n41%\n101%\n131%"), 
+                                  get_indoor_tier(tmp, 50), get_outdoor_tier(tmp, 0.8))
+  bill_2016 <- calculate_variable_bill(data=tmp, 
+                                       rate_type="Budget", 
+                                       tier_starts=tier_starts,
+                                       tier_prices=parse_numerics("1.11\n1.62\n3.92\n14.53") )
+  num_tiers <- length(parse_strings("0\n41%\n101%\n131%"))
+  colnames(bill_2016) <- c( paste("B", 1:num_tiers, sep=""),
+                            paste("BR", 1:num_tiers, sep=""),
+                            "baseline_variable_bill")
+  bill_2016 <- bill_2016 %>% mutate(baseline_bill=baseline_variable_bill + 10.30) 
+  
+  return( bind_rows(bill_2014, bill_2015, bill_2016) )
 }
