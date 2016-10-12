@@ -25,6 +25,8 @@ read_data <- function(filename, cust_col, usage_col, month_col, year_col, et_col
     dplyr::rename_(.dots=setNames(list(rate_code_col), "rate_code")) %>%
     dplyr::rename_(.dots=setNames(list(cust_class_col), "cust_class")) %>%
     dplyr::mutate(usage_date = as.Date(usage_date)) %>%
+    dplyr::mutate(rate_code = as.character(rate_code)) %>%
+    dplyr::mutate(cust_class = as.character(cust_class)) %>%
     dplyr::arrange(usage_date) %>%
     filter(usage_date < as.Date(less_than_date))
   
@@ -120,11 +122,11 @@ default_budget_prices_html <- switch(utility_code,
 if(is_budget){
   df <- read_data(test_file, cust_col="cust_loc_id", usage_col="usage_ccf", month_col="usage_month", 
                   year_col="usage_year", et_col="usage_et_amount", hhsize_col="cust_loc_hhsize", 
-                  irr_area_col="cust_loc_irr_area_sf", rate_code_col= "cust_loc_class", cust_class_col = "cust_loc_class_from_utility",
+                  irr_area_col="cust_loc_irr_area_sf", cust_class_col= "cust_loc_class", rate_code_col = "cust_loc_class_from_utility",
                   less_than_date=less_than_date)
 } else{
   df <- read_data(test_file, cust_col="cust_loc_id", usage_col="usage_ccf", month_col="usage_month", 
-                  year_col="usage_year", rate_code_col= "cust_loc_class", cust_class_col = "cust_loc_class_from_utility",
+                  year_col="usage_year", cust_class_col= "cust_loc_class", rate_code_col = "cust_loc_class_from_utility",
                   less_than_date=less_than_date)
 }
 
@@ -135,13 +137,7 @@ max_date <- max(df$usage_date)
 print(min_date, max_date)
 
 # filtering rate codes by customer class
-df1 <- df %>% 
-  select(cust_class,rate_code)
-
-df1$rate_code <- as.character(df1$rate_code)
-
-
-r2 <- aggregate(cust_class~rate_code, df1, FUN=unique)
+r2 <- df %>% group_by(cust_class, rate_code) %>% summarise(count=length(unique(cust_id))) %>% arrange(desc(count))
 
 r2.1 <-  r2 %>%
   filter(cust_class == "RESIDENTIAL_SINGLE")
@@ -161,12 +157,11 @@ r2.5 <-  r2 %>%
 r2.6 <-  r2 %>%
   filter(cust_class == "OTHER")
 
-
-variables <- unique(r2.1$rate_code)
-variables1 <- unique(r2.2$rate_code)
-variables2 <- unique(r2.3$rate_code)
-variables3 <- unique(r2.4$rate_code)
-variables4 <-  unique(r2.5$rate_code)
-variables5 <-  unique(r2.6$rate_code)
+rate_codes <- unique(r2.1$rate_code)
+rate_codes1 <- unique(r2.2$rate_code)
+rate_codes2 <- unique(r2.3$rate_code)
+rate_codes3 <- unique(r2.4$rate_code)
+rate_codes4 <-  unique(r2.5$rate_code)
+rate_codes5 <-  unique(r2.6$rate_code)
 
 

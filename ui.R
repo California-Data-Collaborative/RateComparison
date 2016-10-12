@@ -134,7 +134,7 @@ shinyUI(navbarPage(
               tabsetPanel(type="tabs",
                           tabPanel("Residential_Single",
                                    checkboxGroupInput("RateCode", label = "Rate Code",inline=TRUE,
-                                                      choices = variables, selected = "R1"),
+                                                      choices = rate_codes, selected = rate_codes[1]),
                                    
                                    fluidRow(
                                      column(12, plotlyOutput("revenue_time_series", height=250) )
@@ -160,7 +160,7 @@ shinyUI(navbarPage(
                           ),
                           tabPanel("Residential_Multi",
                                    checkboxGroupInput("RateCode1", label = "Rate Code",inline=TRUE,
-                                                      choices = variables1, selected = "A1"),
+                                                      choices = rate_codes1, selected = rate_codes1[1]),
                                    fluidRow( column(12, plotlyOutput("revenue_time_series1", height=250) )),
                                    fluidRow(
                                      column(4,
@@ -181,7 +181,7 @@ shinyUI(navbarPage(
                           
                           tabPanel("Commercial",
                                    checkboxGroupInput("RateCode2", label = "Rate Code",inline=TRUE,
-                                                      choices = variables2,selected = "CM4" ),
+                                                      choices = rate_codes2,selected = rate_codes2[1] ),
                                    fluidRow( column(12, plotlyOutput("revenue_time_series2", height=250) )),
                                    fluidRow(
                                      column(4,
@@ -202,7 +202,7 @@ shinyUI(navbarPage(
                           
                           tabPanel("Irrigation",
                                    checkboxGroupInput("RateCode3", label = "Rate Code",inline=TRUE,
-                                                      choices = variables3,selected = "RC1" ),
+                                                      choices = rate_codes3,selected = rate_codes3[1] ),
                                    fluidRow( column(12, plotlyOutput("revenue_time_series3", height=250) )),
                                    fluidRow(
                                      column(4,
@@ -222,7 +222,7 @@ shinyUI(navbarPage(
                           ), 
                           tabPanel("Institutional",
                                    checkboxGroupInput("RateCode4", label = "Rate Code",inline=TRUE,
-                                                      choices = variables4,selected = "RC2" ),
+                                                      choices = rate_codes4,selected = rate_codes4[1] ),
                                    fluidRow( column(12, plotlyOutput("revenue_time_series4", height=250) )),
                                    fluidRow(
                                      column(4,
@@ -243,7 +243,7 @@ shinyUI(navbarPage(
                           
                           tabPanel("Other",
                                    checkboxGroupInput("RateCode5", label = "Rate Code",inline=TRUE,
-                                                      choices = variables5,selected = "FP" ),
+                                                      choices = rate_codes5,selected = rate_codes5[1] ),
                                    fluidRow( column(12, plotlyOutput("revenue_time_series5", height=250) )),
                                    fluidRow(
                                      column(4,
