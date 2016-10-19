@@ -1,3 +1,2 @@
 
-utility_code <- "IRWD"
-
+utility_code <- "SMC"
