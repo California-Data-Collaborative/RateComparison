@@ -41,7 +41,7 @@ plot_revenue_over_time <- function(data){
   print("Making line chart") 
   print(time.taken)
 
-  p
+  ggplotly(p) %>% config(displayModeBar = FALSE)
 }
 
 #******************************************************************
@@ -68,7 +68,7 @@ plot_bill_change_histogram <- function(data){
   print("Making histogram") 
   print(time.taken)
   
-  p
+  ggplotly(p) %>% config(displayModeBar = FALSE)
 }
 
 #******************************************************************
@@ -87,7 +87,7 @@ plot_bill_change_boxplot <- function(data){
       coord_flip() + xlab("") + ylab("") + 
       theme(axis.ticks = element_blank(), axis.text.y = element_blank())
   }
-  p
+  ggplotly(p) %>% config(displayModeBar = FALSE)
 }
 
 #******************************************************************
@@ -125,7 +125,7 @@ plot_barchart_by_tiers <- function(data, display_type, bar_type){
   else{
     
   }
-  p
+  ggplotly(p) %>% config(displayModeBar = FALSE)
 }
 
 #******************************************************************
@@ -161,7 +161,7 @@ plot_fixed_revenue <- function(data, bar_type){
       
     }
   }
-  p
+  ggplotly(p) %>% config(displayModeBar = FALSE)
 }
 
 #******************************************************************
