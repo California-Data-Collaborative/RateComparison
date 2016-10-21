@@ -4,7 +4,7 @@ library(shiny)
 library(dplyr)
 
 #set the utility_code from the config file
-source("utility_code.R")
+source("R/utility_code.R")
 
 
 #******************************************************************

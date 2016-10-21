@@ -6,13 +6,13 @@ Description: The RateComparison package is an R Shiny application for exploring 
     a hypothetical rate structure specified by the user.
 Version: 0.2.0
 Imports:
-    dplyr
-    ggplot2
-    plotly
-    reshape2
-    scales
-    shiny
-    stringi
+    dplyr,
+    ggplot2,
+    plotly,
+    reshape2,
+    scales,
+    shiny,
+    stringi,
     zoo
 Suggests: testthat
 Authors@R: person("Christopher", "Tull", email = "chris@argolabs.org", role = c("aut", "cre"))

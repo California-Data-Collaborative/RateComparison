@@ -5,10 +5,16 @@ library(scales)
 library(reshape2)
 library(stringi)
 
-#******************************************************************
-# Line chart showing revenue over time for both baseline
-# and hypothetical rate structures
-#******************************************************************
+#' Line chart of revenue over time.
+#'
+#' \code{plot_revenue_over_time} returns a line chart showing revenue over 
+#' time for both baseline and hypothetical rate structures. The baseline
+#' rate is shown in black and the hypthotical in blue.
+#'
+#' @param data The dataframe filtered by date range and rate code.
+#' 
+#' @return A plotly object created from a ggplot chart, with plotly's
+#' modebar removed.
 plot_revenue_over_time <- function(data){
   start.time <- Sys.time()
 
