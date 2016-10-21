@@ -50,10 +50,15 @@ plot_revenue_over_time <- function(data){
   ggplotly(p) %>% config(displayModeBar = FALSE)
 }
 
-#******************************************************************
-# Histogram of changes (hypothetical - baseline) in total amount 
-# paid during the time period for each customer
-#******************************************************************
+#' Histogram of bill changes.
+#'
+#' \code{plot_bill_change_histogram} returns a histogram of changes 
+#' (hypothetical - baseline) in total amount paid during the time period for each customer
+#'
+#' @param data The dataframe filtered by date range and rate code.
+#' 
+#' @return A plotly object created from a ggplot chart, with plotly's
+#' modebar removed.
 plot_bill_change_histogram <- function(data){
   start.time <- Sys.time()
   
@@ -77,11 +82,16 @@ plot_bill_change_histogram <- function(data){
   ggplotly(p) %>% config(displayModeBar = FALSE)
 }
 
-#******************************************************************
-# Small boxplot of changes (hypothetical - baseline) in total amount 
-# paid during the time period for each customer. Designed to 
-# complement the histogram
-#******************************************************************
+#' Boxplot of bill changes.
+#'
+#' \code{plot_bill_change_boxplot} returns a small boxplot of changes 
+#' (hypothetical - baseline) in total amount paid during the time period 
+#' for each customer. Designed to complement \code{\link{plot_bill_change_histogram}}.
+#'
+#' @param data The dataframe filtered by date range and rate code.
+#' 
+#' @return A plotly object created from a ggplot chart, with plotly's
+#' modebar removed.
 plot_bill_change_boxplot <- function(data){
   if(sum(abs(data$changes)) < 1){
     p <- ggplot() + 
@@ -99,6 +109,17 @@ plot_bill_change_boxplot <- function(data){
 #******************************************************************
 # Barchart showing total revenue/usage in each tier in both rates
 #******************************************************************
+
+#' Barchart showing revenue/usage by tier.
+#'
+#' \code{plot_bill_change_histogram} returns a small boxplot of changes 
+#' (hypothetical - baseline) in total amount paid during the time period 
+#' for each customer. Designed to complement \code{\link{plot_bill_change_histogram}}.
+#'
+#' @param data The dataframe filtered by date range and rate code.
+#' 
+#' @return A plotly object created from a ggplot chart, with plotly's
+#' modebar removed.
 plot_barchart_by_tiers <- function(data, display_type, bar_type){
 
   if(display_type=="Revenue"){
