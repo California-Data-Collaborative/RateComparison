@@ -14,7 +14,7 @@ A plotly object created from a ggplot chart, with plotly's
 modebar removed.
 }
 \description{
-\code{plot_bill_change_histogram} returns a small boxplot of changes
+\code{plot_bill_change_boxplot} returns a small boxplot of changes
 (hypothetical - baseline) in total amount paid during the time period
 for each customer. Designed to complement \code{\link{plot_bill_change_histogram}}.
 }
