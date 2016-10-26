@@ -41,8 +41,8 @@ plot_revenue_over_time <- function(data, display_type){
     print("Making line chart") 
     print(time.taken)
   }
-  else{
-    monthly_usage <- data %>%  group_by(usage_date) %>% 
+  else{ #if usage is selected, plot monthly usage
+    monthly_usage <- data %>%  group_by(usage_date) %>%  
                      summarise(hypothetical_usage=sum(hypothetical_usage, na.rm=TRUE),
                                baseline_usage=sum(baseline_usage, na.rm=TRUE)) %>% 
                      mutate(Baseline = baseline_usage/1000000) %>%
@@ -100,8 +100,8 @@ plot_bill_change_histogram <- function(data, display_type){
   print("Making Revenue histogram") 
   print(time.taken)
   }
-  else{
-    if(sum(abs(data$changes_in_usage)) < 1){
+  else{ #if usage is selected, plot changes in usage
+    if(sum(abs(data$changes_in_usage)) < 1){  
       p <- ggplot() + 
            geom_vline(xintercept = 0, color="#CC0000") +
            xlab("Change in total amount used (ccf)")
@@ -140,8 +140,8 @@ plot_bill_change_boxplot <- function(data, display_type){
        theme(axis.ticks = element_blank(), axis.text.y = element_blank())
      }
   }
-  else{
-     if(sum(abs(data$changes_in_usage)) < 1){
+  else{ #if usage is selected, plot changes in usage
+     if(sum(abs(data$changes_in_usage)) < 1){  
        p <- ggplot() + 
        geom_vline(xintercept = 0, color="#CC0000") +
        xlab("")
