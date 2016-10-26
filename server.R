@@ -1,6 +1,6 @@
 # Load functions
-source("helper_fns.R", local=TRUE)
-source("make_plots.R", local=TRUE)
+source("R/helper_fns.R", local=TRUE)
+source("R/make_plots.R", local=TRUE)
 
 
 shinyServer(function(input, output, clientData, session) {

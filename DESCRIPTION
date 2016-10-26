@@ -1,0 +1,22 @@
+Package: RateComparison
+Title: Analyze The Revenue, Demand And Equity Effects Of A Water Rate Change
+Description: The RateComparison package is an R Shiny application for exploring the 
+    revenue, demand and equity impacts caused by a shift in water rates. The app compares
+    a baseline rate structure (usually the utility's current/historical rates) against
+    a hypothetical rate structure specified by the user.
+Version: 0.2.0
+Imports:
+    dplyr,
+    ggplot2,
+    plotly,
+    reshape2,
+    scales,
+    shiny,
+    stringi,
+    zoo
+Suggests: testthat
+Authors@R: person("Christopher", "Tull", email = "chris@argolabs.org", role = c("aut", "cre"))
+URL: https://github.com/California-Data-Collaborative/rate-comparison
+BugReports: https://github.com/California-Data-Collaborative/rate-comparison/issues
+License: AGPL-3.0
+LazyData: true
