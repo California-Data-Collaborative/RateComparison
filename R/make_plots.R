@@ -5,122 +5,160 @@ library(scales)
 library(reshape2)
 library(stringi)
 
-#' Line chart of revenue over time.
-#'
-#' \code{plot_revenue_over_time} returns a line chart showing revenue over 
-#' time for both baseline and hypothetical rate structures. The baseline
-#' rate is shown in black and the hypthotical in blue.
-#'
-#' @param data The dataframe filtered by date range and rate code.
-#' 
-#' @return A plotly object created from a ggplot chart, with plotly's
-#' modebar removed.
-plot_revenue_over_time <- function(data){
+#******************************************************************
+# Line chart showing revenue over time for both baseline
+# and hypothetical rate structures
+#******************************************************************
+plot_revenue_over_time <- function(data, display_type){
   start.time <- Sys.time()
-
-  monthly_revenue <- data %>%  group_by(usage_date) %>% 
+  if(display_type=="Revenue"){
+    monthly_revenue <- data %>%  group_by(usage_date) %>% 
                       summarise(revenue=sum(total_bill, na.rm=TRUE),
                                 baseline_revenue=sum(baseline_bill, na.rm=TRUE)) %>% 
                       mutate(Baseline = baseline_revenue/1000000) %>%
                       mutate(Hypothetical = revenue/1000000) %>%
                       select(usage_date,Baseline,Hypothetical)
-  monthly_revenue <- melt(monthly_revenue, id="usage_date") %>% rename(Revenue=variable)
+    monthly_revenue <- melt(monthly_revenue, id="usage_date") %>% rename(Revenue=variable)
   
-  end.time <- Sys.time()
-  time.taken <- end.time - start.time
-  print("Calcing monthly_revenue")
-  print(time.taken)
-  start.time <- Sys.time()
+    end.time <- Sys.time()
+    time.taken <- end.time - start.time
+    print("Calcing monthly_revenue")
+    print(time.taken)
+    start.time <- Sys.time()
 
     p <- ggplot(monthly_revenue, aes(x=usage_date, y=value, color=Revenue)) + 
     # geom_ribbon(aes(x=usage_date, ymax=rev_mill, ymin=base_rev_mill), fill="grey", alpha=.5) +
-    geom_line() + 
-    scale_linetype_manual(values = c("Baseline"="dashed", "Hypothetical"="solid")) +
-    scale_color_manual(values=c("Baseline"="black", "Hypothetical"="steelblue")) +
-    xlab("") + ylab("Revenue (Million $)") + 
-    # theme(axis.text.x = element_text(angle = 30, hjust = 1)) +
-    # scale_x_date(labels = date_format("%m-%y"), date_breaks="1 months") +
-    scale_y_continuous(labels = comma)
+         geom_line() + 
+         scale_linetype_manual(values = c("Baseline"="dashed", "Hypothetical"="solid")) +
+         scale_color_manual(values=c("Baseline"="black", "Hypothetical"="steelblue")) +
+         xlab("") + ylab("Revenue (Million $)") + 
+         # theme(axis.text.x = element_text(angle = 30, hjust = 1)) +
+         # scale_x_date(labels = date_format("%m-%y"), date_breaks="1 months") +
+         scale_y_continuous(labels = comma)
   
-  end.time <- Sys.time()
-  time.taken <- end.time - start.time
-  print("Making line chart") 
-  print(time.taken)
+    end.time <- Sys.time()
+    time.taken <- end.time - start.time
+    print("Making line chart") 
+    print(time.taken)
+  }
+  else{
+    monthly_usage <- data %>%  group_by(usage_date) %>% 
+                     summarise(hypothetical_usage=sum(hypothetical_usage, na.rm=TRUE),
+                               baseline_usage=sum(baseline_usage, na.rm=TRUE)) %>% 
+                     mutate(Baseline = baseline_usage/1000000) %>%
+                     mutate(Hypothetical = hypothetical_usage/1000000) %>%
+                     select(usage_date,Baseline,Hypothetical)
+    monthly_usage <- melt(monthly_usage, id="usage_date") %>% rename(Usage=variable)
+    
+    end.time <- Sys.time()
+    time.taken <- end.time - start.time
+    print("Calcing monthly_usage")
+    print(time.taken)
+    start.time <- Sys.time()
+    
+    p <- ggplot(monthly_usage, aes(x=usage_date, y=value, color=Usage)) + 
+         # geom_ribbon(aes(x=usage_date, ymax=rev_mill, ymin=base_rev_mill), fill="grey", alpha=.5) +
+         geom_line() + 
+         scale_linetype_manual(values = c("Baseline"="dashed", "Hypothetical"="solid")) +
+         scale_color_manual(values=c("Baseline"="black", "Hypothetical"="steelblue")) +
+         xlab("") + ylab("Usage (Million ccf)") + 
+         # theme(axis.text.x = element_text(angle = 30, hjust = 1)) +
+         # scale_x_date(labels = date_format("%m-%y"), date_breaks="1 months") +
+         scale_y_continuous(labels = comma)
+    
+    end.time <- Sys.time()
+    time.taken <- end.time - start.time
+    print("Making line chart") 
+    print(time.taken)
+    
+  }
 
-  ggplotly(p) %>% config(displayModeBar = FALSE)
+  p
 }
 
-#' Histogram of bill changes.
-#'
-#' \code{plot_bill_change_histogram} returns a histogram of changes 
-#' (hypothetical - baseline) in total amount paid during the time period for each customer
-#'
-#' @param data The dataframe filtered by date range and rate code.
-#' 
-#' @return A plotly object created from a ggplot chart, with plotly's
-#' modebar removed.
-plot_bill_change_histogram <- function(data){
+#******************************************************************
+# Histogram of changes (hypothetical - baseline) in total amount 
+# paid during the time period for each customer
+#******************************************************************
+plot_bill_change_histogram <- function(data, display_type){
   start.time <- Sys.time()
-  
-  if(sum(abs(data$changes)) < 1){
-    p <- ggplot() + 
-      geom_vline(xintercept = 0, color="#CC0000") +
-      xlab("Change in total amount paid ($)")
-  }
-  else{
-    p <- ggplot(data, aes(x=changes)) + geom_histogram() + 
-      geom_vline(xintercept = mean(data$changes, na.rm=TRUE), color="#CC0000") +
-      xlab("Change in total amount paid ($)") + ylab("") +
-      theme(axis.ticks = element_blank(), axis.text.y = element_blank())
-  }
+  if(display_type=="Revenue"){
+    if(sum(abs(data$changes)) < 1){
+      p <- ggplot() + 
+           geom_vline(xintercept = 0, color="#CC0000") +
+           xlab("Change in total amount paid ($)")
+    }
+    else{
+      p <- ggplot(data, aes(x=changes)) + geom_histogram() + 
+           geom_vline(xintercept = mean(data$changes, na.rm=TRUE), color="#CC0000") +
+           xlab("Change in total amount paid ($)") + ylab("") +
+           theme(axis.ticks = element_blank(), axis.text.y = element_blank())
+    }
   
   end.time <- Sys.time()
   time.taken <- end.time - start.time
-  print("Making histogram") 
+  print("Making Revenue histogram") 
   print(time.taken)
-  
-  ggplotly(p) %>% config(displayModeBar = FALSE)
-}
-
-#' Boxplot of bill changes.
-#'
-#' \code{plot_bill_change_boxplot} returns a small boxplot of changes 
-#' (hypothetical - baseline) in total amount paid during the time period 
-#' for each customer. Designed to complement \code{\link{plot_bill_change_histogram}}.
-#'
-#' @param data The dataframe filtered by date range and rate code.
-#' 
-#' @return A plotly object created from a ggplot chart, with plotly's
-#' modebar removed.
-plot_bill_change_boxplot <- function(data){
-  if(sum(abs(data$changes)) < 1){
-    p <- ggplot() + 
-      geom_vline(xintercept = 0, color="#CC0000") +
-      xlab("")
   }
   else{
-    p <- ggplot(data, aes(change_group, changes)) + geom_boxplot(outlier.size=1) +
-      coord_flip() + xlab("") + ylab("") + 
-      theme(axis.ticks = element_blank(), axis.text.y = element_blank())
+    if(sum(abs(data$changes_in_usage)) < 1){
+      p <- ggplot() + 
+           geom_vline(xintercept = 0, color="#CC0000") +
+           xlab("Change in total amount used (ccf)")
+    }
+    else{
+      p <- ggplot(data, aes(x=changes_in_usage)) + geom_histogram() + 
+           geom_vline(xintercept = mean(data$changes_in_usage, na.rm=TRUE), color="#CC0000") +
+           xlab("Change in total amount used (ccf)") + ylab("") +
+           theme(axis.ticks = element_blank(), axis.text.y = element_blank())
+    }
+    
+  end.time <- Sys.time()
+  time.taken <- end.time - start.time
+  print("Making Usage histogram") 
+  print(time.taken)
+    
   }
-  ggplotly(p) %>% config(displayModeBar = FALSE)
+  p
 }
 
-#' Barchart showing revenue/usage by tier.
-#'
-#' \code{plot_barchart_by_tiers} returns a bar chart showing the revenue/usage
-#' generated under the baseline and hypthetical rate structures. These bars are 
-#' further broken down and colored by tier, so that the amount of revenue/usage 
-#' generated in each tier is visible.
-#'
-#' @param data The dataframe filtered by date range and rate code.
-#' @param display_type A string specifying whether to display "Revenue" in millions
-#' of dollars, of "Usage" in thousands of acre-feet.
-#' @param bar_type A string showing whether to display the "Absolute" revenue 
-#' in each tier, or the "Percent" of revenue in each tier.
-#' 
-#' @return A plotly object created from a ggplot chart, with plotly's
-#' modebar removed.
+#******************************************************************
+# Small boxplot of changes (hypothetical - baseline) in total amount 
+# paid during the time period for each customer. Designed to 
+# complement the histogram
+#******************************************************************
+plot_bill_change_boxplot <- function(data, display_type){
+  if(display_type=="Revenue"){
+     if(sum(abs(data$changes)) < 1){
+       p <- ggplot() + 
+       geom_vline(xintercept = 0, color="#CC0000") +
+       xlab("")
+     }
+     else{
+       p <- ggplot(data, aes(change_group, changes)) + geom_boxplot(outlier.size=1) +
+       coord_flip() + xlab("") + ylab("") + 
+       theme(axis.ticks = element_blank(), axis.text.y = element_blank())
+     }
+  }
+  else{
+     if(sum(abs(data$changes_in_usage)) < 1){
+       p <- ggplot() + 
+       geom_vline(xintercept = 0, color="#CC0000") +
+       xlab("")
+    }
+    else{
+       p <- ggplot(data, aes(change_group, changes_in_usage)) + geom_boxplot(outlier.size=1) +
+       coord_flip() + xlab("") + ylab("") + 
+       theme(axis.ticks = element_blank(), axis.text.y = element_blank())
+    } 
+    
+  }
+  p
+}
+
+#******************************************************************
+# Barchart showing total revenue/usage in each tier in both rates
+#******************************************************************
 plot_barchart_by_tiers <- function(data, display_type, bar_type){
 
   if(display_type=="Revenue"){
@@ -153,21 +191,12 @@ plot_barchart_by_tiers <- function(data, display_type, bar_type){
   else{
     
   }
-  ggplotly(p) %>% config(displayModeBar = FALSE)
+  p
 }
 
-#' Barchart showing percentage fixed revenue.
-#'
-#' \code{plot_fixed_revenue} returns a bar chart where bars represent the
-#' percent of revenue that comes from fixed charges (e.g. service charges based
-#' on meter size).
-#'
-#' @param data The dataframe filtered by date range and rate code.
-#' @param bar_type A string showing whether to display the "Absolute" 
-#' amount of fixed revenue or the "Percent" of total revenue that is fixed.
-#' 
-#' @return A plotly object created from a ggplot chart, with plotly's
-#' modebar removed.
+#******************************************************************
+# Barchart showing fixed revenue
+#******************************************************************
 plot_fixed_revenue <- function(data, bar_type){
   
   # Select revenue in each tier
@@ -198,19 +227,13 @@ plot_fixed_revenue <- function(data, bar_type){
       
     }
   }
-  ggplotly(p) %>% config(displayModeBar = FALSE)
+  p
 }
 
-#' Convert generic tier labels to more descriptive labels.
-#'
-#' \code{get_tier_name} takes a generic label, like "X1" or "B1", that is 
-#' generated when caculating tiered charges, and converts it to a more
-#' descritive label for use when plotting.
-#'
-#' @param labels A default, nondescriptive label such as "X1" meaning usage in tier 1,
-#' or "B1" meaning bill amount from tier 1.
-#' 
-#' @return A string representing the name of a tier, "Tier 1", "Tier 3", etc.
+#******************************************************************
+# Given a label like "X1", or "BR3", returns the tier name as 
+# "Tier 1" or "Tier 3" respectively
+#******************************************************************
 get_tier_name <- function(labels){
   return(paste("Tier", stri_sub(labels, -1, -1) ))
 }

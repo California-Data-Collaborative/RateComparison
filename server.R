@@ -1,3 +1,4 @@
+
 # Load functions
 source("R/helper_fns.R", local=TRUE)
 source("R/make_plots.R", local=TRUE)
@@ -53,8 +54,13 @@ shinyServer(function(input, output, clientData, session) {
   total_bill_info <- reactive({
     bill_info <- variable_charge() 
     bill_info$total_bill <- bill_info$variable_bill + input$fixedCharge
+    
+    bill_info$hypothetical_usage <- bill_info %>% select(matches("[X][0-9]")) %>% rowSums()
+  
     return(bill_info)
+    
   })
+  
   
   #******************************************************************
   # Get the filtered dataframe with all billing and tier information
@@ -127,38 +133,38 @@ shinyServer(function(input, output, clientData, session) {
   #******************************************************************
   output$revenue_time_series <- renderPlotly({
     # print(glimpse(df_plots()[1,]))
-    p <- plot_revenue_over_time( df_plots() )
+    p <- plot_revenue_over_time( df_plots(), input$displayType )
     # ggplotly(p)
     p
   }) 
   
   output$revenue_time_series1 <- renderPlotly({
     # print(glimpse(df_plots()[1,]))
-    p <- plot_revenue_over_time( df_plots1() )
+    p <- plot_revenue_over_time( df_plots1(), input$displayType )
     # ggplotly(p)
     p
   }) 
   output$revenue_time_series2 <- renderPlotly({
     # print(glimpse(df_plots()[1,]))
-    p <- plot_revenue_over_time( df_plots2() )
+    p <- plot_revenue_over_time( df_plots2(), input$displayType )
     # ggplotly(p)
     p
   }) 
   output$revenue_time_series3 <- renderPlotly({
     # print(glimpse(df_plots()[1,]))
-    p <- plot_revenue_over_time( df_plots3() )
+    p <- plot_revenue_over_time( df_plots3(), input$displayType )
     # ggplotly(p)
     p
   }) 
   output$revenue_time_series4 <- renderPlotly({
     # print(glimpse(df_plots()[1,]))
-    p <- plot_revenue_over_time( df_plots4() )
+    p <- plot_revenue_over_time( df_plots4(), input$displayType )
     # ggplotly(p)
     p
   }) 
   output$revenue_time_series5 <- renderPlotly({
     # print(glimpse(df_plots()[1,]))
-    p <- plot_revenue_over_time( df_plots5() )
+    p <- plot_revenue_over_time( df_plots5(), input$displayType )
     # ggplotly(p)
     p
   })
@@ -194,10 +200,13 @@ shinyServer(function(input, output, clientData, session) {
     
     df_change <- df_plots() %>% group_by(cust_id) %>% 
       summarise(total_bill=sum(total_bill, na.rm=TRUE), 
-                baseline_bill=sum(baseline_bill, na.rm=TRUE)) %>%
-      dplyr::select(total_bill, baseline_bill) %>% 
-      mutate(changes=total_bill-baseline_bill, change_group=1) %>%
-      filter(abs(changes) < mean(changes, na.rm=TRUE) + 2.5*sd(changes, na.rm=TRUE))
+                baseline_bill=sum(baseline_bill, na.rm=TRUE),
+                hypothetical_usage=sum(hypothetical_usage, na.rm=TRUE),
+                baseline_usage=sum(baseline_usage, na.rm=TRUE)) %>%
+      dplyr::select(total_bill, baseline_bill, hypothetical_usage, baseline_usage) %>% 
+      mutate(changes=total_bill-baseline_bill, changes_in_usage=hypothetical_usage-baseline_usage, change_group=1) %>%
+      filter(abs(changes) < mean(changes, na.rm=TRUE) + 2.5*sd(changes, na.rm=TRUE),
+             abs(changes_in_usage) < mean(changes_in_usage, na.rm=TRUE) + 2.5*sd(changes_in_usage, na.rm=TRUE))
     
     end.time <- Sys.time()
     time.taken <- end.time - start.time
@@ -212,10 +221,13 @@ shinyServer(function(input, output, clientData, session) {
     
     df_change1 <- df_plots1() %>% group_by(cust_id) %>% 
       summarise(total_bill=sum(total_bill, na.rm=TRUE), 
-                baseline_bill=sum(baseline_bill, na.rm=TRUE)) %>%
-      dplyr::select(total_bill, baseline_bill) %>% 
-      mutate(changes=total_bill-baseline_bill, change_group=1) %>%
-      filter(abs(changes) < mean(changes, na.rm=TRUE) + 2.5*sd(changes, na.rm=TRUE))
+                baseline_bill=sum(baseline_bill, na.rm=TRUE),
+                hypothetical_usage=sum(hypothetical_usage, na.rm=TRUE),
+                baseline_usage=sum(baseline_usage, na.rm=TRUE)) %>%
+      dplyr::select(total_bill, baseline_bill, hypothetical_usage, baseline_usage) %>% 
+      mutate(changes=total_bill-baseline_bill, changes_in_usage=hypothetical_usage-baseline_usage, change_group=1) %>%
+      filter(abs(changes) < mean(changes, na.rm=TRUE) + 2.5*sd(changes, na.rm=TRUE),
+             abs(changes_in_usage) < mean(changes_in_usage, na.rm=TRUE) + 2.5*sd(changes_in_usage, na.rm=TRUE))
     
     end.time <- Sys.time()
     time.taken <- end.time - start.time
@@ -230,10 +242,13 @@ shinyServer(function(input, output, clientData, session) {
     
     df_change2 <- df_plots2() %>% group_by(cust_id) %>% 
       summarise(total_bill=sum(total_bill, na.rm=TRUE), 
-                baseline_bill=sum(baseline_bill, na.rm=TRUE)) %>%
-      dplyr::select(total_bill, baseline_bill) %>% 
-      mutate(changes=total_bill-baseline_bill, change_group=1) %>%
-      filter(abs(changes) < mean(changes, na.rm=TRUE) + 2.5*sd(changes, na.rm=TRUE))
+                baseline_bill=sum(baseline_bill, na.rm=TRUE),
+                hypothetical_usage=sum(hypothetical_usage, na.rm=TRUE),
+                baseline_usage=sum(baseline_usage, na.rm=TRUE)) %>%
+      dplyr::select(total_bill, baseline_bill, hypothetical_usage, baseline_usage) %>% 
+      mutate(changes=total_bill-baseline_bill, changes_in_usage=hypothetical_usage-baseline_usage, change_group=1) %>%
+      filter(abs(changes) < mean(changes, na.rm=TRUE) + 2.5*sd(changes, na.rm=TRUE),
+             abs(changes_in_usage) < mean(changes_in_usage, na.rm=TRUE) + 2.5*sd(changes_in_usage, na.rm=TRUE))
     
     end.time <- Sys.time()
     time.taken <- end.time - start.time
@@ -248,10 +263,13 @@ shinyServer(function(input, output, clientData, session) {
     
     df_change3 <- df_plots3() %>% group_by(cust_id) %>% 
       summarise(total_bill=sum(total_bill, na.rm=TRUE), 
-                baseline_bill=sum(baseline_bill, na.rm=TRUE)) %>%
-      dplyr::select(total_bill, baseline_bill) %>% 
-      mutate(changes=total_bill-baseline_bill, change_group=1) %>%
-      filter(abs(changes) < mean(changes, na.rm=TRUE) + 2.5*sd(changes, na.rm=TRUE))
+                baseline_bill=sum(baseline_bill, na.rm=TRUE),
+                hypothetical_usage=sum(hypothetical_usage, na.rm=TRUE),
+                baseline_usage=sum(baseline_usage, na.rm=TRUE)) %>%
+      dplyr::select(total_bill, baseline_bill, hypothetical_usage, baseline_usage) %>% 
+      mutate(changes=total_bill-baseline_bill, changes_in_usage=hypothetical_usage-baseline_usage, change_group=1) %>%
+      filter(abs(changes) < mean(changes, na.rm=TRUE) + 2.5*sd(changes, na.rm=TRUE),
+             abs(changes_in_usage) < mean(changes_in_usage, na.rm=TRUE) + 2.5*sd(changes_in_usage, na.rm=TRUE))
     
     end.time <- Sys.time()
     time.taken <- end.time - start.time
@@ -267,10 +285,13 @@ shinyServer(function(input, output, clientData, session) {
     
     df_change4 <- df_plots4() %>% group_by(cust_id) %>% 
       summarise(total_bill=sum(total_bill, na.rm=TRUE), 
-                baseline_bill=sum(baseline_bill, na.rm=TRUE)) %>%
-      dplyr::select(total_bill, baseline_bill) %>% 
-      mutate(changes=total_bill-baseline_bill, change_group=1) %>%
-      filter(abs(changes) < mean(changes, na.rm=TRUE) + 2.5*sd(changes, na.rm=TRUE))
+                baseline_bill=sum(baseline_bill, na.rm=TRUE),
+                hypothetical_usage=sum(hypothetical_usage, na.rm=TRUE),
+                baseline_usage=sum(baseline_usage, na.rm=TRUE)) %>%
+      dplyr::select(total_bill, baseline_bill, hypothetical_usage, baseline_usage) %>% 
+      mutate(changes=total_bill-baseline_bill, changes_in_usage=hypothetical_usage-baseline_usage, change_group=1) %>%
+      filter(abs(changes) < mean(changes, na.rm=TRUE) + 2.5*sd(changes, na.rm=TRUE),
+             abs(changes_in_usage) < mean(changes_in_usage, na.rm=TRUE) + 2.5*sd(changes_in_usage, na.rm=TRUE))
     
     end.time <- Sys.time()
     time.taken <- end.time - start.time
@@ -285,10 +306,13 @@ shinyServer(function(input, output, clientData, session) {
     
     df_change5 <- df_plots5() %>% group_by(cust_id) %>% 
       summarise(total_bill=sum(total_bill, na.rm=TRUE), 
-                baseline_bill=sum(baseline_bill, na.rm=TRUE)) %>%
-      dplyr::select(total_bill, baseline_bill) %>% 
-      mutate(changes=total_bill-baseline_bill, change_group=1) %>%
-      filter(abs(changes) < mean(changes, na.rm=TRUE) + 2.5*sd(changes, na.rm=TRUE))
+                baseline_bill=sum(baseline_bill, na.rm=TRUE),
+                hypothetical_usage=sum(hypothetical_usage, na.rm=TRUE),
+                baseline_usage=sum(baseline_usage, na.rm=TRUE)) %>%
+      dplyr::select(total_bill, baseline_bill, hypothetical_usage, baseline_usage) %>% 
+      mutate(changes=total_bill-baseline_bill, changes_in_usage=hypothetical_usage-baseline_usage, change_group=1) %>%
+      filter(abs(changes) < mean(changes, na.rm=TRUE) + 2.5*sd(changes, na.rm=TRUE),
+             abs(changes_in_usage) < mean(changes_in_usage, na.rm=TRUE) + 2.5*sd(changes_in_usage, na.rm=TRUE))
     
     end.time <- Sys.time()
     time.taken <- end.time - start.time
@@ -300,42 +324,42 @@ shinyServer(function(input, output, clientData, session) {
   
   # Plot histogram
   output$bill_change_histogram <- renderPlotly({
-    plot_bill_change_histogram( df_change() )
+    plot_bill_change_histogram( df_change(), input$displayType )
   })
   output$bill_change_histogram1 <- renderPlotly({
-    plot_bill_change_histogram( df_change1() )
+    plot_bill_change_histogram( df_change1(), input$displayType )
   })
   output$bill_change_histogram2 <- renderPlotly({
-    plot_bill_change_histogram( df_change2() )
+    plot_bill_change_histogram( df_change2(), input$displayType )
   })
   output$bill_change_histogram3 <- renderPlotly({
-    plot_bill_change_histogram( df_change3() )
+    plot_bill_change_histogram( df_change3(), input$displayType )
   })
   output$bill_change_histogram4 <- renderPlotly({
-    plot_bill_change_histogram( df_change4() )
+    plot_bill_change_histogram( df_change4(), input$displayType )
   })
   output$bill_change_histogram5 <- renderPlotly({
-    plot_bill_change_histogram( df_change5() )
+    plot_bill_change_histogram( df_change5(), input$displayType )
   })
   
   # Plot boxplot
   output$bill_change_boxplot <- renderPlotly({
-    plot_bill_change_boxplot( df_change() )
+    plot_bill_change_boxplot( df_change(), input$displayType )
   })
   output$bill_change_boxplot1 <- renderPlotly({
-    plot_bill_change_boxplot( df_change1() )
+    plot_bill_change_boxplot( df_change1(), input$displayType )
   })
   output$bill_change_boxplot2 <- renderPlotly({
-    plot_bill_change_boxplot( df_change2() )
+    plot_bill_change_boxplot( df_change2(), input$displayType )
   })
   output$bill_change_boxplot3 <- renderPlotly({
-    plot_bill_change_boxplot( df_change3() )
+    plot_bill_change_boxplot( df_change3(), input$displayType )
   })
   output$bill_change_boxplot4 <- renderPlotly({
-    plot_bill_change_boxplot( df_change4() )
+    plot_bill_change_boxplot( df_change4(), input$displayType )
   })
   output$bill_change_boxplot5 <- renderPlotly({
-    plot_bill_change_boxplot( df_change5() )
+    plot_bill_change_boxplot( df_change5(), input$displayType )
   })
   
   output$fixed_revenue_barchart <- renderPlotly({
@@ -373,7 +397,7 @@ mnwd_baseline <- function(){
                             paste("BR", 1:num_tiers, sep=""),
                             "baseline_variable_bill")
   bill_info$baseline_bill <- bill_info$baseline_variable_bill + 11.39
-  
+  bill_info$baseline_usage <- bill_info$B1 + bill_info$B2 + bill_info$B3 + bill_info$B4 + bill_info$B5
   return(bill_info)
 }
 
@@ -390,7 +414,7 @@ lvmwd_baseline <- function(){
                             paste("BR", 1:num_tiers, sep=""),
                             "baseline_variable_bill")
   bill_2014 <- bill_2014 %>% mutate(baseline_bill=baseline_variable_bill + 30.21) 
-  
+  bill_2014$baseline_usage <- bill_2014$B1 + bill_2014$B2 + bill_2014$B3 + bill_2014$B4 + bill_2014$B5
   
   #2015 before the September switch to monthly billing
   tmp <- filter(df, usage_year >= 2015, usage_year < 2016, usage_month < 9)
@@ -403,7 +427,7 @@ lvmwd_baseline <- function(){
                               paste("BR", 1:num_tiers, sep=""),
                               "baseline_variable_bill")
   bill_2015_1 <- bill_2015_1 %>% mutate(baseline_bill=baseline_variable_bill + 31.73) 
-  
+  bill_2015_1$baseline_usage <- bill_2015_1$B1 + bill_2015_1$B2 + bill_2015_1$B3 + bill_2015_1$B4
   
   #2015 after the September switch to monthly billing
   tmp <- filter(df, usage_date >= as.Date("2015-09-01"), usage_year < 2016)
@@ -416,7 +440,7 @@ lvmwd_baseline <- function(){
                               paste("BR", 1:num_tiers, sep=""),
                               "baseline_variable_bill")
   bill_2015_2$baseline_bill <- bill_2015_2$baseline_variable_bill + 15.87
-  
+  bill_2015_2$baseline_usage <- bill_2015_2$B1 + bill_2015_2$B2 + bill_2015_2$B3 + bill_2015_2$B4
   
   #2016 budgets
   tmp <- filter(df, usage_year >= 2016)
@@ -431,7 +455,7 @@ lvmwd_baseline <- function(){
                             paste("BR", 1:num_tiers, sep=""),
                             "baseline_variable_bill")
   bill_2016$baseline_bill <- bill_2016$baseline_variable_bill + 18.30
-  
+  bill_2016$baseline_usage <- bill_2016$B1 + bill_2016$B2 + bill_2016$B3 + bill_2016$B4
   
   return( bind_rows(bill_2014, bill_2015_1, bill_2015_2, bill_2016) )
 }
@@ -448,7 +472,7 @@ smwd_baseline <- function(){
                               paste("BR", 1:num_tiers, sep=""),
                               "baseline_variable_bill")
   bill_2015_1 <- bill_2015_1 %>% mutate(baseline_bill=baseline_variable_bill + 6.41) 
-  
+  bill_2015_1$baseline_usage <- bill_2015_1$B1 + bill_2015_1$B2 + bill_2015_1$B3 + bill_2015_1$B4 + bill_2015_1$B5
   
   #after March 2015
   tmp <- filter(df, usage_date >= as.Date("2015-03-01"), usage_year < 2016)
@@ -461,7 +485,7 @@ smwd_baseline <- function(){
                               paste("BR", 1:num_tiers, sep=""),
                               "baseline_variable_bill")
   bill_2015_2$baseline_bill <- bill_2015_2$baseline_variable_bill + 8.72
-  
+  bill_2015_2$baseline_usage <- bill_2015_2$B1 + bill_2015_2$B2 + bill_2015_2$B3 + bill_2015_2$B4 + bill_2015_2$B5
   
   #   #2016 budgets
   #   tmp <- filter(df, usage_year >= 2016)
@@ -494,7 +518,7 @@ smc_baseline <- function(){
                               paste("BR", 1:num_tiers, sep=""),
                               "baseline_variable_bill")
   bill_2015 <- bill_2015 %>% mutate(baseline_bill=baseline_variable_bill + 0) 
-  
+  bill_2015$baseline_usage <- bill_2015$B1 + bill_2015$B2 + bill_2015$B3 + bill_2015$B4
   
   #after 2016
   tmp <- filter(df, usage_date >= as.Date("2016-01-01"))
@@ -502,11 +526,14 @@ smc_baseline <- function(){
                                          rate_type="Tiered", 
                                          tier_starts=parse_numerics("0\n15\n41\n149"),
                                          tier_prices=parse_numerics("2.87\n4.29\n6.44\n10.07") )
+  
   num_tiers <- length(parse_strings("0\n15\n41\n149"))
   colnames(bill_2016) <- c( paste("B", 1:num_tiers, sep=""),
                               paste("BR", 1:num_tiers, sep=""),
                               "baseline_variable_bill")
+  
   bill_2016$baseline_bill <- bill_2016$baseline_variable_bill + 0
+  bill_2016$baseline_usage <- bill_2016$B1 + bill_2016$B2 + bill_2016$B3 + bill_2016$B4
   
   return( bind_rows(bill_2015, bill_2016) )
 }
@@ -526,7 +553,7 @@ irwd_baseline <- function(){
                             paste("BR", 1:num_tiers, sep=""),
                             "baseline_variable_bill")
   bill_2014 <- bill_2014 %>% mutate(baseline_bill=baseline_variable_bill + 9.85) 
-  
+  bill_2014$baseline_usage <- bill_2014$B1 + bill_2014$B2 + bill_2014$B3 + bill_2014$B4 + bill_2014$B5
   
   #FY2015
   tmp <- filter(df, usage_date < as.Date("2015-07-01"), usage_date >= as.Date("2014-07-01"))
@@ -541,7 +568,7 @@ irwd_baseline <- function(){
                             paste("BR", 1:num_tiers, sep=""),
                             "baseline_variable_bill")
   bill_2015 <- bill_2015 %>% mutate(baseline_bill=baseline_variable_bill + 10.50) 
-  
+  bill_2015$baseline_usage <- bill_2015$B1 + bill_2015$B2 + bill_2015$B3 + bill_2015$B4 + bill_2015$B5
   #FY2016
   tmp <- filter(df, usage_date < as.Date("2016-07-01"), usage_date >= as.Date("2015-07-01"))
   tier_starts <- get_budget_tiers(tmp, parse_strings("0\n41%\n101%\n131%"), 
@@ -555,6 +582,6 @@ irwd_baseline <- function(){
                             paste("BR", 1:num_tiers, sep=""),
                             "baseline_variable_bill")
   bill_2016 <- bill_2016 %>% mutate(baseline_bill=baseline_variable_bill + 10.30) 
-  
+  bill_2016$baseline_usage <- bill_2016$B1 + bill_2016$B2 + bill_2016$B3 + bill_2016$B4
   return( bind_rows(bill_2014, bill_2015, bill_2016) )
 }
