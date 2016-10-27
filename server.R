@@ -404,7 +404,7 @@ mnwd_baseline <- function(){
                             "baseline_variable_bill")
   bill_info$baseline_bill <- bill_info$baseline_variable_bill + 11.39
   #adding baseline usage
-  bill_info$baseline_usage <- bill_info$B1 + bill_info$B2 + bill_info$B3 + bill_info$B4 + bill_info$B5
+  bill_info$baseline_usage <- bill_info %>% select(matches("[B][0-9]")) %>% rowSums()
   return(bill_info)
 }
 
@@ -422,7 +422,7 @@ lvmwd_baseline <- function(){
                             "baseline_variable_bill")
   bill_2014 <- bill_2014 %>% mutate(baseline_bill=baseline_variable_bill + 30.21)
   #adding baseline usage
-  bill_2014$baseline_usage <- bill_2014$B1 + bill_2014$B2 + bill_2014$B3 + bill_2014$B4 + bill_2014$B5
+  bill_2014$baseline_usage <- bill_2014 %>% select(matches("[B][0-9]")) %>% rowSums()
   
   #2015 before the September switch to monthly billing
   tmp <- filter(df, usage_year >= 2015, usage_year < 2016, usage_month < 9)
@@ -436,7 +436,7 @@ lvmwd_baseline <- function(){
                               "baseline_variable_bill")
   bill_2015_1 <- bill_2015_1 %>% mutate(baseline_bill=baseline_variable_bill + 31.73)
   #adding baseline usage
-  bill_2015_1$baseline_usage <- bill_2015_1$B1 + bill_2015_1$B2 + bill_2015_1$B3 + bill_2015_1$B4
+  bill_2015_1$baseline_usage <- bill_2015_1 %>% select(matches("[B][0-9]")) %>% rowSums()
   
   #2015 after the September switch to monthly billing
   tmp <- filter(df, usage_date >= as.Date("2015-09-01"), usage_year < 2016)
@@ -450,7 +450,7 @@ lvmwd_baseline <- function(){
                               "baseline_variable_bill")
   bill_2015_2$baseline_bill <- bill_2015_2$baseline_variable_bill + 15.87
   #adding baseline usage
-  bill_2015_2$baseline_usage <- bill_2015_2$B1 + bill_2015_2$B2 + bill_2015_2$B3 + bill_2015_2$B4
+  bill_2015_2$baseline_usage <- bill_2015_2 %>% select(matches("[B][0-9]")) %>% rowSums()
   
   #2016 budgets
   tmp <- filter(df, usage_year >= 2016)
@@ -466,7 +466,7 @@ lvmwd_baseline <- function(){
                             "baseline_variable_bill")
   bill_2016$baseline_bill <- bill_2016$baseline_variable_bill + 18.30
   #adding baseline usage
-  bill_2016$baseline_usage <- bill_2016$B1 + bill_2016$B2 + bill_2016$B3 + bill_2016$B4
+  bill_2016$baseline_usage <- bill_2016 %>% select(matches("[B][0-9]")) %>% rowSums()
   
   return( bind_rows(bill_2014, bill_2015_1, bill_2015_2, bill_2016) )
 }
@@ -484,7 +484,7 @@ smwd_baseline <- function(){
                               "baseline_variable_bill")
   bill_2015_1 <- bill_2015_1 %>% mutate(baseline_bill=baseline_variable_bill + 6.41)
   #adding baseline usage
-  bill_2015_1$baseline_usage <- bill_2015_1$B1 + bill_2015_1$B2 + bill_2015_1$B3 + bill_2015_1$B4 + bill_2015_1$B5
+  bill_2015_1$baseline_usage <- bill_2015_1 %>% select(matches("[B][0-9]")) %>% rowSums()
   
   #after March 2015
   tmp <- filter(df, usage_date >= as.Date("2015-03-01"), usage_year < 2016)
@@ -498,7 +498,7 @@ smwd_baseline <- function(){
                               "baseline_variable_bill")
   bill_2015_2$baseline_bill <- bill_2015_2$baseline_variable_bill + 8.72
   #adding baseline usage
-  bill_2015_2$baseline_usage <- bill_2015_2$B1 + bill_2015_2$B2 + bill_2015_2$B3 + bill_2015_2$B4 + bill_2015_2$B5
+  bill_2015_2$baseline_usage <- bill_2015_2 %>% select(matches("[B][0-9]")) %>% rowSums()
   
   #   #2016 budgets
   #   tmp <- filter(df, usage_year >= 2016)
@@ -532,7 +532,7 @@ smc_baseline <- function(){
                               "baseline_variable_bill")
   bill_2015 <- bill_2015 %>% mutate(baseline_bill=baseline_variable_bill + 0)
   #adding baseline usage
-  bill_2015$baseline_usage <- bill_2015$B1 + bill_2015$B2 + bill_2015$B3 + bill_2015$B4
+  bill_2015$baseline_usage <- bill_2015 %>% select(matches("[B][0-9]")) %>% rowSums()
   
   #after 2016
   tmp <- filter(df, usage_date >= as.Date("2016-01-01"))
@@ -548,7 +548,7 @@ smc_baseline <- function(){
   
   bill_2016$baseline_bill <- bill_2016$baseline_variable_bill + 0
   #adding baseline usage
-  bill_2016$baseline_usage <- bill_2016$B1 + bill_2016$B2 + bill_2016$B3 + bill_2016$B4
+  bill_2016$baseline_usage <- bill_2016 %>% select(matches("[B][0-9]")) %>% rowSums()
   
   return( bind_rows(bill_2015, bill_2016) )
 }
@@ -569,7 +569,7 @@ irwd_baseline <- function(){
                             "baseline_variable_bill")
   bill_2014 <- bill_2014 %>% mutate(baseline_bill=baseline_variable_bill + 9.85)
   #adding baseline usage
-  bill_2014$baseline_usage <- bill_2014$B1 + bill_2014$B2 + bill_2014$B3 + bill_2014$B4 + bill_2014$B5
+  bill_2014$baseline_usage <- bill_2014 %>% select(matches("[B][0-9]")) %>% rowSums()
   
   #FY2015
   tmp <- filter(df, usage_date < as.Date("2015-07-01"), usage_date >= as.Date("2014-07-01"))
@@ -585,7 +585,7 @@ irwd_baseline <- function(){
                             "baseline_variable_bill")
   bill_2015 <- bill_2015 %>% mutate(baseline_bill=baseline_variable_bill + 10.50)
   #adding baseline usage
-  bill_2015$baseline_usage <- bill_2015$B1 + bill_2015$B2 + bill_2015$B3 + bill_2015$B4 + bill_2015$B5
+  bill_2015$baseline_usage <- bill_2015 %>% select(matches("[B][0-9]")) %>% rowSums()
   #FY2016
   tmp <- filter(df, usage_date < as.Date("2016-07-01"), usage_date >= as.Date("2015-07-01"))
   tier_starts <- get_budget_tiers(tmp, parse_strings("0\n41%\n101%\n131%"), 
@@ -600,6 +600,6 @@ irwd_baseline <- function(){
                             "baseline_variable_bill")
   bill_2016 <- bill_2016 %>% mutate(baseline_bill=baseline_variable_bill + 10.30)
   #adding baseline usage
-  bill_2016$baseline_usage <- bill_2016$B1 + bill_2016$B2 + bill_2016$B3 + bill_2016$B4
+  bill_2016$baseline_usage <- bill_2016 %>% select(matches("[B][0-9]")) %>% rowSums()
   return( bind_rows(bill_2014, bill_2015, bill_2016) )
 }

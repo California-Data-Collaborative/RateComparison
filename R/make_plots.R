@@ -5,10 +5,16 @@ library(scales)
 library(reshape2)
 library(stringi)
 
-#******************************************************************
-# Line chart showing revenue over time for both baseline
-# and hypothetical rate structures
-#******************************************************************
+#' Line chart of revenue over time.
+#'
+#' \code{plot_revenue_over_time} returns a line chart showing revenue over 
+#' time for both baseline and hypothetical rate structures. The baseline
+#' rate is shown in black and the hypthotical in blue.
+#'
+#' @param data The dataframe filtered by date range and rate code.
+#' 
+#' @return A plotly object created from a ggplot chart, with plotly's
+#' modebar removed.
 plot_revenue_over_time <- function(data, display_type){
   start.time <- Sys.time()
   if(display_type=="Revenue"){
@@ -73,13 +79,18 @@ plot_revenue_over_time <- function(data, display_type){
     
   }
 
-  p
+  ggplotly(p) %>% config(displayModeBar = FALSE)
 }
 
-#******************************************************************
-# Histogram of changes (hypothetical - baseline) in total amount 
-# paid during the time period for each customer
-#******************************************************************
+#' Histogram of bill changes.
+#'
+#' \code{plot_bill_change_histogram} returns a histogram of changes 
+#' (hypothetical - baseline) in total amount paid during the time period for each customer
+#'
+#' @param data The dataframe filtered by date range and rate code.
+#' 
+#' @return A plotly object created from a ggplot chart, with plotly's
+#' modebar removed.
 plot_bill_change_histogram <- function(data, display_type){
   start.time <- Sys.time()
   if(display_type=="Revenue"){
@@ -119,14 +130,19 @@ plot_bill_change_histogram <- function(data, display_type){
   print(time.taken)
     
   }
-  p
+  ggplotly(p) %>% config(displayModeBar = FALSE)
 }
 
-#******************************************************************
-# Small boxplot of changes (hypothetical - baseline) in total amount 
-# paid during the time period for each customer. Designed to 
-# complement the histogram
-#******************************************************************
+#' Boxplot of bill changes.
+#'
+#' \code{plot_bill_change_boxplot} returns a small boxplot of changes 
+#' (hypothetical - baseline) in total amount paid during the time period 
+#' for each customer. Designed to complement \code{\link{plot_bill_change_histogram}}.
+#'
+#' @param data The dataframe filtered by date range and rate code.
+#' 
+#' @return A plotly object created from a ggplot chart, with plotly's
+#' modebar removed.
 plot_bill_change_boxplot <- function(data, display_type){
   if(display_type=="Revenue"){
      if(sum(abs(data$changes)) < 1){
@@ -153,12 +169,24 @@ plot_bill_change_boxplot <- function(data, display_type){
     } 
     
   }
-  p
+  ggplotly(p) %>% config(displayModeBar = FALSE)
 }
 
-#******************************************************************
-# Barchart showing total revenue/usage in each tier in both rates
-#******************************************************************
+#' Barchart showing revenue/usage by tier.
+#'
+#' \code{plot_barchart_by_tiers} returns a bar chart showing the revenue/usage
+#' generated under the baseline and hypthetical rate structures. These bars are 
+#' further broken down and colored by tier, so that the amount of revenue/usage 
+#' generated in each tier is visible.
+#'
+#' @param data The dataframe filtered by date range and rate code.
+#' @param display_type A string specifying whether to display "Revenue" in millions
+#' of dollars, of "Usage" in thousands of acre-feet.
+#' @param bar_type A string showing whether to display the "Absolute" revenue 
+#' in each tier, or the "Percent" of revenue in each tier.
+#' 
+#' @return A plotly object created from a ggplot chart, with plotly's
+#' modebar removed.
 plot_barchart_by_tiers <- function(data, display_type, bar_type){
 
   if(display_type=="Revenue"){
@@ -191,12 +219,21 @@ plot_barchart_by_tiers <- function(data, display_type, bar_type){
   else{
     
   }
-  p
+  ggplotly(p) %>% config(displayModeBar = FALSE)
 }
 
-#******************************************************************
-# Barchart showing fixed revenue
-#******************************************************************
+#' Barchart showing percentage fixed revenue.
+#'
+#' \code{plot_fixed_revenue} returns a bar chart where bars represent the
+#' percent of revenue that comes from fixed charges (e.g. service charges based
+#' on meter size).
+#'
+#' @param data The dataframe filtered by date range and rate code.
+#' @param bar_type A string showing whether to display the "Absolute" 
+#' amount of fixed revenue or the "Percent" of total revenue that is fixed.
+#' 
+#' @return A plotly object created from a ggplot chart, with plotly's
+#' modebar removed.
 plot_fixed_revenue <- function(data, bar_type){
   
   # Select revenue in each tier
@@ -227,13 +264,19 @@ plot_fixed_revenue <- function(data, bar_type){
       
     }
   }
-  p
+  ggplotly(p) %>% config(displayModeBar = FALSE)
 }
 
-#******************************************************************
-# Given a label like "X1", or "BR3", returns the tier name as 
-# "Tier 1" or "Tier 3" respectively
-#******************************************************************
+#' Convert generic tier labels to more descriptive labels.
+#'
+#' \code{get_tier_name} takes a generic label, like "X1" or "B1", that is 
+#' generated when caculating tiered charges, and converts it to a more
+#' descritive label for use when plotting.
+#'
+#' @param labels A default, nondescriptive label such as "X1" meaning usage in tier 1,
+#' or "B1" meaning bill amount from tier 1.
+#' 
+#' @return A string representing the name of a tier, "Tier 1", "Tier 3", etc.
 get_tier_name <- function(labels){
   return(paste("Tier", stri_sub(labels, -1, -1) ))
 }

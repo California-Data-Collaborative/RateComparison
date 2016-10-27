@@ -4,7 +4,7 @@
 \alias{plot_bill_change_boxplot}
 \title{Boxplot of bill changes.}
 \usage{
-plot_bill_change_boxplot(data)
+plot_bill_change_boxplot(data, display_type)
 }
 \arguments{
 \item{data}{The dataframe filtered by date range and rate code.}
