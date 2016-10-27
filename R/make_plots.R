@@ -15,37 +15,69 @@ library(stringi)
 #' 
 #' @return A plotly object created from a ggplot chart, with plotly's
 #' modebar removed.
-plot_revenue_over_time <- function(data){
+plot_revenue_over_time <- function(data, display_type){
   start.time <- Sys.time()
-
-  monthly_revenue <- data %>%  group_by(usage_date) %>% 
+  if(display_type=="Revenue"){
+    monthly_revenue <- data %>%  group_by(usage_date) %>% 
                       summarise(revenue=sum(total_bill, na.rm=TRUE),
                                 baseline_revenue=sum(baseline_bill, na.rm=TRUE)) %>% 
                       mutate(Baseline = baseline_revenue/1000000) %>%
                       mutate(Hypothetical = revenue/1000000) %>%
                       select(usage_date,Baseline,Hypothetical)
-  monthly_revenue <- melt(monthly_revenue, id="usage_date") %>% rename(Revenue=variable)
+    monthly_revenue <- melt(monthly_revenue, id="usage_date") %>% rename(Revenue=variable)
   
-  end.time <- Sys.time()
-  time.taken <- end.time - start.time
-  print("Calcing monthly_revenue")
-  print(time.taken)
-  start.time <- Sys.time()
+    end.time <- Sys.time()
+    time.taken <- end.time - start.time
+    print("Calcing monthly_revenue")
+    print(time.taken)
+    start.time <- Sys.time()
 
     p <- ggplot(monthly_revenue, aes(x=usage_date, y=value, color=Revenue)) + 
     # geom_ribbon(aes(x=usage_date, ymax=rev_mill, ymin=base_rev_mill), fill="grey", alpha=.5) +
-    geom_line() + 
-    scale_linetype_manual(values = c("Baseline"="dashed", "Hypothetical"="solid")) +
-    scale_color_manual(values=c("Baseline"="black", "Hypothetical"="steelblue")) +
-    xlab("") + ylab("Revenue (Million $)") + 
-    # theme(axis.text.x = element_text(angle = 30, hjust = 1)) +
-    # scale_x_date(labels = date_format("%m-%y"), date_breaks="1 months") +
-    scale_y_continuous(labels = comma)
+         geom_line() + 
+         scale_linetype_manual(values = c("Baseline"="dashed", "Hypothetical"="solid")) +
+         scale_color_manual(values=c("Baseline"="black", "Hypothetical"="steelblue")) +
+         xlab("") + ylab("Revenue (Million $)") + 
+         # theme(axis.text.x = element_text(angle = 30, hjust = 1)) +
+         # scale_x_date(labels = date_format("%m-%y"), date_breaks="1 months") +
+         scale_y_continuous(labels = comma)
   
-  end.time <- Sys.time()
-  time.taken <- end.time - start.time
-  print("Making line chart") 
-  print(time.taken)
+    end.time <- Sys.time()
+    time.taken <- end.time - start.time
+    print("Making line chart") 
+    print(time.taken)
+  }
+  else{ #if usage is selected, plot monthly usage
+    monthly_usage <- data %>%  group_by(usage_date) %>%  
+                     summarise(hypothetical_usage=sum(hypothetical_usage, na.rm=TRUE),
+                               baseline_usage=sum(baseline_usage, na.rm=TRUE)) %>% 
+                     mutate(Baseline = baseline_usage/1000000) %>%
+                     mutate(Hypothetical = hypothetical_usage/1000000) %>%
+                     select(usage_date,Baseline,Hypothetical)
+    monthly_usage <- melt(monthly_usage, id="usage_date") %>% rename(Usage=variable)
+    
+    end.time <- Sys.time()
+    time.taken <- end.time - start.time
+    print("Calcing monthly_usage")
+    print(time.taken)
+    start.time <- Sys.time()
+    
+    p <- ggplot(monthly_usage, aes(x=usage_date, y=value, color=Usage)) + 
+         # geom_ribbon(aes(x=usage_date, ymax=rev_mill, ymin=base_rev_mill), fill="grey", alpha=.5) +
+         geom_line() + 
+         scale_linetype_manual(values = c("Baseline"="dashed", "Hypothetical"="solid")) +
+         scale_color_manual(values=c("Baseline"="black", "Hypothetical"="steelblue")) +
+         xlab("") + ylab("Usage (Million ccf)") + 
+         # theme(axis.text.x = element_text(angle = 30, hjust = 1)) +
+         # scale_x_date(labels = date_format("%m-%y"), date_breaks="1 months") +
+         scale_y_continuous(labels = comma)
+    
+    end.time <- Sys.time()
+    time.taken <- end.time - start.time
+    print("Making line chart") 
+    print(time.taken)
+    
+  }
 
   ggplotly(p) %>% config(displayModeBar = FALSE)
 }
@@ -59,26 +91,45 @@ plot_revenue_over_time <- function(data){
 #' 
 #' @return A plotly object created from a ggplot chart, with plotly's
 #' modebar removed.
-plot_bill_change_histogram <- function(data){
+plot_bill_change_histogram <- function(data, display_type){
   start.time <- Sys.time()
-  
-  if(sum(abs(data$changes)) < 1){
-    p <- ggplot() + 
-      geom_vline(xintercept = 0, color="#CC0000") +
-      xlab("Change in total amount paid ($)")
-  }
-  else{
-    p <- ggplot(data, aes(x=changes)) + geom_histogram() + 
-      geom_vline(xintercept = mean(data$changes, na.rm=TRUE), color="#CC0000") +
-      xlab("Change in total amount paid ($)") + ylab("") +
-      theme(axis.ticks = element_blank(), axis.text.y = element_blank())
-  }
+  if(display_type=="Revenue"){
+    if(sum(abs(data$changes)) < 1){
+      p <- ggplot() + 
+           geom_vline(xintercept = 0, color="#CC0000") +
+           xlab("Change in total amount paid ($)")
+    }
+    else{
+      p <- ggplot(data, aes(x=changes)) + geom_histogram() + 
+           geom_vline(xintercept = mean(data$changes, na.rm=TRUE), color="#CC0000") +
+           xlab("Change in total amount paid ($)") + ylab("") +
+           theme(axis.ticks = element_blank(), axis.text.y = element_blank())
+    }
   
   end.time <- Sys.time()
   time.taken <- end.time - start.time
-  print("Making histogram") 
+  print("Making Revenue histogram") 
   print(time.taken)
-  
+  }
+  else{ #if usage is selected, plot changes in usage
+    if(sum(abs(data$changes_in_usage)) < 1){  
+      p <- ggplot() + 
+           geom_vline(xintercept = 0, color="#CC0000") +
+           xlab("Change in total amount used (ccf)")
+    }
+    else{
+      p <- ggplot(data, aes(x=changes_in_usage)) + geom_histogram() + 
+           geom_vline(xintercept = mean(data$changes_in_usage, na.rm=TRUE), color="#CC0000") +
+           xlab("Change in total amount used (ccf)") + ylab("") +
+           theme(axis.ticks = element_blank(), axis.text.y = element_blank())
+    }
+    
+  end.time <- Sys.time()
+  time.taken <- end.time - start.time
+  print("Making Usage histogram") 
+  print(time.taken)
+    
+  }
   ggplotly(p) %>% config(displayModeBar = FALSE)
 }
 
@@ -92,16 +143,31 @@ plot_bill_change_histogram <- function(data){
 #' 
 #' @return A plotly object created from a ggplot chart, with plotly's
 #' modebar removed.
-plot_bill_change_boxplot <- function(data){
-  if(sum(abs(data$changes)) < 1){
-    p <- ggplot() + 
-      geom_vline(xintercept = 0, color="#CC0000") +
-      xlab("")
+plot_bill_change_boxplot <- function(data, display_type){
+  if(display_type=="Revenue"){
+     if(sum(abs(data$changes)) < 1){
+       p <- ggplot() + 
+       geom_vline(xintercept = 0, color="#CC0000") +
+       xlab("")
+     }
+     else{
+       p <- ggplot(data, aes(change_group, changes)) + geom_boxplot(outlier.size=1) +
+       coord_flip() + xlab("") + ylab("") + 
+       theme(axis.ticks = element_blank(), axis.text.y = element_blank())
+     }
   }
-  else{
-    p <- ggplot(data, aes(change_group, changes)) + geom_boxplot(outlier.size=1) +
-      coord_flip() + xlab("") + ylab("") + 
-      theme(axis.ticks = element_blank(), axis.text.y = element_blank())
+  else{ #if usage is selected, plot changes in usage
+     if(sum(abs(data$changes_in_usage)) < 1){  
+       p <- ggplot() + 
+       geom_vline(xintercept = 0, color="#CC0000") +
+       xlab("")
+    }
+    else{
+       p <- ggplot(data, aes(change_group, changes_in_usage)) + geom_boxplot(outlier.size=1) +
+       coord_flip() + xlab("") + ylab("") + 
+       theme(axis.ticks = element_blank(), axis.text.y = element_blank())
+    } 
+    
   }
   ggplotly(p) %>% config(displayModeBar = FALSE)
 }
