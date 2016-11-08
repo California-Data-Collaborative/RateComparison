@@ -2,6 +2,7 @@
 library(plotly)
 library(shiny)
 library(dplyr)
+library(lubridate)
 
 #set the utility_code from the config file
 source("R/utility_code.R")
