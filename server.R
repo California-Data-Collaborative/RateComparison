@@ -16,19 +16,29 @@ shinyServer(function(input, output, clientData, session) {
      sort(usage_date)
      usage_month <- month(usage_date)
      usage_year<- year(usage_date)
-     et_amount<- rep(mean(df$et_amount), length.out = cust_id)
-     hhsize<- rep(mean(df$hhsize), length.out = cust_id)
-     irr_area<- rep(mean(df$irr_area,na.rm=TRUE), length.out = cust_id)
+      
+     #et_amount<- rep(mean(df$et_amount), length.out = length(cust_id))
+     hhsize<- rep(mean(df$hhsize), length.out = length(cust_id))
+     irr_area<- rep(mean(df$irr_area,na.rm=TRUE), length.out = length(cust_id))
      cust_class<- rep(sample(unique(df$cust_class), replace = TRUE, 
                                   prob = c(0.6743466617,0.2571174402,0.0102410284,
                                            0.0395202720,0.0003800564,0.0183945413)),
-                      length.out = cust_id)
+                      length.out = length(cust_id))
      linearmodel <- lm(usage_ccf ~ factor(usage_month)+cust_class, data = df)
      usage_ccf <- predict(linearmodel, data.frame(factor(usage_month), cust_class))
        
-     rate_code <- cust_class
+     rate_code <- rep(sample(df$rate_code, replace = TRUE),length.out = length(cust_id))
+     #average et by month
+     avg_et_df <-  df%>%  group_by(usage_month) %>% summarise(et_amount = mean(et_amount))
+     
      budgetplanneddf <- data.frame(cust_id, usage_month, usage_year, usage_date, usage_ccf,
-                             et_amount, hhsize, irr_area, cust_class, rate_code)
+                                   hhsize, irr_area, cust_class, rate_code)
+     #fill in average et by month
+     budgetplanneddf <- merge(avg_et_df, budgetplanneddf, by = 'usage_month')
+     #re-arrange columns
+     budgetplanneddf <- budgetplanneddf %>% select(cust_id, usage_month, usage_year, usage_date, usage_ccf,
+                                   et_amount, hhsize, irr_area, cust_class, rate_code)
+     
      
      planneddf <- rbind(df, budgetplanneddf)
      
@@ -49,13 +59,13 @@ shinyServer(function(input, output, clientData, session) {
      linearmodel <- lm(usage_ccf ~ factor(usage_month)+cust_class, data = df)
      usage_ccf <- predict(linearmodel, data.frame(factor(usage_month), cust_class))
      
-     rate_code <- cust_class
+     rate_code <- rep(sample(df$rate_code, replace = TRUE),length.out = length(cust_id))
      planneddf <- data.frame(cust_id, usage_month, usage_year, usage_date, usage_ccf,
                              cust_class, rate_code)
      
      planneddf <- rbind(df, planneddf)
    }
-    
+  
   planneddf
   }
 
@@ -144,10 +154,10 @@ shinyServer(function(input, output, clientData, session) {
   #******************************************************************
   df_plots <- reactive({
     if(input$Planning == TRUE){
-         combined <- dplyr::bind_cols(planneddf(), total_bill_info(), baseline_bill_info()) %>%
-          filter(usage_date >= input$timeSlider[1],
-             usage_date <= input$timeSlider[2],
-             rate_code %in% input$RateCode)
+         combined <- dplyr::bind_cols(planneddf(), total_bill_info(), baseline_bill_info())%>%
+          # filter(usage_date >= input$timeSlider[1],
+          #    usage_date <= input$timeSlider[2])
+              filter(rate_code %in% input$RateCode)
          
     }
     else{
@@ -156,15 +166,16 @@ shinyServer(function(input, output, clientData, session) {
                  usage_date <= input$timeSlider[2],
                  rate_code %in% input$RateCode)
     }
+    
     combined
   })
   
   df_plots1 <- reactive({
     if(input$Planning == TRUE){
       combined <- dplyr::bind_cols(planneddf(), total_bill_info(), baseline_bill_info()) %>%
-        filter(usage_date >= input$timeSlider[1],
-               usage_date <= input$timeSlider[2],
-               rate_code %in% input$RateCode1)
+        #filter(usage_date >= input$timeSlider[1],
+               #usage_date <= input$timeSlider[2],
+               filter(rate_code %in% input$RateCode1)
       
     }
     else{
@@ -179,9 +190,9 @@ shinyServer(function(input, output, clientData, session) {
   df_plots2 <- reactive({
     if(input$Planning == TRUE){
       combined <- dplyr::bind_cols(planneddf(), total_bill_info(), baseline_bill_info()) %>%
-        filter(usage_date >= input$timeSlider[1],
-               usage_date <= input$timeSlider[2],
-               rate_code %in% input$RateCode2)
+        #filter(usage_date >= input$timeSlider[1],
+         #      usage_date <= input$timeSlider[2],
+               filter(rate_code %in% input$RateCode2)
       
     }
     else{
@@ -196,9 +207,9 @@ shinyServer(function(input, output, clientData, session) {
   df_plots3 <- reactive({
     if(input$Planning == TRUE){
       combined <- dplyr::bind_cols(planneddf(), total_bill_info(), baseline_bill_info()) %>%
-        filter(usage_date >= input$timeSlider[1],
-               usage_date <= input$timeSlider[2],
-               rate_code %in% input$RateCode3)
+        #filter(usage_date >= input$timeSlider[1],
+         #      usage_date <= input$timeSlider[2],
+               filter(rate_code %in% input$RateCode3)
       
     }
     else{
@@ -213,9 +224,9 @@ shinyServer(function(input, output, clientData, session) {
   df_plots4 <- reactive({
     if(input$Planning == TRUE){
       combined <- dplyr::bind_cols(planneddf(), total_bill_info(), baseline_bill_info()) %>%
-        filter(usage_date >= input$timeSlider[1],
-               usage_date <= input$timeSlider[2],
-               rate_code %in% input$RateCode4)
+        # filter(usage_date >= input$timeSlider[1],
+        #        usage_date <= input$timeSlider[2],
+              filter(rate_code %in% input$RateCode4)
       
     }
     else{
@@ -230,9 +241,9 @@ shinyServer(function(input, output, clientData, session) {
   df_plots5 <- reactive({
     if(input$Planning == TRUE){
       combined <- dplyr::bind_cols(planneddf(), total_bill_info(), baseline_bill_info()) %>%
-        filter(usage_date >= input$timeSlider[1],
-               usage_date <= input$timeSlider[2],
-               rate_code %in% input$RateCode5)
+        # filter(usage_date >= input$timeSlider[1],
+        #        usage_date <= input$timeSlider[2],
+               filter(rate_code %in% input$RateCode5)
       
     }
     else{
@@ -250,13 +261,24 @@ shinyServer(function(input, output, clientData, session) {
   # Calculate bills and tiers for the MNWD residential baseline rate
   #******************************************************************
   baseline_bill_info <- reactive({
+    if(input$Planning == TRUE){
     switch(utility_code,
-           "IRWD"=irwd_baseline(),
-           "MNWD"=mnwd_baseline(),
-           "LVMWD"=lvmwd_baseline(),
-           "SMWD"=smwd_baseline(),
-           "SMC"=smc_baseline()
-    )
+           "IRWD"=irwd_baseline(basedata=planneddf()),
+           "MNWD"=mnwd_baseline(basedata=planneddf()),
+           "LVMWD"=lvmwd_baseline(basedata=planneddf()),
+           "SMWD"=smwd_baseline(basedata=planneddf()),
+           "SMC"=smc_baseline(basedata=planneddf())
+      )
+    }
+    else{
+      switch(utility_code,
+             "IRWD"=irwd_baseline(basedata=df),
+             "MNWD"=mnwd_baseline(basedata=df),
+             "LVMWD"=lvmwd_baseline(basedata=df),
+             "SMWD"=smwd_baseline(basedata=df),
+             "SMC"=smc_baseline(basedata=df)
+      )
+    }
   })
   
   #******************************************************************
@@ -570,23 +592,15 @@ shinyServer(function(input, output, clientData, session) {
 
 
 
-mnwd_baseline <- reactive({
+mnwd_baseline <- function(basedata){
   
-  if(input$Planning == TRUE){ 
-    tier_starts <- get_budget_tiers(planneddf(), parse_strings("0\nIndoor\n101%\n126%\n151%"), 
-                                  get_indoor_tier(planneddf(), 60), get_outdoor_tier(df, 0.7))
-    bill_info <- calculate_variable_bill(data=planneddf(), rate_type="Budget", 
+  
+    tier_starts <- get_budget_tiers(basedata, parse_strings("0\nIndoor\n101%\n126%\n151%"), 
+                                  get_indoor_tier(basedata, 60), get_outdoor_tier(basedata, 0.7))
+    bill_info <- calculate_variable_bill(basedata, rate_type="Budget", 
                                        tier_starts=tier_starts,
                                        tier_prices=parse_numerics("1.49\n1.70\n2.62\n4.38\n9.17"))
-  }
-  else{
-    tier_starts <- get_budget_tiers(df, parse_strings("0\nIndoor\n101%\n126%\n151%"), 
-                                    get_indoor_tier(df, 60), get_outdoor_tier(df, 0.7))
-    bill_info <- calculate_variable_bill(data=df, rate_type="Budget", 
-                                         tier_starts=tier_starts,
-                                         tier_prices=parse_numerics("1.49\n1.70\n2.62\n4.38\n9.17"))
-  }
- 
+  
   
   num_tiers <- length(parse_strings("1.49\n1.70\n2.62\n4.38\n9.17"))
   colnames(bill_info) <- c( paste("B", 1:num_tiers, sep=""),
@@ -596,27 +610,19 @@ mnwd_baseline <- reactive({
   #adding baseline usage
   bill_info$baseline_usage <- bill_info %>% select(matches("[B][0-9]")) %>% rowSums()
   return(bill_info)
-})
+}
 
-lvmwd_baseline <- reactive({
-  if(input$Planning == TRUE){
+lvmwd_baseline <- function(basedata){
+  
   #2014 rate
-   tmp <- filter(planneddf(), usage_year < 2015)
-  }
-  else{
-    tmp <- filter(df, usage_year < 2015)
-  }
+  tmp <- filter(basedata, usage_year < 2015)
+  
   bill_2014 <- calculate_variable_bill(data=tmp, 
                                        rate_type="Tiered", 
                                        tier_starts=parse_numerics("0\n16\n67\n200"),
                                        tier_prices=parse_numerics("2.19\n2.60\n3.56\n5.02") )
   
-  
-  bill_2014 <- calculate_variable_bill(data=tmp, 
-                                         rate_type="Tiered", 
-                                         tier_starts=parse_numerics("0\n16\n67\n200"),
-                                         tier_prices=parse_numerics("2.19\n2.60\n3.56\n5.02") )
-  
+
 
   num_tiers <- length(parse_strings("0\n16\n67\n200"))
   colnames(bill_2014) <- c( paste("B", 1:num_tiers, sep=""),
@@ -627,13 +633,9 @@ lvmwd_baseline <- reactive({
   bill_2014$baseline_usage <- bill_2014 %>% select(matches("[B][0-9]")) %>% rowSums()
   
   
-  if(input$Planning == TRUE){
+  
   #2015 before the September switch to monthly billing
-   tmp <- filter(planneddf(), usage_year >= 2015, usage_year < 2016, usage_month < 9)
-  }
-  else{
-    tmp <- filter(df, usage_year >= 2015, usage_year < 2016, usage_month < 9)
-  }
+  tmp <- filter(basedata, usage_year >= 2015, usage_year < 2016, usage_month < 9)
   
   bill_2015_1 <- calculate_variable_bill(data=tmp, 
                                          rate_type="Tiered", 
@@ -649,13 +651,9 @@ lvmwd_baseline <- reactive({
   #adding baseline usage
   bill_2015_1$baseline_usage <- bill_2015_1 %>% select(matches("[B][0-9]")) %>% rowSums()
   
-  if(input$Planning == TRUE){
   #2015 after the September switch to monthly billing
-   tmp <- filter(planneddf(), usage_date >= as.Date("2015-09-01"), usage_year < 2016)
-  }
-  else{
-    tmp <- filter(df, usage_date >= as.Date("2015-09-01"), usage_year < 2016)
-  }
+  tmp <- filter(basedata, usage_date >= as.Date("2015-09-01"), usage_year < 2016)
+  
   bill_2015_2 <- calculate_variable_bill(data=tmp, 
                                          rate_type="Tiered", 
                                          tier_starts=parse_numerics("0\n8\n34\n100"),
@@ -670,13 +668,9 @@ lvmwd_baseline <- reactive({
   #adding baseline usage
   bill_2015_2$baseline_usage <- bill_2015_2 %>% select(matches("[B][0-9]")) %>% rowSums()
   
-  if(input$Planning == TRUE){
   #2016 budgets
-   tmp <- filter(planneddf(), usage_year >= 2016)
-  }
-  else{
-    tmp <- filter(df, usage_year >= 2016)
-  }
+  tmp <- filter(basedata, usage_year >= 2016)
+  
   tier_starts <- get_budget_tiers(tmp, parse_strings("0\nIndoor\n101%\n151%"), 
                                   get_indoor_tier(tmp, 55), get_outdoor_tier(tmp, 0.8))
   bill_2016 <- calculate_variable_bill(data=tmp, 
@@ -692,17 +686,14 @@ lvmwd_baseline <- reactive({
   bill_2016$baseline_usage <- bill_2016 %>% select(matches("[B][0-9]")) %>% rowSums()
   
   return( bind_rows(bill_2014, bill_2015_1, bill_2015_2, bill_2016) )
-})
+}
 
-smwd_baseline <- reactive({
+smwd_baseline <- function(basedata){
   
-  if(input$Planning == TRUE){
+  
   #before March 2015
-    tmp <- filter(df, usage_date < as.Date("2015-03-01"))
-  }
-  else{
-    tmp <- filter(df, usage_date < as.Date("2015-03-01"))
-  }
+  tmp <- filter(basedata, usage_date < as.Date("2015-03-01"))
+  
   bill_2015_1 <- calculate_variable_bill(data=tmp, 
                                          rate_type="Tiered", 
                                          tier_starts=parse_numerics("0\n7\n21\n36\n71"),
@@ -715,13 +706,10 @@ smwd_baseline <- reactive({
   #adding baseline usage
   bill_2015_1$baseline_usage <- bill_2015_1 %>% select(matches("[B][0-9]")) %>% rowSums()
   
-  if(input$Planning == TRUE){
+  
   #after March 2015
-    tmp <- filter(planneddf(), usage_date >= as.Date("2015-03-01"), usage_year < 2016)
-  }
-  else{
-    tmp <- filter(df, usage_date >= as.Date("2015-03-01"), usage_year < 2016)
-  }
+  tmp <- filter(planneddf(), usage_date >= as.Date("2015-03-01"), usage_year < 2016)
+  
   bill_2015_2 <- calculate_variable_bill(data=tmp, 
                                          rate_type="Tiered", 
                                          tier_starts=parse_numerics("0\n7\n21\n36\n71"),
@@ -750,18 +738,14 @@ smwd_baseline <- reactive({
   
   
   return( bind_rows(bill_2015_1, bill_2015_2) )
-})
+}
 
 
-smc_baseline <- function(){
+smc_baseline <- function(basedata){
   
-  if(input$Planning == TRUE){
   #before 2016
-    tmp <- filter(planneddf(), usage_date < as.Date("2016-01-01"))
-  }
-  else{
-    tmp <- filter(df, usage_date < as.Date("2016-01-01"))
-  }
+  tmp <- filter(basedata, usage_date < as.Date("2016-01-01"))
+  
   bill_2015 <- calculate_variable_bill(data=tmp, 
                                          rate_type="Tiered", 
                                          tier_starts=parse_numerics("0\n15\n41\n149"),
@@ -774,13 +758,9 @@ smc_baseline <- function(){
   #adding baseline usage
   bill_2015$baseline_usage <- bill_2015 %>% select(matches("[B][0-9]")) %>% rowSums()
   
-  if(input$Planning == TRUE){
   #after 2016
-    tmp <- filter(planneddf(), usage_date >= as.Date("2016-01-01"))
-  }
-  else{
-    tmp <- filter(df, usage_date >= as.Date("2016-01-01"))
-  }
+  tmp <- filter(basedata, usage_date >= as.Date("2016-01-01"))
+  
   bill_2016 <- calculate_variable_bill(data=tmp, 
                                          rate_type="Tiered", 
                                          tier_starts=parse_numerics("0\n15\n41\n149"),
@@ -799,15 +779,11 @@ smc_baseline <- function(){
 }
 
 
-irwd_baseline <- function(){
+irwd_baseline <- function(basedata){
   
-  if(input$Planning == TRUE){
   #FY2014  
-    tmp <- filter(planneddf(), usage_date < as.Date("2014-07-01"))
-  }
-  else{
-    tmp <- filter(df, usage_date < as.Date("2014-07-01"))
-  }
+  tmp <- filter(basedata, usage_date < as.Date("2014-07-01"))
+  
   tier_starts <- get_budget_tiers(tmp, parse_strings("0\n41%\n101%\n151%\n201%"), 
                                   get_indoor_tier(tmp, 50), get_outdoor_tier(tmp, 0.8))
   bill_2014 <- calculate_variable_bill(data=tmp, 
@@ -824,12 +800,8 @@ irwd_baseline <- function(){
   
   #FY2015
   
-  if(input$Planning == TRUE){
-    tmp <- filter(planneddf(), usage_date < as.Date("2015-07-01"), usage_date >= as.Date("2014-07-01"))
-  }
-  else{
-    tmp <- filter(df, usage_date < as.Date("2015-07-01"), usage_date >= as.Date("2014-07-01"))
-  }
+  tmp <- filter(basedata, usage_date < as.Date("2015-07-01"), usage_date >= as.Date("2014-07-01"))
+  
   tier_starts <- get_budget_tiers(tmp, parse_strings("0\n41%\n101%\n131%\n161%"), 
                                   get_indoor_tier(tmp, 50), get_outdoor_tier(tmp, 0.8))
   bill_2015 <- calculate_variable_bill(data=tmp, 
@@ -844,13 +816,9 @@ irwd_baseline <- function(){
   #adding baseline usage
   bill_2015$baseline_usage <- bill_2015 %>% select(matches("[B][0-9]")) %>% rowSums()
   
-  if(input$Planning == TRUE){
   #FY2016
-    tmp <- filter(planneddf(), usage_date < as.Date("2016-07-01"), usage_date >= as.Date("2015-07-01"))
-  }
-  else{
-    tmp <- filter(df, usage_date < as.Date("2016-07-01"), usage_date >= as.Date("2015-07-01"))
-  }
+  tmp <- filter(basedata, usage_date < as.Date("2016-07-01"), usage_date >= as.Date("2015-07-01"))
+  
   tier_starts <- get_budget_tiers(tmp, parse_strings("0\n41%\n101%\n131%"), 
                                   get_indoor_tier(tmp, 50), get_outdoor_tier(tmp, 0.8))
   bill_2016 <- calculate_variable_bill(data=tmp, 
