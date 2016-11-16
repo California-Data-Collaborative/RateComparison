@@ -121,18 +121,18 @@ shinyUI(navbarPage(
                          
                 ),
                tabPanel("Scenario Planning",
-                  #radioButtons("Planning", "Scenario Planning", c('enable','disable'), selected = 'enable'),      
-                        
+                  
                   checkboxInput("Planning", "Enable Scenario Planning", value = TRUE, 
                                 width = NULL),
-                  numericInput("Growth", "Expected Population Growth for the forecast period",
-                               100, min = 0, max = 1000, step = 1,
-                               width = NULL),
-                  # numericInput("EstUsagePerAccount", "Estimated Usage per Account",
-                  #              20, min = 0, max = 1000, step = NA,
-                  #              width = NULL),
+                  
                   numericInput("Months", "Number of months to Forecast", 
-                               6, min = 1, max = 24, step = 1,
+                               3, min = 1, max = 24, step = 1,
+                               width = NULL),
+                  numericInput("Growth", "Expected Monthly Growth of number of accounts in the forecast period",
+                               10, min = 0, max = 100, step = 1,
+                               width = NULL),
+                  numericInput("EstUsagePerAccount", "Estimated Usage per New Account(ccf)",
+                               20, min = 0, max = 1000, step = NA,
                                width = NULL)
                )
               

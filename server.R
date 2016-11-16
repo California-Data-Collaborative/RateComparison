@@ -8,63 +8,94 @@ shinyServer(function(input, output, clientData, session) {
   
  planneddf <- reactive({
   if(input$Planning == TRUE){
-   if(is_budget){
+    
+    #generating the required number of rows
+    #generatedrows <- rep(1:projectedgrowth,each = input$Months)
+    
+    monthlyusagebyaccount <- df %>% 
+                             group_by(cust_id,usage_month) %>% 
+                             summarise(usage_ccf = mean(usage_ccf))
+    recent_month <- max(monthlyusagebyaccount$usage_month)
+    
+    
+    recentmonthdata <- monthlyusagebyaccount%>% filter(usage_month == recent_month)
+    baseAccounts <- nrow(recentmonthdata)
+    
+    #projectedGrowth <- nrow(recentmonthdata) + input$Growth
+    #filling in account numbers and dates
+    #cust_id <- list()
+    #usage_date <- list()
+    # for (i in 1:input$Months){
+    #   cust_id <- append(cust_id, rep(recentmonthdata$cust_id, length.out = projectedGrowth))
+    #   usage_date <- append(usage_date, rep(tail(df$usage_date,1) %m+% months(i), length.out = length(cust_id)))
+    #   projectedGrowth <- projectedGrowth + input$Growth
+    # }
+    growth_Vec <- c(1:input$Months)
+    required_growth <- c(baseAccounts+growth_Vec*input$Growth)
+    Month_Vec <- seq(from = tail(df$usage_date,1) %m+% months(1), to = tail(df$usage_date,1) %m+% months(input$Months),
+                     by = "month")
+    usage_date <- rep(Month_Vec, required_growth)
+    sort(usage_date)
+    cust_id <- rep(recentmonthdata$cust_id, length.out = length(usage_date))
+    
+    #usage_date <- rep(tail(df$usage_date,1) %m+% months(), length.out = length(cust_id))
+    #cust_id <- rep(recentmonthdata$cust_id, each = input$Months, length.out = projectedGrowth)
+    #cust_id <- append(cust_id, rep(recentmonthdata$cust_id, length.out = projectedGrowth+input$Growth))
+    
+    usage_month <- month(usage_date)
+    usage_year<- year(usage_date)
+    cust_class<- rep(sample(unique(df$cust_class), replace = TRUE, 
+                            prob = c(0.6743466617,0.2571174402,0.0102410284,
+                                     0.0395202720,0.0003800564,0.0183945413)),
+                     length.out = length(cust_id))
+    
+    
+    rate_code <- rep(sample(df$rate_code, replace = TRUE),length.out = length(cust_id))
+    
+      if(is_budget){
      
-     cust_id <- rep(1:49000,each = input$Months)
-     usage_date <- rep(seq(from = tail(df$usage_date,1), 
-                               by = "month", length.out = input$Months),each = 49000)
-     sort(usage_date)
-     usage_month <- month(usage_date)
-     usage_year<- year(usage_date)
-      
-     #et_amount<- rep(mean(df$et_amount), length.out = length(cust_id))
-     hhsize<- rep(mean(df$hhsize), length.out = length(cust_id))
-     irr_area<- rep(mean(df$irr_area,na.rm=TRUE), length.out = length(cust_id))
-     cust_class<- rep(sample(unique(df$cust_class), replace = TRUE, 
-                                  prob = c(0.6743466617,0.2571174402,0.0102410284,
-                                           0.0395202720,0.0003800564,0.0183945413)),
-                      length.out = length(cust_id))
-     linearmodel <- lm(usage_ccf ~ factor(usage_month)+cust_class, data = df)
-     usage_ccf <- predict(linearmodel, data.frame(factor(usage_month), cust_class))
-       
-     rate_code <- rep(sample(df$rate_code, replace = TRUE),length.out = length(cust_id))
-     #average et by month
-     avg_et_df <-  df%>%  group_by(usage_month) %>% summarise(et_amount = mean(et_amount))
-     
-     budgetplanneddf <- data.frame(cust_id, usage_month, usage_year, usage_date, usage_ccf,
+        #filling in average house sizes and irrigation areas
+        hhsize<- rep(mean(df$hhsize), length.out = length(cust_id))
+        irr_area<- rep(mean(df$irr_area,na.rm=TRUE), length.out = length(cust_id))
+        
+        #average et by month
+        avg_et_df <-  df%>%  group_by(usage_month) %>% summarise(et_amount = mean(et_amount))
+        
+        #prepare a data frame
+        budgetplanneddf <- data.frame(cust_id, usage_month, usage_year, usage_date,
                                    hhsize, irr_area, cust_class, rate_code)
-     #fill in average et by month
-     budgetplanneddf <- merge(avg_et_df, budgetplanneddf, by = 'usage_month')
-     #re-arrange columns
-     budgetplanneddf <- budgetplanneddf %>% select(cust_id, usage_month, usage_year, usage_date, usage_ccf,
+        #fill in average et by month
+        budgetplanneddf <- merge(avg_et_df, budgetplanneddf, by = 'usage_month')
+     
+        #fill in average ccf by account and month
+        budgetplanneddf <- merge(monthlyusagebyaccount, budgetplanneddf, 
+                              by = c('cust_id','usage_month'))
+     
+        #re-arrange columns
+        budgetplanneddf <- budgetplanneddf %>% select(cust_id, usage_month, usage_year, usage_date, usage_ccf,
                                    et_amount, hhsize, irr_area, cust_class, rate_code)
      
      
-     planneddf <- rbind(df, budgetplanneddf)
+        planneddf <- rbind(df, budgetplanneddf)
      
 
-   }
-   else{
-     cust_id <- rep(1:49000,each = input$Months)
-     usage_date <- rep(seq(from = tail(df$usage_date,1), 
-                           by = "month", length.out = input$Months),each = 49000)
-     sort(usage_date)
-     
-     usage_month <- month(usage_date)
-     usage_year<- year(usage_date)
-     cust_class<- rep(sample(unique(df$cust_class), replace = TRUE, 
-                             prob = c(0.6743466617,0.2571174402,0.0102410284,
-                                      0.0395202720,0.0003800564,0.0183945413)),
-                      length.out = cust_id)
-     linearmodel <- lm(usage_ccf ~ factor(usage_month)+cust_class, data = df)
-     usage_ccf <- predict(linearmodel, data.frame(factor(usage_month), cust_class))
-     
-     rate_code <- rep(sample(df$rate_code, replace = TRUE),length.out = length(cust_id))
-     planneddf <- data.frame(cust_id, usage_month, usage_year, usage_date, usage_ccf,
+       }
+      else{
+         
+         #prepare a data frame
+         planneddf <- data.frame(cust_id, usage_month, usage_year, usage_date,
                              cust_class, rate_code)
+         #fill in average ccf by account and month
+         planneddf <- merge(monthlyusagebyaccount, planneddf, 
+                                  by = c('cust_id','usage_month'))
+         
+         #re-arrange columns
+         planneddf <- planneddf %>% select(cust_id, usage_month, usage_year, usage_date, usage_ccf,
+                                                       cust_class, rate_code)
      
-     planneddf <- rbind(df, planneddf)
-   }
+         planneddf <- rbind(df, planneddf)
+      }
+   
   
   planneddf
   }
@@ -609,6 +640,7 @@ mnwd_baseline <- function(basedata){
   bill_info$baseline_bill <- bill_info$baseline_variable_bill + 11.39
   #adding baseline usage
   bill_info$baseline_usage <- bill_info %>% select(matches("[B][0-9]")) %>% rowSums()
+  
   return(bill_info)
 }
 

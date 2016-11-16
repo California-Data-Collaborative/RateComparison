@@ -79,6 +79,7 @@ plot_revenue_over_time <- function(data, display_type){
     
   }
 
+
   ggplotly(p) %>% config(displayModeBar = FALSE)
 }
 
