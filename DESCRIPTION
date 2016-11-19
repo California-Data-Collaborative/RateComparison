@@ -13,8 +13,12 @@ Imports:
     scales,
     shiny,
     stringi,
-    zoo
-Suggests: testthat
+    zoo,
+    RateParser
+Suggests: 
+    testthat
+Remotes: 
+    California-Data-Collaborative/RateParser
 Authors@R: person("Christopher", "Tull", email = "chris@argolabs.org", role = c("aut", "cre"))
 URL: https://github.com/California-Data-Collaborative/rate-comparison
 BugReports: https://github.com/California-Data-Collaborative/rate-comparison/issues
