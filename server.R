@@ -6,6 +6,10 @@ source("R/make_plots.R", local=TRUE)
 
 shinyServer(function(input, output, clientData, session) {
   
+  inputList <- reactive({
+    ls <- list("rate_structure" = list())
+  })
+
  planneddf <- reactive({
    
   if(input$Planning == TRUE){
@@ -280,8 +284,9 @@ shinyServer(function(input, output, clientData, session) {
   total_bill_info <- reactive({
     bill_info <- variable_charge() 
     bill_info$total_bill <- bill_info$variable_bill + input$fixedCharge
-    
-    bill_info$hypothetical_usage <- bill_info %>% select(matches("[X][0-9]")) %>% rowSums() #adding hypothetical usage
+
+    #adding hypothetical usage
+    bill_info$hypothetical_usage <- bill_info %>% select(matches("[X][0-9]")) %>% rowSums(na.rm=TRUE)
     
     return(bill_info)
     
@@ -292,6 +297,7 @@ shinyServer(function(input, output, clientData, session) {
   # Get the filtered dataframe with all billing and tier information
   #******************************************************************
   df_plots <- reactive({
+    browser()
     if(input$Planning == TRUE){
       combined <- dplyr::bind_cols(planneddf(), total_bill_info(), baseline_bill_info())%>%
         filter(usage_date >= input$timeSlider[1],
@@ -763,21 +769,28 @@ shinyServer(function(input, output, clientData, session) {
 
 mnwd_baseline <- function(basedata){
   
+  basedata$internal_index <- 1:nrow(basedata) 
+  bill_info <- RateParser::calculate_bill(basedata, parsed_rate)
+  bill_info <- bill_info %>% ungroup %>% dplyr::arrange(internal_index)
   
-    tier_starts <- get_budget_tiers(basedata, parse_strings("0\nIndoor\n101%\n126%\n151%"), 
-                                  get_indoor_tier(basedata, 60), get_outdoor_tier(basedata, 0.7))
-    bill_info <- calculate_variable_bill(basedata, rate_type="Budget", 
-                                       tier_starts=tier_starts,
-                                       tier_prices=parse_numerics("1.49\n1.70\n2.62\n4.38\n9.17"))
+  #mask for columns representing tier usage
+  usage_col_mask <- grepl("X[0-9]", names(bill_info))
+  revenue_col_mask <- grepl("XR[0-9]", names(bill_info))
+  num_tiers <- sum(usage_col_mask)
+  colnames(bill_info)[usage_col_mask] <- c( paste("B", 1:num_tiers, sep=""))
+  colnames(bill_info)[revenue_col_mask] <- c( paste("BR", 1:num_tiers, sep=""))
   
-  
-  num_tiers <- length(parse_strings("1.49\n1.70\n2.62\n4.38\n9.17"))
-  colnames(bill_info) <- c( paste("B", 1:num_tiers, sep=""),
-                            paste("BR", 1:num_tiers, sep=""),
-                            "baseline_variable_bill")
-  bill_info$baseline_bill <- bill_info$baseline_variable_bill + 11.39
+  bill_info <- bill_info %>% dplyr::rename(baseline_variable_bill=commodity_charge,
+                                           baseline_bill=bill)
   #adding baseline usage
-  bill_info$baseline_usage <- bill_info %>% select(matches("[B][0-9]")) %>% rowSums()
+  bill_info$baseline_usage <- bill_info$usage_ccf
+  
+  # select and return only relevent baseline columns
+  baseline_mask <- grepl("BR?[0-9]|baseline.*", names(bill_info))
+  bill_info <- bill_info[baseline_mask]
+  
+  # This should work but weird bug causes "cust_class" to get matched also
+  #bill_info <- bill_info %>% select(matches("BR?[0-9]|baseline.*"))
   
   return(bill_info)
 }

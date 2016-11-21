@@ -122,7 +122,7 @@ shinyUI(navbarPage(
                 ),
                tabPanel("Scenario Planning",
                   
-                  checkboxInput("Planning", "Enable Scenario Planning", value = TRUE, 
+                  checkboxInput("Planning", "Enable Scenario Planning", value = FALSE, 
                                 width = NULL),
                   
                   numericInput("Months", "Number of months to Forecast", 
@@ -153,7 +153,7 @@ shinyUI(navbarPage(
       #----------------------- Output panels ------------------
       column( 8, #"main panel",
               tabsetPanel(type="tabs",
-                          tabPanel("Residential_Single",
+                          tabPanel("RESIDENTIAL_SINGLE",
                                    checkboxGroupInput("RateCode", label = "Rate Code",inline=TRUE,
                                                       choices = rate_codes, selected = rate_codes[1]),
                                    
@@ -179,7 +179,7 @@ shinyUI(navbarPage(
                                               ".shiny-output-error { visibility: hidden; }",
                                               ".shiny-output-error:before { visibility: hidden; }" )
                           ),
-                          tabPanel("Residential_Multi",
+                          tabPanel("RESIDENTIAL_MULTI",
                                    checkboxGroupInput("RateCode1", label = "Rate Code",inline=TRUE,
                                                       choices = rate_codes1, selected = rate_codes1[1]),
                                    fluidRow( column(12, plotlyOutput("revenue_time_series1", height=250) )),
@@ -200,7 +200,7 @@ shinyUI(navbarPage(
                                    )
                           ),
                           
-                          tabPanel("Commercial",
+                          tabPanel("COMMERCIAL",
                                    checkboxGroupInput("RateCode2", label = "Rate Code",inline=TRUE,
                                                       choices = rate_codes2,selected = rate_codes2[1] ),
                                    fluidRow( column(12, plotlyOutput("revenue_time_series2", height=250) )),
@@ -221,7 +221,7 @@ shinyUI(navbarPage(
                                    )
                           ) ,
                           
-                          tabPanel("Irrigation",
+                          tabPanel("IRRIGATION",
                                    checkboxGroupInput("RateCode3", label = "Rate Code",inline=TRUE,
                                                       choices = rate_codes3,selected = rate_codes3[1] ),
                                    fluidRow( column(12, plotlyOutput("revenue_time_series3", height=250) )),
@@ -241,7 +241,7 @@ shinyUI(navbarPage(
                                      
                                    )
                           ), 
-                          tabPanel("Institutional",
+                          tabPanel("INSTITUTIONAL",
                                    checkboxGroupInput("RateCode4", label = "Rate Code",inline=TRUE,
                                                       choices = rate_codes4,selected = rate_codes4[1] ),
                                    fluidRow( column(12, plotlyOutput("revenue_time_series4", height=250) )),
@@ -262,7 +262,7 @@ shinyUI(navbarPage(
                                    )
                           ),
                           
-                          tabPanel("Other",
+                          tabPanel("OTHER",
                                    checkboxGroupInput("RateCode5", label = "Rate Code",inline=TRUE,
                                                       choices = rate_codes5,selected = rate_codes5[1] ),
                                    fluidRow( column(12, plotlyOutput("revenue_time_series5", height=250) )),

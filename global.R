@@ -14,7 +14,8 @@ source("R/utility_code.R")
 #******************************************************************
 
 read_data <- function(filename, cust_col, usage_col, month_col, year_col, et_col=NULL, 
-                      hhsize_col=NULL, irr_area_col=NULL, rate_code_col, cust_class_col, less_than_date){
+                      hhsize_col=NULL, irr_area_col=NULL, rate_code_col, cust_class_col, 
+                      water_type_col, meter_size_col, less_than_date){
   
   print("Reading data...")
   start.time <- Sys.time()
@@ -26,9 +27,13 @@ read_data <- function(filename, cust_col, usage_col, month_col, year_col, et_col
     dplyr::rename_(.dots=setNames(list(year_col), "usage_year")) %>%
     dplyr::rename_(.dots=setNames(list(rate_code_col), "rate_code")) %>%
     dplyr::rename_(.dots=setNames(list(cust_class_col), "cust_class")) %>%
+    dplyr::rename_(.dots=setNames(list(water_type_col), "water_type")) %>%
+    dplyr::rename_(.dots=setNames(list(meter_size_col), "meter_size")) %>%
     dplyr::mutate(usage_date = as.Date(usage_date)) %>%
     dplyr::mutate(rate_code = as.character(rate_code)) %>%
     dplyr::mutate(cust_class = as.character(cust_class)) %>%
+    dplyr::mutate(water_type = as.character(water_type)) %>%
+    dplyr::mutate(meter_size = as.character(meter_size)) %>%
     dplyr::arrange(usage_date) %>%
     filter(usage_date < as.Date(less_than_date))
   
@@ -45,6 +50,8 @@ read_data <- function(filename, cust_col, usage_col, month_col, year_col, et_col
   print("...loaded.")
   return(data)
 }
+
+parsed_rate <- RateParser::read_owrs_file("../open-water-rate-specification/examples/mnwd.owrs")
 
 is_budget <- switch(utility_code,
                     "IRWD"=,
@@ -124,12 +131,14 @@ default_budget_prices_html <- switch(utility_code,
 if(is_budget){
   df <- read_data(test_file, cust_col="cust_loc_id", usage_col="usage_ccf", month_col="usage_month", 
                   year_col="usage_year", et_col="usage_et_amount", hhsize_col="cust_loc_hhsize", 
-                  irr_area_col="cust_loc_irr_area_sf", cust_class_col= "cust_loc_class", rate_code_col = "cust_loc_class_from_utility",
-                  less_than_date=less_than_date)
+                  irr_area_col="cust_loc_irr_area_sf", cust_class_col= "cust_loc_class", 
+                  rate_code_col = "cust_loc_class_from_utility", water_type_col="cust_loc_water_type",
+                  meter_size_col="cust_loc_meter_size", less_than_date=less_than_date)
 } else{
   df <- read_data(test_file, cust_col="cust_loc_id", usage_col="usage_ccf", month_col="usage_month", 
-                  year_col="usage_year", cust_class_col= "cust_loc_class", rate_code_col = "cust_loc_class_from_utility",
-                  less_than_date=less_than_date)
+                  year_col="usage_year", cust_class_col= "cust_loc_class", 
+                  rate_code_col = "cust_loc_class_from_utility", water_type_col="cust_loc_water_type",
+                  meter_size_col="cust_loc_meter_size", less_than_date=less_than_date)
 }
 
 
