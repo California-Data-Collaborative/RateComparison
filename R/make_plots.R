@@ -253,8 +253,8 @@ plot_fixed_revenue <- function(data, bar_type){
   d <- melt(d, id.vars="id" ) 
   lab_str <- "Percent Fixed Revenue"
 
-  
-  if(sum(d$value) < 0.1){
+  browser()
+  if( (sum(d$value) < 0.1) || is.nan(d$value) ){
     p <- ggplot() + 
       geom_hline(yintercept = 0, color="#CC0000") +
       xlab("") + ylab(lab_str)
