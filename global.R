@@ -34,16 +34,17 @@ read_data <- function(filename, cust_col, usage_col, month_col, year_col, et_col
     dplyr::mutate(cust_class = as.character(cust_class)) %>%
     dplyr::mutate(water_type = as.character(water_type)) %>%
     dplyr::mutate(meter_size = as.character(meter_size)) %>%
-    dplyr::arrange(usage_date) %>%
-    filter(usage_date < as.Date(less_than_date))
+    dplyr::filter(usage_date < as.Date(less_than_date)) %>%
+    dplyr::arrange(usage_date, cust_class) %>%
+    dplyr::mutate(sort_index=1:nrow(.))
   
- if(!is.null(et_col)&!is.null(hhsize_col)&!is.null(irr_area_col)){
-   data <- data %>%
-     dplyr::rename_(.dots=setNames(list(et_col), "et_amount")) %>%
-     dplyr::rename_(.dots=setNames(list(hhsize_col), "hhsize")) %>%
-     dplyr::rename_(.dots=setNames(list(irr_area_col), "irr_area"))
- }
-
+  if(!is.null(et_col)&!is.null(hhsize_col)&!is.null(irr_area_col)){
+    data <- data %>%
+      dplyr::rename_(.dots=setNames(list(et_col), "et_amount")) %>%
+      dplyr::rename_(.dots=setNames(list(hhsize_col), "hhsize")) %>%
+      dplyr::rename_(.dots=setNames(list(irr_area_col), "irr_area"))
+  }
+  
   end.time <- Sys.time()
   time.taken <- end.time - start.time
   print(time.taken)

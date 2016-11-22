@@ -248,6 +248,8 @@ shinyServer(function(input, output, clientData, session) {
                                            tier_prices=tier_info()$prices )
     }
     
+    # bill_info <- bill_info %>% arrange(sort_index)
+    
     print( paste("Variable Revenue:",sum(bill_info$variable_bill, na.rm=TRUE)) )
     bill_info
   })
@@ -297,7 +299,6 @@ shinyServer(function(input, output, clientData, session) {
   # Get the filtered dataframe with all billing and tier information
   #******************************************************************
   df_plots <- reactive({
-    browser()
     if(input$Planning == TRUE){
       combined <- dplyr::bind_cols(planneddf(), total_bill_info(), baseline_bill_info())%>%
         filter(usage_date >= input$timeSlider[1],
@@ -769,9 +770,8 @@ shinyServer(function(input, output, clientData, session) {
 
 mnwd_baseline <- function(basedata){
   
-  basedata$internal_index <- 1:nrow(basedata) 
   bill_info <- RateParser::calculate_bill(basedata, parsed_rate)
-  bill_info <- bill_info %>% ungroup %>% dplyr::arrange(internal_index)
+  bill_info <- bill_info %>% ungroup %>% dplyr::arrange(sort_index)
   
   #mask for columns representing tier usage
   usage_col_mask <- grepl("X[0-9]", names(bill_info))
