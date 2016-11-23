@@ -7,6 +7,10 @@ library(data.table)
 
 #set the utility_code from the config file
 source("R/utility_code.R")
+source("R/helper_fns.R", local=TRUE)
+source("R/make_plots.R", local=TRUE)
+
+source("R/class_graphs.R")
 
 
 #******************************************************************

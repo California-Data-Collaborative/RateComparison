@@ -154,133 +154,22 @@ shinyUI(navbarPage(
       column( 8, #"main panel",
               tabsetPanel(type="tabs",
                           tabPanel("RESIDENTIAL_SINGLE",
-                                   checkboxGroupInput("RateCode", label = "Rate Code",inline=TRUE,
-                                                      choices = rate_codes, selected = rate_codes[1]),
-                                   
-                                   fluidRow(
-                                     column(12, plotlyOutput("revenue_time_series", height=250) )
-                                   ),
-                                   fluidRow(
-                                     column(4,
-                                            plotlyOutput("barchart_by_tiers", height=350),
-                                            radioButtons("barType", label = "",  selected = "Absolute", inline=TRUE,
-                                                         choices = list("Absolute" = "Absolute", "Percent" = "Percent"))
-                                     ),
-                                     column(3,
-                                            plotlyOutput("fixed_revenue_barchart", height=350)
-                                     ),
-                                     column(5, 
-                                            plotlyOutput("bill_change_boxplot", height=100),
-                                            plotlyOutput("bill_change_histogram", height=250) )
-                                     
-                                   ),
-                                   
-                                   tags$style(type="text/css",
-                                              ".shiny-output-error { visibility: hidden; }",
-                                              ".shiny-output-error:before { visibility: hidden; }" )
+                                   classGraphOutput("graphs_RESIDENTIAL_SINGLE", rate_codes)
                           ),
                           tabPanel("RESIDENTIAL_MULTI",
-                                   checkboxGroupInput("RateCode1", label = "Rate Code",inline=TRUE,
-                                                      choices = rate_codes1, selected = rate_codes1[1]),
-                                   fluidRow( column(12, plotlyOutput("revenue_time_series1", height=250) )),
-                                   fluidRow(
-                                     column(4,
-                                            plotlyOutput("barchart_by_tiers1", height=350),
-                                            radioButtons("barType", label = "",  selected = "Absolute", inline=TRUE,
-                                                         choices = list("Absolute" = "Absolute", "Percent" = "Percent"))
-                                     ),
-                                     
-                                     column(3,
-                                            plotlyOutput("fixed_revenue_barchart1", height=350)
-                                     ),
-                                     column(5, 
-                                            plotlyOutput("bill_change_boxplot1", height=100),
-                                            plotlyOutput("bill_change_histogram1", height=250) )
-                                     
-                                   )
+                                   classGraphOutput("graphs_RESIDENTIAL_MULTI", rate_codes1)
                           ),
-                          
                           tabPanel("COMMERCIAL",
-                                   checkboxGroupInput("RateCode2", label = "Rate Code",inline=TRUE,
-                                                      choices = rate_codes2,selected = rate_codes2[1] ),
-                                   fluidRow( column(12, plotlyOutput("revenue_time_series2", height=250) )),
-                                   fluidRow(
-                                     column(4,
-                                            plotlyOutput("barchart_by_tiers2", height=350),
-                                            radioButtons("barType", label = "",  selected = "Absolute", inline=TRUE,
-                                                         choices = list("Absolute" = "Absolute", "Percent" = "Percent"))
-                                     ),
-                                     
-                                     column(3,
-                                            plotlyOutput("fixed_revenue_barchart2", height=350)
-                                     ),
-                                     column(5, 
-                                            plotlyOutput("bill_change_boxplot2", height=100),
-                                            plotlyOutput("bill_change_histogram2", height=250) )
-                                     
-                                   )
+                                   classGraphOutput("graphs_COMMERCIAL", rate_codes2)
                           ) ,
-                          
                           tabPanel("IRRIGATION",
-                                   checkboxGroupInput("RateCode3", label = "Rate Code",inline=TRUE,
-                                                      choices = rate_codes3,selected = rate_codes3[1] ),
-                                   fluidRow( column(12, plotlyOutput("revenue_time_series3", height=250) )),
-                                   fluidRow(
-                                     column(4,
-                                            plotlyOutput("barchart_by_tiers3", height=350),
-                                            radioButtons("barType", label = "",  selected = "Absolute", inline=TRUE,
-                                                         choices = list("Absolute" = "Absolute", "Percent" = "Percent"))
-                                     ),
-                                     
-                                     column(3,
-                                            plotlyOutput("fixed_revenue_barchart3", height=350)
-                                     ),
-                                     column(5, 
-                                            plotlyOutput("bill_change_boxplot3", height=100),
-                                            plotlyOutput("bill_change_histogram3", height=250) )
-                                     
-                                   )
+                                   classGraphOutput("graphs_IRRIGATION", rate_codes3)
                           ), 
                           tabPanel("INSTITUTIONAL",
-                                   checkboxGroupInput("RateCode4", label = "Rate Code",inline=TRUE,
-                                                      choices = rate_codes4,selected = rate_codes4[1] ),
-                                   fluidRow( column(12, plotlyOutput("revenue_time_series4", height=250) )),
-                                   fluidRow(
-                                     column(4,
-                                            plotlyOutput("barchart_by_tiers4", height=350),
-                                            radioButtons("barType", label = "",  selected = "Absolute", inline=TRUE,
-                                                         choices = list("Absolute" = "Absolute", "Percent" = "Percent"))
-                                     ),
-                                     
-                                     column(3,
-                                            plotlyOutput("fixed_revenue_barchart4", height=350)
-                                     ),
-                                     column(5, 
-                                            plotlyOutput("bill_change_boxplot4", height=100),
-                                            plotlyOutput("bill_change_histogram4", height=250) )
-                                     
-                                   )
+                                   classGraphOutput("graphs_INSTITUTIONAL", rate_codes4)
                           ),
-                          
                           tabPanel("OTHER",
-                                   checkboxGroupInput("RateCode5", label = "Rate Code",inline=TRUE,
-                                                      choices = rate_codes5,selected = rate_codes5[1] ),
-                                   fluidRow( column(12, plotlyOutput("revenue_time_series5", height=250) )),
-                                   fluidRow(
-                                     column(4,
-                                            plotlyOutput("barchart_by_tiers5", height=350),
-                                            radioButtons("barType", label = "",  selected = "Absolute", inline=TRUE,
-                                                         choices = list("Absolute" = "Absolute", "Percent" = "Percent"))
-                                     ),
-                                     
-                                     column(3,
-                                            plotlyOutput("fixed_revenue_barchart5", height=350)
-                                     ),
-                                     column(5, 
-                                            plotlyOutput("bill_change_boxplot5", height=100),
-                                            plotlyOutput("bill_change_histogram5", height=250) )
-                                     
-                                   )
+                                   classGraphOutput("graphs_OTHER", rate_codes5)
                           )
                           
               )#end tabsetpanel
