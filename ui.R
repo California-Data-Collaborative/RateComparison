@@ -2,11 +2,12 @@
 # automatic reading rate codes, renaming the tabs, consistent naming convention
 shinyUI(navbarPage(
   #color #2c3e50
-  HTML(paste('<img src="CaDC_logo_bluegrey.png" ',
+  title = HTML(paste('<img src="CaDC_logo_bluegrey.png" ',
              'href="http://californiadatacollaborative.com/" ', 'height="60" ',
              'style="position: relative; top:-20px; right:-15px">')),
   theme = "bootstrap.css",
-  
+  windowTitle = "RateComparison",
+  # tags$head(tags$link(rel = "icon", type = "image/png", href = "favicon.ico")),
   tabPanel(
     "Rate Comparison",
     fluidRow(
@@ -15,32 +16,61 @@ shinyUI(navbarPage(
              wellPanel(
               tabsetPanel(type = 'tabs', 
                tabPanel("Current Rate Comparision",
+                
+                tags$head(tags$link(rel="icon", type="image/x-icon", href="favicon.ico")),
+                        
+                
+                
                 fluidRow(
-                 column(5, 
-                        radioButtons("rateType", label = "Rate Type",
-                                     choices = list("Flat" = "Flat", "Tiered" = "Tiered", "Budget" = "Budget"), 
-                                     selected = "Flat")
-                        
-                        
-                        
-                 ),
-                 column(7, 
-                        numericInput("fixedCharge", label = "Fixed Charge ($)", value = default_fixed_charge),
-                        radioButtons("displayType", label = "Display", selected = "Revenue", inline=TRUE,
-                                     choices = list("Revenue" = "Revenue", "Usage" = "Usage"))
-                        
-                        
-                 )
-               ),#end row
+                  column(5, 
+                         radioButtons("rateType", label = "Rate Type",
+                                      choices = list("Flat" = "Flat", "Tiered" = "Tiered", "Budget" = "Budget"), 
+                                      selected = "Flat")
+                  ),
+                  column(7, 
+                         numericInput("fixedCharge", label = "Fixed Charge ($)", value = default_fixed_charge),
+                         radioButtons("displayType", label = "Display", selected = "Revenue", inline=TRUE,
+                                      choices = list("Revenue" = "Revenue", "Usage" = "Usage"))
+                  )
+                ),#end row
+                
+                fluidRow(
+                  column(1),
+                  column(10,
+                         sliderInput("timeSlider", label = "Time Range", min = min_date, 
+                                     max = max_date, value = c(min_date, max_date), timeFormat="%Y-%m")
+                  ),
+                  column(1)
+                ),
+                
+#                 fluidRow(
+#                   column(12,
+#                     ratePartInput("ratePart1")
+#                   )
+#                 ), 
+#                 fluidRow(
+#                   column(12,
+#                     ratePartInput("ratePart2")
+#                   )
+#                 ),
+#                 fluidRow(
+#                   column(12,
+#                          ratePartInput("ratePart3")
+#                   )
+#                 ),
+#                 fluidRow(
+#                   column(12,
+#                          ratePartInput("ratePart4")
+#                   )
+#                 ),
+#                 fluidRow(
+#                   column(12,
+#                          ratePartInput("ratePart5")
+#                   )
+#                 ),
+
                
-               fluidRow(
-                 column(1),
-                 column(10,
-                        sliderInput("timeSlider", label = "Time Range", min = min_date, 
-                                    max = max_date, value = c(min_date, max_date), timeFormat="%Y-%m")
-                 ),
-                 column(1)
-               ),
+               
                
                
                # FLATE RATES
