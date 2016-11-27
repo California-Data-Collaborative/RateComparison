@@ -5,41 +5,39 @@ ratePartInput <- function(id){
   uiOutput(ns("inputBox"))
 }
 
-ratePart <- function(input, output, session, part_name="", depends_col_list, 
-                     current_selected=NULL, labels=FALSE, field_or_formula=""){
+ratePart <- function(input, output, session, part_name, part_name_long="", depends_col_list, 
+                     current_selected=NULL, labels=FALSE, simple_value=0){
   
   output$inputBox <- renderUI({
     ns <- session$ns
     
-    if(labels){
-      labelList = c("Name:", "Depends on:", "Value:")
-    }
-    else{
-      labelList = c(NULL, NULL, NULL)
-    }
+    
     
     tagList(
       fluidRow(
-        column(4, textInput(ns("part_name"), label=labelList[1], value=part_name) ),
-        column(4, selectInput(ns("depends_col"), label=labelList[2], choices=depends_col_list, 
-                              selected=current_selected, multiple=TRUE) ),
-        column(4, textAreaInput(ns("field_or_formula"), label=labelList[3], value=field_or_formula,
-                                height=50))
+         column(1, checkboxInput(ns("expanded"), label=NULL, value = FALSE)),
+         conditionalPanel(condition = sprintf("input['%s'] == false", ns("expanded")),
+           column(5, strong( paste0(part_name_long, " ($):" ) )),
+           column(5, numericInput(ns("simpleValue"), label=NULL, value=simple_value) )
+         ),
+         conditionalPanel(condition = sprintf("input['%s'] == true", ns("expanded")),
+           column(5, strong( paste0(part_name_long, ":\n(depends on...)") ) ),
+           column(5, selectInput(ns("depend_col"), label=NULL, choices=depends_col_list, 
+                       selected=current_selected, multiple=TRUE)
+           )
+         )
       ),
-      #     ),
-      #     
-      #     fluidRow(
-      #       conditionalPanel(
-      #         condition = "input.depends_col == null",
-      #         column(12, textInput(ns("field_or_formula"), label=NULL, value=field_or_formula ) )
-      #       ),
-      #       conditionalPanel(
-      #         condition = "input.depends_col != null",
-      #         column(12, textInput(ns("field_or_formula"), label=NULL, value="DLKJLJK" ) )
-      #       )
-      #         
-      #     )
+      # Display text entry boxes if the values depends on another
+      conditionalPanel(condition = sprintf("input['%s'] == true", ns("expanded")),
+         fluidRow(
+           column(4, textAreaInput(ns("depend_values"), label="Values", value=simple_value,
+                                   height=50)),
+           column(4, textAreaInput(ns("depend_charges"), label="Charges ($)", value=simple_value,
+                                   height=50))
+         )
+      ),
       
+      # Make the dropdown the proper height to match other input boxes
       tags$style(
         ".selectize-dropdown, .selectize-input, .selectize-input { 
         line-height: 29px; 
@@ -48,5 +46,7 @@ ratePart <- function(input, output, session, part_name="", depends_col_list,
     )
     
   })
+
+  # return(input)
   
 }

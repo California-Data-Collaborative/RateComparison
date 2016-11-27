@@ -43,11 +43,11 @@ shinyUI(navbarPage(
                   column(1)
                 ),
                 
-#                 fluidRow(
-#                   column(12,
-#                     ratePartInput("ratePart1")
-#                   )
-#                 ), 
+                fluidRow(
+                  column(12,
+                    ratePartInput("ratePart1")
+                  )
+                ),
 #                 fluidRow(
 #                   column(12,
 #                     ratePartInput("ratePart2")

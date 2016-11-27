@@ -147,6 +147,10 @@ if(is_budget){
                   meter_size_col="cust_loc_meter_size", less_than_date=less_than_date)
 }
 
+# The columns that will appear in the "depends on" dropdowns
+not_included_cols <- c("cust_id", "sort_index", "usage_year", "usage_ccf", "irr_area", 
+                        "hhsize", "cust_class", "et_amount", "usage_date")
+dropdown_cols <- names(df)[which(!(names(df) %in% not_included_cols) )]
 
 # Update the time slider with the actual date values in the data
 min_date <- min(df$usage_date)

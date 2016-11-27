@@ -7,9 +7,23 @@ shinyServer(function(input, output, clientData, session) {
   inputList <- reactive({
     ls <- list("rate_structure" = list())
   })
+  
+  ratePartInputs <- callModule(ratePart, "ratePart1", part_name="service_charge", 
+                               part_name_long="Service Charge",depends_col_list=dropdown_cols)
+
+  
+#   callModule(ratePart, "ratePart2", part_name="service_charge", depends_col_list=names(df), 
+#              field_or_formula="22")
+#   callModule(ratePart, "ratePart3", part_name="service_charge", depends_col_list=names(df), 
+#              field_or_formula="22")
+#   callModule(ratePart, "ratePart4", part_name="service_charge", depends_col_list=names(df), 
+#              field_or_formula="22")
+#   callModule(ratePart, "ratePart5", part_name="service_charge", depends_col_list=names(df), 
+#              field_or_formula="22")
 
  planneddf <- reactive({
    
+
   if(input$Planning == TRUE){
     set.seed(10000)
     getmode <- function(v) {
@@ -249,6 +263,7 @@ shinyServer(function(input, output, clientData, session) {
     # bill_info <- bill_info %>% arrange(sort_index)
     
     print( paste("Variable Revenue:",sum(bill_info$variable_bill, na.rm=TRUE)) )
+    
     bill_info
   })
   
