@@ -71,7 +71,6 @@ unique_value_list <- function(colList){
 #   
 #   expand.grid(unique(df$meter_size), unique(df$meter_size), stringsAsFactors=FALSE)
   
-  
   if(is.null(colList)){
     retVal <- ""
   }else{
