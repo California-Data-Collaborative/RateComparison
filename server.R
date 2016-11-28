@@ -29,15 +29,15 @@ shinyServer(function(input, output, clientData, session) {
     increment_Vec <- (1:input$Months)*input$Growth
     
     recent_date <- max(df$usage_date)
-    recent_month <- month(recent_date)
+    #recent_month <- month(recent_date)
     recent_month_data <- df %>% filter(usage_date == recent_date)
-    
+    recent_date_Vec <- c(recent_date %m+% months(1:input$Months))
     #for rate code filling
     ratecode_filler <- data.table(r2)
     ratecode_filler <- ratecode_filler[,head(.SD, 1), by=cust_class]
     
     #for generating customer class
-    class_proportions <- as.data.frame(prop.table(table(df$cust_class)))
+    class_proportions <- as.data.frame(prop.table(table(df$cust_class)), stringsAsFactors = FALSE)
  
     planneddflist <- list()
     
@@ -63,16 +63,17 @@ shinyServer(function(input, output, clientData, session) {
           
           new_recent_month_data <- recent_month_data
           new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]), "cust_id"] <- 1:increment_Vec[i]
-          new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]), "usage_date"] <- rep(recent_date, increment_Vec[i])
-          new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]), "usage_month"] <- rep(recent_month, increment_Vec[i])
-          new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]), "usage_year"] <- rep(year(recent_date), increment_Vec[i])
+          new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]), "usage_date"] <- rep(recent_date_Vec[i], increment_Vec[i])
+          new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]), "usage_month"] <- rep(month(recent_date_Vec[i]), increment_Vec[i])
+          new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]), "usage_year"] <- rep(year(recent_date_Vec[i]), increment_Vec[i])
           #need to calculate class proportions separately. These are samples.
-          new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]), "cust_class"] <- base::sample(class_proportions$Var1, replace = TRUE, 
+          new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]), "cust_class"] <- sample(class_proportions$Var1, replace = TRUE, 
                                                                                                                                 prob = class_proportions$Freq,
                                                                                                                                 size = increment_Vec[i])
           
           #for filling hhsize to new accounts
           tmp <- new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]),]
+          
           tmp <- merge(mean_hhsize, tmp, by = c("cust_class"))
           
           new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]), "hhsize"] <- tmp$hhsize.x
@@ -203,6 +204,7 @@ shinyServer(function(input, output, clientData, session) {
     
   planneddf = do.call(rbind, planneddflist)
   planneddf <- rbind(df, planneddf)
+  
   }
 
 })  
