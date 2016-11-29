@@ -9,16 +9,16 @@ classGraphOutput <- function(id, rate_codes){
     fluidRow(
       column(4, 
          wellPanel(
-           tabsetPanel(type = 'tabs', 
-                       tabPanel("Current Rate Comparision",
+#            tabsetPanel(type = 'tabs', 
+#                        tabPanel("Current Rate Comparision",
                                 
               fluidRow(
-                column(5, 
-                       radioButtons(ns("rateType"), label = "Rate Type",
-                                    choices = list("Flat" = "Flat", "Tiered" = "Tiered", "Budget" = "Budget"), 
-                                    selected = "Flat")
-                ),
-                column(7, 
+#                 column(8, 
+#                        radioButtons(ns("rateType"), label = "Rate Type", inline=TRUE,
+#                                     choices = list("Flat" = "Flat", "Tiered" = "Tiered", "Budget" = "Budget"), 
+#                                     selected = "Flat")
+#                 ),
+                column(4, 
                        radioButtons(ns("displayType"), label = "Display", selected = "Revenue", inline=TRUE,
                                     choices = list("Revenue" = "Revenue", "Usage" = "Usage"))
                 )
@@ -33,93 +33,36 @@ classGraphOutput <- function(id, rate_codes){
                 column(1)
               ),
               
-              fluidRow(
-                column(12,
-                       ratePartInput(ns("service_charge"))
-                )
-              ),
+#               fluidRow(
+#                 column(12,
+#                        ratePartInput(ns("service_charge"))
+#                 )
+#               ),
+
+              uiOutput(ns("rateInputs"))
               
-              # FLAT RATES
-              conditionalPanel(
-                condition = sprintf("input['%s'] == 'Flat'", ns("rateType")),
-                fluidRow(
-                  column(12,
-                         ratePartInput(ns("flatRate"))
-                         # numericInput("flatRate", label = "Price per CCF ($)", value = 2.7)
-                  )
-                )#end row
-              ),#end conditionalPanel
-              
-              # TIERED RATES
-              conditionalPanel(
-                condition = sprintf("input['%s'] == 'Tiered'", ns("rateType")),
-                fluidRow(
-                  column(6,
-                         fluidRow(
-                           strong("Tier start (CCF)")
-                         ),
-                         fluidRow(
-                           HTML(default_tiered_tiers_html)
-                         )
-                  ),
-                  column(6,
-                         fluidRow(
-                           strong("Tier prices")
-                         ),
-                         fluidRow(
-                           HTML(default_tiered_prices_html)
-                         )
-                  )
-                )#end row
-              ),#end conditionalPanel
-              
-              # BUDGET BASED
-              conditionalPanel(
-                condition = sprintf("input['%s'] == 'Budget'", ns("rateType")),
-                fluidRow(
-                  column(6, 
-                         sliderInput("galPerCapitaSlider", label = "GPCD", min = 25, 
-                                     max = 75, value = default_gpcd, step=5)
-                  ),
-                  column(6, 
-                         sliderInput("ETFactorSlider", label = "ET Factor", min = 0, 
-                                     max = 1, value = default_et_factor, step=0.05)
-                  )
-                ),#end row
-                fluidRow(
-                  column(6,
-                         fluidRow(
-                           strong("Tier start")
-                         ),
-                         fluidRow(
-                           HTML(default_budget_tiers_html)
-                         )
-                  ),
-                  column(6,
-                         fluidRow(
-                           strong("Tier prices ($)")
-                         ),
-                         fluidRow(
-                           HTML(default_budget_prices_html)
-                         )
-                  )
-                ),#end row
-                fluidRow(paste("Enter the starting value for each tier either as a CCF value, ",
-                               " or as a percent of budget (water budget assumed as Indoor + Outdoor). ",
-                               "Where:")
-                ),
-                fluidRow(br(),
-                         em("Indoor = GPCD * HHSize * (365/12/748)"),
-                         br(),
-                         em("Outdoor = ET_Factor * ET * LA  * (0.62/748)")
-                )
-              )
+#               # FLAT RATES
+#               conditionalPanel(
+#                 condition = sprintf("input['%s'] == 'Flat'", ns("rateType")),
+#                 uiOutput(ns("flatInputs"))
+#               ),#end conditionalPanel
+#               
+#               # TIERED RATES
+#               conditionalPanel(
+#                 condition = sprintf("input['%s'] == 'Tiered'", ns("rateType")),
+#                 uiOutput(ns("tieredInputs"))
+#               ),#end conditionalPanel
+#               
+#               # BUDGET BASED
+#               conditionalPanel(
+#                 condition = sprintf("input['%s'] == 'Budget'", ns("rateType")),
+#                 uiOutput(ns("budgetInputs"))
+#               )
                     
-                    
-           )
-           
-                       
-           )#end tabsetPanel
+#                     
+#            )
+#            
+#            )#end tabsetPanel
            
            #                conditionalPanel(
            #                  condition = "input.rateType == 'Tiered' || input.rateType == 'Budget'",
@@ -163,20 +106,160 @@ classGraphOutput <- function(id, rate_codes){
 }
 
 
-classGraph <- function(input, output, session, df_original, df_total_bill, df_baseline_bill, timeslider){
+classGraph <- function(input, output, session, df_original, df_total_bill, 
+                       df_baseline_bill, baseline_class_rate){
+  ns <- session$ns
   
-  ratePartInputs <- callModule(ratePart, "service_charge", part_name="service_charge", 
-                               part_name_long="Service Charge",depends_col_list=dropdown_cols)
+#   defaultFlatInputs <- renderUI({
+#     tagList(
+#       fluidRow(
+#         column(12,
+#                ratePartInput(ns("flatRate"))
+#         )
+#       )#end row
+#     )
+#   })
+#   
+#   defaultTieredInputs <- renderUI({
+#     tagList(
+#       fluidRow(
+#         column(6,
+#                fluidRow(
+#                  strong("Tier start (CCF)")
+#                ),
+#                fluidRow(
+#                  HTML(default_tiered_tiers_html)
+#                )
+#         ),
+#         column(6,
+#                fluidRow(
+#                  strong("Tier prices")
+#                ),
+#                fluidRow(
+#                  HTML(default_tiered_prices_html)
+#                )
+#         )
+#       )#end row
+#     )
+#   })
+#   
+#   defaultBudgetInputs  <- renderUI({
+#     
+#     
+#     tagList(
+#       fluidRow(
+#         column(6, 
+#                sliderInput(ns("galPerCapitaSlider"), label = "GPCD", min = 25, 
+#                            max = 75, value = default_gpcd, step=5)
+#         ),
+#         column(6, 
+#                sliderInput(ns("ETFactorSlider"), label = "ET Factor", min = 0, 
+#                            max = 1, value = default_et_factor, step=0.05)
+#         )
+#       ),#end row
+#       fluidRow(
+#         column(6,
+#                fluidRow(
+#                  strong("Tier start")
+#                ),
+#                fluidRow(
+#                  HTML(default_budget_tiers_html)
+#                )
+#         ),
+#         column(6,
+#                fluidRow(
+#                  strong("Tier prices ($)")
+#                ),
+#                fluidRow(
+#                  HTML(default_budget_prices_html)
+#                )
+#         )
+#       ),#end row
+#       fluidRow(paste("Enter the starting value for each tier either as a CCF value, ",
+#                      " or as a percent of budget (water budget assumed as Indoor + Outdoor). ",
+#                      "Where:")
+#       ),
+#       fluidRow(br(),
+#                em("Indoor = GPCD * HHSize * (365/12/748)"),
+#                br(),
+#                em("Outdoor = ET_Factor * ET * LA  * (0.62/748)")
+#       )
+#     )
+#   })
   
-  ratePartInput2 <- callModule(ratePart, "flatRate", part_name="flatRate", 
-                               part_name_long="Price per CCF",depends_col_list=dropdown_cols)
+#   browser()
+#   baseline_rate_type <- get_commodity_charge(baseline_class_rate)
+#   if(baseline_rate_type == "Budget"){
+#     output$flatInputs <- defaultFlatInputs
+#     output$tieredInputs <- defaultTieredInputs
+#     output$budgetInputs <- generate_inputs(baseline_class_rate)
+#   }else if(baseline_rate_type == "Tiered"){
+#     output$flatInputs <- defaultFlatInputs
+#     output$tieredInputs <- generate_inputs(baseline_class_rate)
+#     output$budgetInputs <- defaultBudgetInputs
+#   }else{
+#     output$flatInputs <- generate_inputs(baseline_class_rate)
+#     output$tieredInputs <- defaultTieredInputs
+#     output$budgetInputs <- defaultBudgetInputs
+#   }
+  
+  output$rateInputs <- renderUI({
+    
+    lapply(1:length(baseline_class_rate), function(i) {
+      rate_part <- baseline_class_rate[[i]]
+      name <- names(rate_part)
+      
+      fluidRow(
+        column(12, 
+               ratePartInput(ns(name))
+        )
+      )
+    })
+    
+  })
+  
+  generated_input_list <- list()
+  for(i in 1:length(baseline_class_rate)){
+    rate_part <- baseline_class_rate[[i]]
+    name <- names(rate_part)
+    
+    stopif(!is_valid_rate_part(rate_part),
+           paste("The OWRS file might not be formatted properly. ",
+                 "\nError occured in customer class ", df$cust_class[1],
+                 ", near to: ", paste(name,collapse=" ") )
+    )
+    
+    if( RateParser::is_map(rate_part[[name]]) ){# if rate_part is a map
+      # df[[name]] <- eval_map(df, rate_part)
+    }
+    else if(length(rate_part[[name]]) > 1){# if rate_part specifies tiers
+      # df[[name]] <- paste(rate_part[[name]], collapse="\n")
+    }
+    else if(is_rate_type(rate_part)){
+      
+    }
+    else{
+      ln <- get_long_part_name(name)
+      # browser()
+      generated_input_list[[i]] <- callModule(ratePart, name, part_name=name, 
+                                              part_name_long=ln,
+                                              depends_col_list=dropdown_cols,
+                                              simple_value=rate_part[[name]])
+    }
+  }
+  
+#   ratePartInputs <- callModule(ratePart, "service_charge", part_name="service_charge", 
+#                                part_name_long="Service Charge",depends_col_list=dropdown_cols)
+#   
+#   ratePartInput2 <- callModule(ratePart, "flatRate", part_name="flatRate", simple_value=2.1,
+#                                part_name_long="Price per CCF",depends_col_list=dropdown_cols)
   
   
   df_plots <- reactive({
     
     combined <- dplyr::bind_cols(df_original(), df_total_bill(), df_baseline_bill()) %>%
-      # filter(usage_date >= timeSlider()[1],
-      #    usage_date <= timeSlider()[2])
+      # filter(usage_date >= input$timeSlider[1],
+         # usage_date <= input$timeSlider[2])
       filter(rate_code %in% input$RateCode)
     
     combined

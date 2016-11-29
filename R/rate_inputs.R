@@ -10,14 +10,14 @@ ratePartInput <- function(id){
 }
 
 ratePart <- function(input, output, session, part_name, part_name_long="", depends_col_list, 
-                     current_selected=NULL, labels=FALSE, simple_value=0){
+                     current_selected=NULL, simple_value=0, is_expanded=FALSE){
   
   output$inputRow <- renderUI({
     ns <- session$ns
     
     tagList(
       fluidRow(
-         column(1, checkboxInput(ns("expanded"), label=NULL, value = FALSE)),
+         column(1, checkboxInput(ns("expanded"), label=NULL, value = is_expanded)),
          conditionalPanel(condition = sprintf("input['%s'] == false", ns("expanded")),
            column(5, strong( paste0(part_name_long, " ($):" ) )),
            column(5, numericInput(ns("simpleValue"), label=NULL, value=simple_value) )

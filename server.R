@@ -275,7 +275,7 @@ shinyServer(function(input, output, clientData, session) {
   # Calculate total bill
   #******************************************************************
   total_bill_info <- reactive({
-    bill_info <- RateParser::calculate_bill(DF(), parsed_rate)
+    bill_info <- RateParser::calculate_bill(DF(), hypothetical_rate_list)
     bill_info <- bill_info %>% ungroup %>% dplyr::arrange(sort_index)
     
     bill_info <- bill_info %>% dplyr::rename(variable_bill=commodity_charge,
@@ -302,23 +302,22 @@ shinyServer(function(input, output, clientData, session) {
     }
   })
   
-  callModule(classGraph, "graphs_RESIDENTIAL_SINGLE", DF, total_bill_info, baseline_bill_info, 
-             reactive(input$timeSlider))
+  # Generate output panels for each customer class in the data
+  output$classTabs <- renderUI({
+    myTabs = lapply(1:length(cust_class_list), function(i){
+      tabPanel(cust_class_list[i],
+               classGraphOutput(paste0("panel_",cust_class_list[i]), rate_code_dict[[cust_class_list[i]]])
+      )
+    })
+    do.call(tabsetPanel, myTabs)
+  })
   
-  callModule(classGraph, "graphs_RESIDENTIAL_MULTI", DF, total_bill_info, baseline_bill_info, 
-             reactive(input$timeSlider))
+  # callModule to connect server code with each of the customer class panels
+  for(c in cust_class_list){
+    class_rate <- baseline_rate_list$rate_structure[[c]]
+    callModule(classGraph, paste0("panel_",c), DF, total_bill_info, baseline_bill_info, class_rate)
+  }
   
-  callModule(classGraph, "graphs_COMMERCIAL", DF, total_bill_info, baseline_bill_info, 
-             reactive(input$timeSlider))
-  
-  callModule(classGraph, "graphs_IRRIGATION", DF, total_bill_info, baseline_bill_info, 
-             reactive(input$timeSlider))
-  
-  callModule(classGraph, "graphs_INSTITUTIONAL", DF, total_bill_info, baseline_bill_info, 
-             reactive(input$timeSlider))
-  
-  callModule(classGraph, "graphs_OTHER", DF, total_bill_info, baseline_bill_info, 
-             reactive(input$timeSlider))
   
   
   
@@ -340,9 +339,17 @@ shinyServer(function(input, output, clientData, session) {
 
 
 
+
+
+
+
+
+
+
+
 mnwd_baseline <- function(basedata){
   
-  bill_info <- RateParser::calculate_bill(basedata, parsed_rate)
+  bill_info <- RateParser::calculate_bill(basedata, baseline_rate_list)
   bill_info <- bill_info %>% ungroup %>% dplyr::arrange(sort_index)
   
   #mask for columns representing tier usage

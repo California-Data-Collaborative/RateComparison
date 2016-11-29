@@ -57,7 +57,8 @@ read_data <- function(filename, cust_col, usage_col, month_col, year_col, et_col
   return(data)
 }
 
-parsed_rate <- RateParser::read_owrs_file("../open-water-rate-specification/examples/mnwd.owrs")
+baseline_rate_list <- RateParser::read_owrs_file("../open-water-rate-specification/examples/mnwd.owrs")
+hypothetical_rate_list <- baseline_rate_list
 
 is_budget <- switch(utility_code,
                     "IRWD"=,
@@ -134,55 +135,43 @@ default_budget_prices_html <- switch(utility_code,
 
 
 # Read data from file and rename the columns to be compatable with internal calls
-if(is_budget){
-  df <- read_data(test_file, cust_col="cust_loc_id", usage_col="usage_ccf", month_col="usage_month", 
-                  year_col="usage_year", et_col="usage_et_amount", hhsize_col="cust_loc_hhsize", 
-                  irr_area_col="cust_loc_irr_area_sf", cust_class_col= "cust_loc_class", 
-                  rate_code_col = "cust_loc_class_from_utility", water_type_col="cust_loc_water_type",
-                  meter_size_col="cust_loc_meter_size", less_than_date=less_than_date)
-} else{
-  df <- read_data(test_file, cust_col="cust_loc_id", usage_col="usage_ccf", month_col="usage_month", 
-                  year_col="usage_year", cust_class_col= "cust_loc_class", 
-                  rate_code_col = "cust_loc_class_from_utility", water_type_col="cust_loc_water_type",
-                  meter_size_col="cust_loc_meter_size", less_than_date=less_than_date)
-}
+# if(is_budget){
+#   df <- read_data(test_file, cust_col="cust_loc_id", usage_col="usage_ccf", month_col="usage_month", 
+#                   year_col="usage_year", et_col="usage_et_amount", hhsize_col="cust_loc_hhsize", 
+#                   irr_area_col="cust_loc_irr_area_sf", cust_class_col= "cust_loc_class", 
+#                   rate_code_col = "cust_loc_class_from_utility", water_type_col="cust_loc_water_type",
+#                   meter_size_col="cust_loc_meter_size", less_than_date=less_than_date)
+# } else{
+#   df <- read_data(test_file, cust_col="cust_loc_id", usage_col="usage_ccf", month_col="usage_month", 
+#                   year_col="usage_year", cust_class_col= "cust_loc_class", 
+#                   rate_code_col = "cust_loc_class_from_utility", water_type_col="cust_loc_water_type",
+#                   meter_size_col="cust_loc_meter_size", less_than_date=less_than_date)
+# }
+
 
 # The columns that will appear in the "depends on" dropdowns
 not_included_cols <- c("cust_id", "sort_index", "usage_year", "usage_ccf", "irr_area", 
                         "hhsize", "cust_class", "et_amount", "usage_date")
 dropdown_cols <- names(df)[which(!(names(df) %in% not_included_cols) )]
 
+
 # Update the time slider with the actual date values in the data
 min_date <- min(df$usage_date)
 max_date <- max(df$usage_date)
 print(min_date, max_date)
 
+
+cust_class_list <- df %>%group_by(cust_class) %>% summarise(count=length(cust_class) ) %>% arrange(desc(count))
+cust_class_list <- cust_class_list$cust_class
+
+
 # filtering rate codes by customer class
-r2 <- df %>% group_by(cust_class, rate_code) %>% summarise(count=length(unique(cust_id))) %>% arrange(desc(count))
+rate_code_counts <- df %>% group_by(cust_class, rate_code) %>% 
+                      summarise(count=length(unique(cust_id))) %>% arrange(desc(count))
 
-r2.1 <-  r2 %>%
-  filter(cust_class == "RESIDENTIAL_SINGLE")
-
-r2.2 <-  r2 %>%
-  filter(cust_class == "RESIDENTIAL_MULTI")
-
-r2.3 <-  r2 %>%
-  filter(cust_class == "COMMERCIAL")
-
-r2.4 <-  r2 %>%
-  filter(cust_class == "IRRIGATION")
-
-r2.5 <-  r2 %>%
-  filter(cust_class == "INSTITUTIONAL")
-
-r2.6 <-  r2 %>%
-  filter(cust_class == "OTHER")
-
-rate_codes <- unique(r2.1$rate_code)
-rate_codes1 <- unique(r2.2$rate_code)
-rate_codes2 <- unique(r2.3$rate_code)
-rate_codes3 <- unique(r2.4$rate_code)
-rate_codes4 <-  unique(r2.5$rate_code)
-rate_codes5 <-  unique(r2.6$rate_code)
+rate_code_dict <- list()
+for(c in cust_class_list){
+  rate_code_dict[[c]] <- filter(rate_code_counts, cust_class == c)$rate_code
+}
 
 
