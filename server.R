@@ -57,7 +57,7 @@ shinyServer(function(input, output, clientData, session) {
                          group_by(cust_class) %>% 
                          summarise(irr_area = round(mean(irr_area,na.rm=TRUE)))
         
-
+        
         
         for(i in month_Vec){
           
@@ -66,7 +66,7 @@ shinyServer(function(input, output, clientData, session) {
           new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]), "usage_date"] <- rep(recent_date_Vec[i], increment_Vec[i])
           new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]), "usage_month"] <- rep(month(recent_date_Vec[i]), increment_Vec[i])
           new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]), "usage_year"] <- rep(year(recent_date_Vec[i]), increment_Vec[i])
-          #need to calculate class proportions separately. These are samples.
+        
           new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]), "cust_class"] <- sample(class_proportions$Var1, replace = TRUE, 
                                                                                                                                 prob = class_proportions$Freq,
                                                                                                                                 size = increment_Vec[i])
@@ -74,25 +74,19 @@ shinyServer(function(input, output, clientData, session) {
           #for filling hhsize to new accounts
           tmp <- new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]),]
           
-          tmp <- merge(mean_hhsize, tmp, by = c("cust_class"))
+          tmp <- merge(mean_hhsize, tmp, by = c("cust_class")) %>% arrange(cust_id)
           
           new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]), "hhsize"] <- tmp$hhsize.x
           
-          #new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]), "hhsize"] <- mean_hhsize$hhsize[which(mean_hhsize$cust_class %in% new_recent_month_data$cust_class[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i])])]
+          
           
           #for filling irr_area to new accounts
           tmp <- new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]),]
-          tmp <- merge(mean_irr_area, tmp, by = c("cust_class"))
+          tmp <- merge(mean_irr_area, tmp, by = c("cust_class")) %>% arrange(cust_id)
           
           new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]), "irr_area"] <- tmp$irr_area.x
           
-          # recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]), "hhsize"] <- merge(mean_hhsize, 
-          #                                     recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]),],
-          #                                                                                          by = c("cust_class"))
-          # recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]),] <- merge(mean_irr_area,
-          #                                     recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]),],
-          #                                                                                          by = c("cust_class"))
-          # 
+         
           #fill in average et by month
           tmp <- merge(avg_et_df, new_recent_month_data, by = 'usage_month')
           new_recent_month_data$et_amount <- tmp$et_amount.x
@@ -100,8 +94,8 @@ shinyServer(function(input, output, clientData, session) {
           #fill in average usage by account and month
           tmp <- merge(monthlyusagebyaccount, new_recent_month_data, by = c('cust_id','usage_month'))
           new_recent_month_data$usage_ccf[1:nrow(recent_month_data)] <- tmp$usage_ccf.x
-            #fill in the usage for new accounts with the estimated usage input
-          new_recent_month_data[(nrow(recent_month_data)-increment_Vec[i]+1):nrow(recent_month_data), "usage_ccf"] <- input$EstUsagePerAccount
+          #fill in the usage for new accounts with the estimated usage input
+          new_recent_month_data[(nrow(new_recent_month_data)-increment_Vec[i]+1):nrow(new_recent_month_data), "usage_ccf"] <- input$EstUsagePerAccount
           
          
           #fill in meter size for new accounts
@@ -115,10 +109,10 @@ shinyServer(function(input, output, clientData, session) {
           #fill in rate code for new accounts
 
           tmp <- new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]),]
-          tmp <- merge(ratecode_filler, tmp, by = c("cust_class"))
+          tmp <- merge(ratecode_filler, tmp, by = c("cust_class"))%>% arrange(cust_id)
           new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]), "rate_code"] <- tmp$rate_code.x
           
-         
+         browser()
           planneddflist[[i]] <- new_recent_month_data
           
         }
@@ -151,55 +145,44 @@ shinyServer(function(input, output, clientData, session) {
          
          for(i in month_Vec){
            
-           budgetplanneddf <- planneddflist[[i]]
-           recent_date <- max(budgetplanneddf$usage_date)
-           recent_month <- month(recent_date)
-           recent_month_data <- budgetplanneddf %>% filter(usage_month == recent_month)
-           
-           recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]), "cust_id"] <- 1:increment_Vec[i]
-           recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]), "usage_date"] <- rep(recent_date, increment_Vec[i])
-           recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]), "usage_month"] <- rep(recent_month, increment_Vec[i])
-           recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]), "usage_year"] <- rep(year(recent_date), increment_Vec[i])
-           recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]), "cust_class"] <- rep(sample(unique(df$cust_class), replace = TRUE, 
-                         prob = c(0.6743466617,0.2571174402,0.0102410284,
-                                  0.0395202720,0.0003800564,0.0183945413)),
-                  length.out = increment_Vec[i])
+           new_recent_month_data <- recent_month_data
+           new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]), "cust_id"] <- 1:increment_Vec[i]
+           new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]), "usage_date"] <- rep(recent_date_Vec[i], increment_Vec[i])
+           new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]), "usage_month"] <- rep(month(recent_date_Vec[i]), increment_Vec[i])
+           new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]), "usage_year"] <- rep(year(recent_date_Vec[i]), increment_Vec[i])
+           #need to calculate class proportions separately. These are samples.
+           new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]), "cust_class"] <- sample(class_proportions$Var1, replace = TRUE, 
+                                                                                                                                 prob = class_proportions$Freq,
+                                                                                                                                 size = increment_Vec[i])
       
            
            #fill in average usage by account and month
-           recent_month_data <- merge(monthlyusagebyaccount, recent_month_data, 
-                                      by = c('cust_id','usage_month'))
+           tmp <- merge(monthlyusagebyaccount, new_recent_month_data, by = c('cust_id','usage_month'))
+           new_recent_month_data$usage_ccf[1:nrow(recent_month_data)] <- tmp$usage_ccf.x
            #fill in the usage for new accounts with the estimated usage input
-           recent_month_data[(nrow(recent_month_data)-increment_Vec[i]+1):nrow(recent_month_data), "usage_ccf"] <- input$EstUsagePerAccount
+           new_recent_month_data[(nrow(recent_month_data)-increment_Vec[i]+1):nrow(recent_month_data), "usage_ccf"] <- input$EstUsagePerAccount
            
            
            #fill in meter size for new accounts
-           recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]),"cust_loc_meter_size"] <- rep(getmode(df$cust_loc_meter_size),
-                                                                                                        length.out = increment_Vec[i])
+           new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]),"cust_loc_meter_size"] <- rep(getmode(df$cust_loc_meter_size),
+                                                                                                                                      length.out = increment_Vec[i])
            #fill in water type for new accounts
-           recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]),"cust_loc_water_type"] <- rep(getmode(df$cust_loc_water_type),
-                                                                                                        length.out = increment_Vec[i])
+           new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]),"cust_loc_water_type"] <- rep(getmode(df$cust_loc_water_type),
+                                                                                                                                      length.out = increment_Vec[i])
+           
            
            #fill in rate code for new accounts
-           recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]),"rate_code"] <- r2$rate_code[which(r2$cust_class == new_recent_month_data$cust_class[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i])])]
+           
+           tmp <- new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]),]
+           tmp <- merge(ratecode_filler, tmp, by = c("cust_class"))%>% arrange(cust_id)
+           new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]), "rate_code"] <- tmp$rate_code.x
            
            
-           planneddflist[[i]] <- recent_month_data
+           planneddflist[[i]] <- new_recent_month_data
            
          }
          
-         #prepare a data frame
-         #planneddf <- data.frame(cust_id, usage_month, usage_year, usage_date,
-         #                    cust_class, rate_code)
-         #fill in average ccf by account and month
-         #planneddf <- merge(monthlyusagebyaccount, planneddf, 
-        #                          by = c('cust_id','usage_month'))
          
-         #re-arrange columns
-         #planneddf <- planneddf %>% select(cust_id, usage_month, usage_year, usage_date, usage_ccf,
-         #                                              cust_class, rate_code)
-     
-         #planneddf <- rbind(df, planneddf)
       }
     
   planneddf = do.call(rbind, planneddflist)
