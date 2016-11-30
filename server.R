@@ -53,6 +53,7 @@ shinyServer(function(input, output, clientData, session) {
                        summarise(hhsize = round(mean(hhsize,na.rm=TRUE)))
         
         #average irr_area by customer class
+        #irrarea <- mean(df$irr_area[!df$irr_area %in% boxplot.stats(df$irr_area)$out]) #removing outliers
         mean_irr_area <- df %>% 
                          group_by(cust_class) %>% 
                          summarise(irr_area = round(mean(irr_area,na.rm=TRUE)))
@@ -62,10 +63,14 @@ shinyServer(function(input, output, clientData, session) {
         for(i in month_Vec){
           
           new_recent_month_data <- recent_month_data
+          
           new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]), "cust_id"] <- 1:increment_Vec[i]
-          new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]), "usage_date"] <- rep(recent_date_Vec[i], increment_Vec[i])
-          new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]), "usage_month"] <- rep(month(recent_date_Vec[i]), increment_Vec[i])
-          new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]), "usage_year"] <- rep(year(recent_date_Vec[i]), increment_Vec[i])
+          
+          new_recent_month_data[, "usage_date"] <- rep(recent_date_Vec[i], nrow(recent_month_data)+increment_Vec[i])
+          
+          new_recent_month_data[, "usage_month"] <- rep(month(recent_date_Vec[i]), nrow(recent_month_data)+increment_Vec[i])
+          
+          new_recent_month_data[, "usage_year"] <- rep(year(recent_date_Vec[i]), nrow(recent_month_data)+increment_Vec[i])
         
           new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]), "cust_class"] <- sample(class_proportions$Var1, replace = TRUE, 
                                                                                                                                 prob = class_proportions$Freq,
@@ -82,6 +87,7 @@ shinyServer(function(input, output, clientData, session) {
           
           #for filling irr_area to new accounts
           tmp <- new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]),]
+          
           tmp <- merge(mean_irr_area, tmp, by = c("cust_class")) %>% arrange(cust_id)
           
           new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]), "irr_area"] <- tmp$irr_area.x
@@ -89,11 +95,14 @@ shinyServer(function(input, output, clientData, session) {
          
           #fill in average et by month
           tmp <- merge(avg_et_df, new_recent_month_data, by = 'usage_month')
+          
           new_recent_month_data$et_amount <- tmp$et_amount.x
           
           #fill in average usage by account and month
           tmp <- merge(monthlyusagebyaccount, new_recent_month_data, by = c('cust_id','usage_month'))
+          
           new_recent_month_data$usage_ccf[1:nrow(recent_month_data)] <- tmp$usage_ccf.x
+          
           #fill in the usage for new accounts with the estimated usage input
           new_recent_month_data[(nrow(new_recent_month_data)-increment_Vec[i]+1):nrow(new_recent_month_data), "usage_ccf"] <- input$EstUsagePerAccount
           
@@ -107,9 +116,10 @@ shinyServer(function(input, output, clientData, session) {
           
           
           #fill in rate code for new accounts
-
           tmp <- new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]),]
+          
           tmp <- merge(ratecode_filler, tmp, by = c("cust_class"))%>% arrange(cust_id)
+          
           new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]), "rate_code"] <- tmp$rate_code.x
           
          browser()
@@ -146,11 +156,15 @@ shinyServer(function(input, output, clientData, session) {
          for(i in month_Vec){
            
            new_recent_month_data <- recent_month_data
+           
            new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]), "cust_id"] <- 1:increment_Vec[i]
-           new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]), "usage_date"] <- rep(recent_date_Vec[i], increment_Vec[i])
-           new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]), "usage_month"] <- rep(month(recent_date_Vec[i]), increment_Vec[i])
-           new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]), "usage_year"] <- rep(year(recent_date_Vec[i]), increment_Vec[i])
-           #need to calculate class proportions separately. These are samples.
+           
+           new_recent_month_data[, "usage_date"] <- rep(recent_date_Vec[i], increment_Vec[i])
+           
+           new_recent_month_data[, "usage_month"] <- rep(month(recent_date_Vec[i]), increment_Vec[i])
+           
+           new_recent_month_data[, "usage_year"] <- rep(year(recent_date_Vec[i]), increment_Vec[i])
+           
            new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]), "cust_class"] <- sample(class_proportions$Var1, replace = TRUE, 
                                                                                                                                  prob = class_proportions$Freq,
                                                                                                                                  size = increment_Vec[i])
@@ -158,7 +172,9 @@ shinyServer(function(input, output, clientData, session) {
            
            #fill in average usage by account and month
            tmp <- merge(monthlyusagebyaccount, new_recent_month_data, by = c('cust_id','usage_month'))
+           
            new_recent_month_data$usage_ccf[1:nrow(recent_month_data)] <- tmp$usage_ccf.x
+           
            #fill in the usage for new accounts with the estimated usage input
            new_recent_month_data[(nrow(recent_month_data)-increment_Vec[i]+1):nrow(recent_month_data), "usage_ccf"] <- input$EstUsagePerAccount
            
@@ -172,9 +188,10 @@ shinyServer(function(input, output, clientData, session) {
            
            
            #fill in rate code for new accounts
-           
            tmp <- new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]),]
+           
            tmp <- merge(ratecode_filler, tmp, by = c("cust_class"))%>% arrange(cust_id)
+           
            new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]), "rate_code"] <- tmp$rate_code.x
            
            
