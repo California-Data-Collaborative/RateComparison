@@ -97,9 +97,9 @@ shinyServer(function(input, output, clientData, session) {
           tmp <- merge(avg_et_df, new_recent_month_data, by = 'usage_month')
           
           new_recent_month_data$et_amount <- tmp$et_amount.x
-          
+        
           #fill in average usage by account and month
-          tmp <- merge(monthlyusagebyaccount, new_recent_month_data, by = c('cust_id','usage_month'))
+          tmp <- merge(monthlyusagebyaccount, recent_month_data, by = c('cust_id','usage_month'))
           
           new_recent_month_data$usage_ccf[1:nrow(recent_month_data)] <- tmp$usage_ccf.x
           
@@ -122,7 +122,7 @@ shinyServer(function(input, output, clientData, session) {
           
           new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]), "rate_code"] <- tmp$rate_code.x
           
-         browser()
+         
           planneddflist[[i]] <- new_recent_month_data
           
         }

@@ -129,10 +129,10 @@ shinyUI(navbarPage(
                                3, min = 1, max = 24, step = 1,
                                width = NULL),
                   numericInput("Growth", "Expected Monthly Growth of number of accounts in the forecast period",
-                               10, min = 0, max = 100, step = 1,
+                               5, min = 0, max = 100, step = 1,
                                width = NULL),
                   numericInput("EstUsagePerAccount", "Estimated Usage per New Account(ccf)",
-                               20, min = 0, max = 1000, step = NA,
+                               10, min = 0, max = 1000, step = NA,
                                width = NULL)
                )
               
