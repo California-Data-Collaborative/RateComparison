@@ -79,29 +79,29 @@ shinyServer(function(input, output, clientData, session) {
           #for filling hhsize to new accounts
           tmp <- new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]),]
           
-          tmp <- merge(mean_hhsize, tmp, by = c("cust_class")) %>% arrange(cust_id)
+          tmp <- left_join(tmp, mean_hhsize, by = c("cust_class")) %>% arrange(cust_id)
           
-          new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]), "hhsize"] <- tmp$hhsize.x
+          new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]), "hhsize"] <- tmp$hhsize.y
           
           
           
           #for filling irr_area to new accounts
           tmp <- new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]),]
           
-          tmp <- merge(mean_irr_area, tmp, by = c("cust_class")) %>% arrange(cust_id)
+          tmp <- left_join(tmp, mean_irr_area, by = c("cust_class")) %>% arrange(cust_id)
           
-          new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]), "irr_area"] <- tmp$irr_area.x
+          new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]), "irr_area"] <- tmp$irr_area.y
           
          
           #fill in average et by month
-          tmp <- merge(avg_et_df, new_recent_month_data, by = 'usage_month')
+          tmp <- left_join(new_recent_month_data, avg_et_df, by = 'usage_month')
           
-          new_recent_month_data$et_amount <- tmp$et_amount.x
-        
+          new_recent_month_data$et_amount <- tmp$et_amount.y
+          
           #fill in average usage by account and month
-          tmp <- merge(monthlyusagebyaccount, recent_month_data, by = c('cust_id','usage_month'))
+          tmp <- left_join(new_recent_month_data, monthlyusagebyaccount, by = c('cust_id','usage_month'))
           
-          new_recent_month_data$usage_ccf[1:nrow(recent_month_data)] <- tmp$usage_ccf.x
+          new_recent_month_data$usage_ccf[1:nrow(recent_month_data)] <- tmp$usage_ccf.y
           
           #fill in the usage for new accounts with the estimated usage input
           new_recent_month_data[(nrow(new_recent_month_data)-increment_Vec[i]+1):nrow(new_recent_month_data), "usage_ccf"] <- input$EstUsagePerAccount
@@ -118,9 +118,9 @@ shinyServer(function(input, output, clientData, session) {
           #fill in rate code for new accounts
           tmp <- new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]),]
           
-          tmp <- merge(ratecode_filler, tmp, by = c("cust_class"))%>% arrange(cust_id)
+          tmp <- left_join(tmp, ratecode_filler, by = c("cust_class"))%>% arrange(cust_id)
           
-          new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]), "rate_code"] <- tmp$rate_code.x
+          new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]), "rate_code"] <- tmp$rate_code.y
           
          
           planneddflist[[i]] <- new_recent_month_data
@@ -171,9 +171,9 @@ shinyServer(function(input, output, clientData, session) {
       
            
            #fill in average usage by account and month
-           tmp <- merge(monthlyusagebyaccount, new_recent_month_data, by = c('cust_id','usage_month'))
+           tmp <- left_join(new_recent_month_data, monthlyusagebyaccount, by = c('cust_id','usage_month'))
            
-           new_recent_month_data$usage_ccf[1:nrow(recent_month_data)] <- tmp$usage_ccf.x
+           new_recent_month_data$usage_ccf[1:nrow(recent_month_data)] <- tmp$usage_ccf.y
            
            #fill in the usage for new accounts with the estimated usage input
            new_recent_month_data[(nrow(recent_month_data)-increment_Vec[i]+1):nrow(recent_month_data), "usage_ccf"] <- input$EstUsagePerAccount
@@ -190,9 +190,9 @@ shinyServer(function(input, output, clientData, session) {
            #fill in rate code for new accounts
            tmp <- new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]),]
            
-           tmp <- merge(ratecode_filler, tmp, by = c("cust_class"))%>% arrange(cust_id)
+           tmp <- left_join(tmp, ratecode_filler, by = c("cust_class"))%>% arrange(cust_id)
            
-           new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]), "rate_code"] <- tmp$rate_code.x
+           new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]), "rate_code"] <- tmp$rate_code.y
            
            
            planneddflist[[i]] <- new_recent_month_data
@@ -201,7 +201,7 @@ shinyServer(function(input, output, clientData, session) {
          
          
       }
-    
+  
   planneddf = do.call(rbind, planneddflist)
   planneddf <- rbind(df, planneddf)
   
