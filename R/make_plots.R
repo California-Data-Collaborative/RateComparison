@@ -1,4 +1,4 @@
-library(dplyr)
+ library(dplyr)
 library(zoo)
 library(ggplot2)
 library(scales)
@@ -78,6 +78,7 @@ plot_revenue_over_time <- function(data, display_type){
     print(time.taken)
     
   }
+
 
   ggplotly(p) %>% config(displayModeBar = FALSE)
 }

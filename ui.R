@@ -12,8 +12,10 @@ shinyUI(navbarPage(
     fluidRow(
       #----------------------- Input widget panel -----------------------    
       column(4,
-             wellPanel( 
-               fluidRow(
+             wellPanel(
+              tabsetPanel(type = 'tabs', 
+               tabPanel("Current Rate Comparision",
+                fluidRow(
                  column(5, 
                         radioButtons("rateType", label = "Rate Type",
                                      choices = list("Flat" = "Flat", "Tiered" = "Tiered", "Budget" = "Budget"), 
@@ -114,8 +116,27 @@ shinyUI(navbarPage(
                           br(),
                           em("Outdoor = ET_Factor * ET * LA  * (0.62/748)")
                  )
-                 
-               )#end conditionalPanel
+                )
+                
+                         
+                ),
+               tabPanel("Scenario Planning",
+                  
+                  checkboxInput("Planning", "Enable Scenario Planning", value = TRUE, 
+                                width = NULL),
+                  
+                  numericInput("Months", "Number of months to Forecast", 
+                               3, min = 1, max = 24, step = 1,
+                               width = NULL),
+                  numericInput("Growth", "Expected Monthly Growth of number of accounts in the forecast period",
+                               5, min = 0, max = 100, step = 1,
+                               width = NULL),
+                  numericInput("EstUsagePerAccount", "Estimated Usage per New Account(ccf)",
+                               10, min = 0, max = 1000, step = NA,
+                               width = NULL)
+               )
+              
+               )#end tabsetPanel
                
                #                conditionalPanel(
                #                  condition = "input.rateType == 'Tiered' || input.rateType == 'Budget'",
