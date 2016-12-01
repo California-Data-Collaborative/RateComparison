@@ -29,9 +29,11 @@ shinyServer(function(input, output, clientData, session) {
     increment_Vec <- (1:input$Months)*input$Growth
     
     recent_date <- max(df$usage_date)
-    #recent_month <- month(recent_date)
+    
     recent_month_data <- df %>% filter(usage_date == recent_date)
+    
     recent_date_Vec <- c(recent_date %m+% months(1:input$Months))
+    
     #for rate code filling
     ratecode_filler <- data.table(r2)
     ratecode_filler <- ratecode_filler[,head(.SD, 1), by=cust_class]
@@ -127,29 +129,7 @@ shinyServer(function(input, output, clientData, session) {
           
         }
         
-        #filling in average house sizes and irrigation areas
-        #hhsize<- rep(mean(df$hhsize), length.out = length(cust_id))
-        #irr_area<- rep(mean(df$irr_area,na.rm=TRUE), length.out = length(cust_id))
         
-
-        
-        #prepare a data frame
-        #budgetplanneddf <- data.frame(cust_id, usage_month, usage_year, usage_date,
-        #                           hhsize, irr_area, cust_class, rate_code)
-        #fill in average et by month
-        #budgetplanneddf <- merge(avg_et_df, budgetplanneddf, by = 'usage_month')
-     
-        #fill in average ccf by account and month
-        #budgetplanneddf <- merge(monthlyusagebyaccount, budgetplanneddf, 
-        #                      by = c('cust_id','usage_month'))
-     
-        #re-arrange columns
-        #budgetplanneddf <- budgetplanneddf %>% select(cust_id, usage_month, usage_year, usage_date, usage_ccf,
-        #                           et_amount, hhsize, irr_area, cust_class, rate_code)
-     
-     
-        #planneddf <- rbind(df, budgetplanneddf)
-     
 
        }else{
          
