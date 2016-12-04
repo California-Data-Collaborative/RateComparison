@@ -21,7 +21,7 @@ shinyUI(navbarPage(
   ),#end tabpanel for navar
   tabPanel("Scenario Planning",
      
-     checkboxInput("Planning", "Enable Scenario Planning", value = FALSE, 
+     checkboxInput("Planning", "Enable Scenario Planning", value = TRUE, 
                    width = NULL),
      
      numericInput("Months", "Number of months to Forecast", 

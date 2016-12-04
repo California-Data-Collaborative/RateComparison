@@ -187,7 +187,7 @@ classGraph <- function(input, output, session, df_original, df_total_bill,
 #     )
 #   })
   
-#   browser()
+  
 #   baseline_rate_type <- get_commodity_charge(baseline_class_rate)
 #   if(baseline_rate_type == "Budget"){
 #     output$flatInputs <- defaultFlatInputs
@@ -229,7 +229,7 @@ classGraph <- function(input, output, session, df_original, df_total_bill,
                  ", near to: ", paste(name,collapse=" ") )
     )
     
-    if( RateParser::is_map(rate_part[[name]]) ){# if rate_part is a map
+    if( is_map(rate_part[[name]]) ){# if rate_part is a map
       # df[[name]] <- eval_map(df, rate_part)
     }
     else if(length(rate_part[[name]]) > 1){# if rate_part specifies tiers
@@ -240,7 +240,6 @@ classGraph <- function(input, output, session, df_original, df_total_bill,
     }
     else{
       ln <- get_long_part_name(name)
-      # browser()
       generated_input_list[[i]] <- callModule(ratePart, name, part_name=name, 
                                               part_name_long=ln,
                                               depends_col_list=dropdown_cols,
@@ -261,7 +260,7 @@ classGraph <- function(input, output, session, df_original, df_total_bill,
       # filter(usage_date >= input$timeSlider[1],
          # usage_date <= input$timeSlider[2])
       filter(rate_code %in% input$RateCode)
-    
+   
     combined
   })
   

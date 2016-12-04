@@ -13,12 +13,15 @@ shinyServer(function(input, output, clientData, session) {
    
 
   if(input$Planning == TRUE){
+<<<<<<< HEAD
     set.seed(10000)
     getmode <- function(v) {
       #fn to get mode of a vector
       uniqv <- unique(v)
       uniqv[which.max(tabulate(match(v, uniqv)))]
     }
+=======
+>>>>>>> bugfixes
     
     #for mean usage_ccf
     monthlyusagebyaccount <- df %>% 
@@ -37,7 +40,10 @@ shinyServer(function(input, output, clientData, session) {
     recent_date_Vec <- c(recent_date %m+% months(1:input$Months))
     
     #for rate code filling
-    ratecode_filler <- data.table(r2)
+    ratecode_filler <- df %>% group_by(cust_class, rate_code) %>% 
+                            summarise(count=length(unique(cust_id))) %>% 
+                            arrange(desc(count))
+    ratecode_filler <- data.table(ratecode_filler)
     ratecode_filler <- ratecode_filler[,head(.SD, 1), by=cust_class]
     
     #for generating customer class
@@ -107,7 +113,7 @@ shinyServer(function(input, output, clientData, session) {
           new_recent_month_data$et_amount <- tmp$et_amount.y
           
           #fill in average usage by account and month
-          tmp <- left_join(new_recent_month_data, monthlyusagebyaccount, by = c('cust_id','usage_month'))
+          tmp <- left_join(new_recent_month_data[1:nrow(recent_month_data),], monthlyusagebyaccount, by = c('cust_id','usage_month'))
           
           new_recent_month_data$usage_ccf[1:nrow(recent_month_data)] <- tmp$usage_ccf.y
           
@@ -116,14 +122,22 @@ shinyServer(function(input, output, clientData, session) {
           
          
           #fill in meter size for new accounts
+<<<<<<< HEAD
           if("cust_loc_meter_size" %in% colnames(df)){
             new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]),"cust_loc_meter_size"] <- rep(getmode(df$cust_loc_meter_size),
+=======
+          new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]),"meter_size"] <- rep(getmode(df$meter_size),
+>>>>>>> bugfixes
                                                                                                        length.out = increment_Vec[i])
           }
           
           #fill in water type for new accounts
+<<<<<<< HEAD
           if("cust_loc_water_type" %in% colnames(df)){
             new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]),"cust_loc_water_type"] <- rep(getmode(df$cust_loc_water_type),
+=======
+          new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]),"water_type"] <- rep(getmode(df$water_type),
+>>>>>>> bugfixes
                                                                                                        length.out = increment_Vec[i])
           }
           
@@ -161,7 +175,7 @@ shinyServer(function(input, output, clientData, session) {
       
            
            #fill in average usage by account and month
-           tmp <- left_join(new_recent_month_data, monthlyusagebyaccount, by = c('cust_id','usage_month'))
+           tmp <- left_join(new_recent_month_data[1:nrow(recent_month_data)], monthlyusagebyaccount, by = c('cust_id','usage_month'))
            
            new_recent_month_data$usage_ccf[1:nrow(recent_month_data)] <- tmp$usage_ccf.y
            
@@ -170,12 +184,12 @@ shinyServer(function(input, output, clientData, session) {
            
            if("cust_loc_meter_size" %in% colnames(df)){
            #fill in meter size for new accounts
-           new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]),"cust_loc_meter_size"] <- rep(getmode(df$cust_loc_meter_size),
+           new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]),"meter_size"] <- rep(getmode(df$meter_size),
                                                                                                                                       length.out = increment_Vec[i])
            }
            if("cust_loc_water_type" %in% colnames(df)){
            #fill in water type for new accounts
-           new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]),"cust_loc_water_type"] <- rep(getmode(df$cust_loc_water_type),
+           new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]),"water_type"] <- rep(getmode(df$water_type),
                                                                                                                                       length.out = increment_Vec[i])
            
            }
@@ -196,7 +210,13 @@ shinyServer(function(input, output, clientData, session) {
   
   planneddf = do.call(rbind, planneddflist)
   planneddf <- rbind(df, planneddf)
+<<<<<<< HEAD
 
+=======
+  planneddf$sort_index <- 1:nrow(planneddf)
+  
+  planneddf
+>>>>>>> bugfixes
   }
 
 })  
@@ -275,11 +295,13 @@ shinyServer(function(input, output, clientData, session) {
   # Calculate total bill
   #******************************************************************
   total_bill_info <- reactive({
+    
     bill_info <- RateParser::calculate_bill(DF(), hypothetical_rate_list)
     bill_info <- bill_info %>% ungroup %>% dplyr::arrange(sort_index)
     
     bill_info <- bill_info %>% dplyr::rename(variable_bill=commodity_charge,
                                              total_bill=bill)
+    
     #adding baseline usage
     bill_info$hypothetical_usage <- bill_info$usage_ccf
     

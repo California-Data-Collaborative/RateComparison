@@ -203,5 +203,24 @@ get_long_part_name <- function(name){
 }
 
 
+is_map <- function(rate_part){
+  parts <- names(rate_part)
+  has_depends <- "depends_on" %in% parts
+  has_values <- "values" %in% parts
+  
+  if(has_depends && has_values){
+    return(TRUE)
+  } else if (has_depends || has_values){
+    stop("Each 'depends_on' clause must have a corresponding 'values' clause, and vice versa.")
+  } else{
+    return(FALSE)
+  }
+}
+
+getmode <- function(v) {
+  #fn to get mode of a vector
+  uniqv <- unique(v)
+  uniqv[which.max(tabulate(match(v, uniqv)))]
+}
 
 
