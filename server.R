@@ -114,12 +114,16 @@ shinyServer(function(input, output, clientData, session) {
           
          
           #fill in meter size for new accounts
+          if("cust_loc_meter_size" %in% colnames(df)){
           new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]),"cust_loc_meter_size"] <- rep(getmode(df$cust_loc_meter_size),
                                                                                                        length.out = increment_Vec[i])
+          }
+          
           #fill in water type for new accounts
+          if("cust_loc_water_type" %in% colnames(df)){
           new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]),"cust_loc_water_type"] <- rep(getmode(df$cust_loc_water_type),
                                                                                                        length.out = increment_Vec[i])
-          
+          }
           
           #fill in rate code for new accounts
           tmp <- new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]),]
