@@ -415,40 +415,70 @@ shinyServer(function(input, output, clientData, session) {
   
   output$revenue_time_series <- renderPlotly({
     # print(glimpse(df_plots()[1,]))
-    p <- plot_revenue_over_time( df_plots(), input$displayType )
-    # ggplotly(p)
-    p
+    if(input$Planning == TRUE){
+      p <- plot_revenue_over_time( df_plots(), input$displayType ) + 
+           geom_vline(xintercept=as.numeric(max(df$usage_date)),color='red3',linetype=2) +
+           geom_text(data=data.table(date=max(df$usage_date),extracol=0),aes(date,extracol),label="forecast",color='red3',angle=45,vjust=-0.5,hjust=-0.5)  
+    }else{
+      p <- plot_revenue_over_time( df_plots(), input$displayType )  
+    }
+     ggplotly(p) %>% config(displayModeBar = FALSE)
+    
   }) 
   
   output$revenue_time_series1 <- renderPlotly({
     # print(glimpse(df_plots()[1,]))
-    p <- plot_revenue_over_time( df_plots1(), input$displayType )
-    # ggplotly(p)
-    p
+    if(input$Planning == TRUE){
+      p <- plot_revenue_over_time( df_plots(), input$displayType ) + 
+        geom_vline(xintercept=as.numeric(max(df$usage_date)),color='red3',linetype=2) +
+        geom_text(data=data.table(date=max(df$usage_date),extracol=0),aes(date,extracol),label="forecast",color='red3',angle=45,vjust=-0.5,hjust=-0.5)  
+    }else{
+      p <- plot_revenue_over_time( df_plots(), input$displayType )  
+    }
+    ggplotly(p) %>% config(displayModeBar = FALSE)
   }) 
   output$revenue_time_series2 <- renderPlotly({
     # print(glimpse(df_plots()[1,]))
-    p <- plot_revenue_over_time( df_plots2(), input$displayType )
-    # ggplotly(p)
-    p
+    if(input$Planning == TRUE){
+      p <- plot_revenue_over_time( df_plots(), input$displayType ) + 
+        geom_vline(xintercept=as.numeric(max(df$usage_date)),color='red3',linetype=2) +
+        geom_text(data=data.table(date=max(df$usage_date),extracol=0),aes(date,extracol),label="forecast",color='red3',angle=45,vjust=-0.5,hjust=-0.5)  
+    }else{
+      p <- plot_revenue_over_time( df_plots(), input$displayType )  
+    }
+    ggplotly(p) %>% config(displayModeBar = FALSE)
   }) 
   output$revenue_time_series3 <- renderPlotly({
-    # print(glimpse(df_plots()[1,]))
-    p <- plot_revenue_over_time( df_plots3(), input$displayType )
-    # ggplotly(p)
-    p
+    if(input$Planning == TRUE){
+      p <- plot_revenue_over_time( df_plots(), input$displayType ) + 
+        geom_vline(xintercept=as.numeric(max(df$usage_date)),color='red3',linetype=2) +
+        geom_text(data=data.table(date=max(df$usage_date),extracol=0),aes(date,extracol),label="forecast",color='red3',angle=45,vjust=-0.5,hjust=-0.5)  
+    }else{
+      p <- plot_revenue_over_time( df_plots(), input$displayType )  
+    }
+    ggplotly(p) %>% config(displayModeBar = FALSE)
   }) 
   output$revenue_time_series4 <- renderPlotly({
     # print(glimpse(df_plots()[1,]))
-    p <- plot_revenue_over_time( df_plots4(), input$displayType )
-    # ggplotly(p)
-    p
+    if(input$Planning == TRUE){
+      p <- plot_revenue_over_time( df_plots(), input$displayType ) + 
+        geom_vline(xintercept=as.numeric(max(df$usage_date)),color='red3',linetype=2) +
+        geom_text(data=data.table(date=max(df$usage_date),extracol=0),aes(date,extracol),label="forecast",color='red3',angle=45,vjust=-0.5,hjust=-0.5)  
+    }else{
+      p <- plot_revenue_over_time( df_plots(), input$displayType )  
+    }
+    ggplotly(p) %>% config(displayModeBar = FALSE)
   }) 
   output$revenue_time_series5 <- renderPlotly({
     # print(glimpse(df_plots()[1,]))
-    p <- plot_revenue_over_time( df_plots5(), input$displayType )
-    # ggplotly(p)
-    p
+    if(input$Planning == TRUE){
+      p <- plot_revenue_over_time( df_plots(), input$displayType ) + 
+        geom_vline(xintercept=as.numeric(max(df$usage_date)),color='red3',linetype=2) +
+        geom_text(data=data.table(date=max(df$usage_date),extracol=0),aes(date,extracol),label="forecast",color='red3',angle=45,vjust=-0.5,hjust=-0.5)  
+    }else{
+      p <- plot_revenue_over_time( df_plots(), input$displayType )  
+    }
+    ggplotly(p) %>% config(displayModeBar = FALSE)
   })
   
   
