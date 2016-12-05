@@ -11,7 +11,7 @@ shinyServer(function(input, output, clientData, session) {
 
    
   if(input$Planning == TRUE){
-    
+    set.seed(10000)
     getmode <- function(v) {
       #fn to get mode of a vector
       uniqv <- unique(v)
@@ -45,21 +45,25 @@ shinyServer(function(input, output, clientData, session) {
     
      
       if(is_budget){
-        
+        if("et_amount" %in% colnames(df)){
         #average et by month
         avg_et_df <-  df%>%  group_by(usage_month) %>% summarise(et_amount = mean(et_amount,na.rm=TRUE))
+        }
         
+        if("hhsize" %in% colnames(df)){
         #average hhsize by customer class
         mean_hhsize <- df %>% 
                        group_by(cust_class) %>% 
                        summarise(hhsize = round(mean(hhsize,na.rm=TRUE)))
+        }
         
+        if("irr_area" %in% colnames(df)){
         #average irr_area by customer class
         #irrarea <- mean(df$irr_area[!df$irr_area %in% boxplot.stats(df$irr_area)$out]) #removing outliers
         mean_irr_area <- df %>% 
                          group_by(cust_class) %>% 
                          summarise(irr_area = round(mean(irr_area,na.rm=TRUE)))
-        
+        }
         
         
         for(i in month_Vec){
@@ -138,12 +142,12 @@ shinyServer(function(input, output, clientData, session) {
            new_recent_month_data <- recent_month_data
            
            new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]), "cust_id"] <- 1:increment_Vec[i]
+          
+           new_recent_month_data[, "usage_date"] <- rep(recent_date_Vec[i], nrow(recent_month_data)+increment_Vec[i])
            
-           new_recent_month_data[, "usage_date"] <- rep(recent_date_Vec[i], increment_Vec[i])
+           new_recent_month_data[, "usage_month"] <- rep(month(recent_date_Vec[i]), nrow(recent_month_data)+increment_Vec[i])
            
-           new_recent_month_data[, "usage_month"] <- rep(month(recent_date_Vec[i]), increment_Vec[i])
-           
-           new_recent_month_data[, "usage_year"] <- rep(year(recent_date_Vec[i]), increment_Vec[i])
+           new_recent_month_data[, "usage_year"] <- rep(year(recent_date_Vec[i]), nrow(recent_month_data)+increment_Vec[i])
            
            new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]), "cust_class"] <- sample(class_proportions$Var1, replace = TRUE, 
                                                                                                                                  prob = class_proportions$Freq,
@@ -158,15 +162,17 @@ shinyServer(function(input, output, clientData, session) {
            #fill in the usage for new accounts with the estimated usage input
            new_recent_month_data[(nrow(recent_month_data)-increment_Vec[i]+1):nrow(recent_month_data), "usage_ccf"] <- input$EstUsagePerAccount
            
-           
+           if("cust_loc_meter_size" %in% colnames(df)){
            #fill in meter size for new accounts
            new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]),"cust_loc_meter_size"] <- rep(getmode(df$cust_loc_meter_size),
                                                                                                                                       length.out = increment_Vec[i])
+           }
+           if("cust_loc_water_type" %in% colnames(df)){
            #fill in water type for new accounts
            new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]),"cust_loc_water_type"] <- rep(getmode(df$cust_loc_water_type),
                                                                                                                                       length.out = increment_Vec[i])
            
-           
+           }
            #fill in rate code for new accounts
            tmp <- new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]),]
            
