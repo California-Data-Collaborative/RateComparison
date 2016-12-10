@@ -8,8 +8,6 @@ shinyServer(function(input, output, clientData, session) {
   
  planneddf <- reactive({
    
-
-   
   if(input$Planning == TRUE){
     set.seed(10000)
     getmode <- function(v) {
@@ -66,7 +64,7 @@ shinyServer(function(input, output, clientData, session) {
         }
         
         
-        for(i in month_Vec){
+         for(i in month_Vec){
           
           new_recent_month_data <- recent_month_data
           
@@ -190,15 +188,24 @@ shinyServer(function(input, output, clientData, session) {
          }
          
          
-      }
+       }
   
   planneddf = do.call(rbind, planneddflist)
   planneddf <- rbind(df, planneddf)
-  
+
   }
 
 })  
+ 
+
   
+ observe({
+
+  updateSliderInput(session, "timeSlider", label = "Time Range", min = min(planneddf()$usage_date), 
+  max = max(planneddf()$usage_date), value = c(min(planneddf()$usage_date), max(planneddf()$usage_date)))
+  
+ })
+ 
   # Get the indoor tier cutoffs
   indoor <- reactive({
     if(input$Planning == TRUE){
@@ -282,17 +289,17 @@ shinyServer(function(input, output, clientData, session) {
   #******************************************************************
   df_plots <- reactive({
     if(input$Planning == TRUE){
-         combined <- dplyr::bind_cols(planneddf(), total_bill_info(), baseline_bill_info())%>%
-          # filter(usage_date >= input$timeSlider[1],
-          #    usage_date <= input$timeSlider[2])
-              filter(rate_code %in% input$RateCode)
+      combined <- dplyr::bind_cols(planneddf(), total_bill_info(), baseline_bill_info())%>%
+        filter(usage_date >= input$timeSlider[1],
+              usage_date <= input$timeSlider[2],
+              rate_code %in% input$RateCode)
          
     }
     else{
-         combined <- dplyr::bind_cols(df, total_bill_info(), baseline_bill_info()) %>%
-          filter(usage_date >= input$timeSlider[1],
-                 usage_date <= input$timeSlider[2],
-                 rate_code %in% input$RateCode)
+      combined <- dplyr::bind_cols(df, total_bill_info(), baseline_bill_info()) %>%
+        filter(usage_date >= input$timeSlider[1],
+                usage_date <= input$timeSlider[2],
+                rate_code %in% input$RateCode)
     }
     
     combined
@@ -301,9 +308,9 @@ shinyServer(function(input, output, clientData, session) {
   df_plots1 <- reactive({
     if(input$Planning == TRUE){
       combined <- dplyr::bind_cols(planneddf(), total_bill_info(), baseline_bill_info()) %>%
-        #filter(usage_date >= input$timeSlider[1],
-               #usage_date <= input$timeSlider[2],
-               filter(rate_code %in% input$RateCode1)
+        filter(usage_date >= input$timeSlider[1],
+               usage_date <= input$timeSlider[2],
+               rate_code %in% input$RateCode1)
       
     }
     else{
@@ -318,9 +325,9 @@ shinyServer(function(input, output, clientData, session) {
   df_plots2 <- reactive({
     if(input$Planning == TRUE){
       combined <- dplyr::bind_cols(planneddf(), total_bill_info(), baseline_bill_info()) %>%
-        #filter(usage_date >= input$timeSlider[1],
-         #      usage_date <= input$timeSlider[2],
-               filter(rate_code %in% input$RateCode2)
+        filter(usage_date >= input$timeSlider[1],
+               usage_date <= input$timeSlider[2],
+               rate_code %in% input$RateCode2)
       
     }
     else{
@@ -335,9 +342,9 @@ shinyServer(function(input, output, clientData, session) {
   df_plots3 <- reactive({
     if(input$Planning == TRUE){
       combined <- dplyr::bind_cols(planneddf(), total_bill_info(), baseline_bill_info()) %>%
-        #filter(usage_date >= input$timeSlider[1],
-         #      usage_date <= input$timeSlider[2],
-               filter(rate_code %in% input$RateCode3)
+        filter(usage_date >= input$timeSlider[1],
+               usage_date <= input$timeSlider[2],
+               rate_code %in% input$RateCode3)
       
     }
     else{
@@ -352,9 +359,9 @@ shinyServer(function(input, output, clientData, session) {
   df_plots4 <- reactive({
     if(input$Planning == TRUE){
       combined <- dplyr::bind_cols(planneddf(), total_bill_info(), baseline_bill_info()) %>%
-        # filter(usage_date >= input$timeSlider[1],
-        #        usage_date <= input$timeSlider[2],
-              filter(rate_code %in% input$RateCode4)
+        filter(usage_date >= input$timeSlider[1],
+               usage_date <= input$timeSlider[2],
+               rate_code %in% input$RateCode4)
       
     }
     else{
@@ -369,9 +376,9 @@ shinyServer(function(input, output, clientData, session) {
   df_plots5 <- reactive({
     if(input$Planning == TRUE){
       combined <- dplyr::bind_cols(planneddf(), total_bill_info(), baseline_bill_info()) %>%
-        # filter(usage_date >= input$timeSlider[1],
-        #        usage_date <= input$timeSlider[2],
-               filter(rate_code %in% input$RateCode5)
+         filter(usage_date >= input$timeSlider[1],
+                usage_date <= input$timeSlider[2],
+                rate_code %in% input$RateCode5)
       
     }
     else{
