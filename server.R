@@ -200,10 +200,14 @@ shinyServer(function(input, output, clientData, session) {
 
   
  observe({
-
-  updateSliderInput(session, "timeSlider", label = "Time Range", min = min(planneddf()$usage_date), 
-  max = max(planneddf()$usage_date), value = c(min(planneddf()$usage_date), max(planneddf()$usage_date)))
+   if(input$Planning == TRUE){
+    updateSliderInput(session, "timeSlider", label = "Time Range", min = min(planneddf()$usage_date), 
+    max = max(planneddf()$usage_date), value = c(min(planneddf()$usage_date), max(planneddf()$usage_date)))
   
+  }else{
+    updateSliderInput(session, "timeSlider", label = "Time Range", min = min(df$usage_date), 
+    max = max(df$usage_date), value = c(min(df$usage_date), max(df$usage_date)))
+  } 
  })
  
   # Get the indoor tier cutoffs
