@@ -370,17 +370,23 @@ shinyServer(function(input, output, clientData, session) {
   output$classTabs <- renderUI({
     myTabs = lapply(1:length(cust_class_list), function(i){
       tabPanel(cust_class_list[i],
-               classGraphOutput(paste0("panel_",cust_class_list[i]), rate_code_dict[[cust_class_list[i]]])
+               classGraphOutput(paste0("panel_",cust_class_list[i]), rate_code_dict[[cust_class_list[i]]]),
+               value=cust_class_list[i]
       )
     })
-    do.call(tabsetPanel, myTabs)
+    do.call(tabsetPanel, c(myTabs, list(id="classTabs")) )
   })
+  
+  active_tab <- reactive({
+    browser()
+    input$classTabs
+    })
   
   # generated_inputs <- list()
   # callModule to connect server code with each of the customer class panels
   for(c in cust_class_list){
-    class_rate <- baseline_rate_list$rate_structure[[c]]
-    generated_inputs[[c]] <- callModule(classGraph, paste0("panel_",c), c, DF, total_bill_info, baseline_bill_info, class_rate)
+    # class_rate <- baseline_rate_list$rate_structure[[c]]
+    generated_inputs[[c]] <- callModule(classGraph, paste0("panel_",c), c, DF, total_bill_info, baseline_bill_info, active_tab)
     # browser()
   }
   
