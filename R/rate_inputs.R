@@ -10,7 +10,7 @@ ratePartInput <- function(id){
 }
 
 ratePart <- function(input, output, session, part_name, part_name_long="", depends_col_list, 
-                     current_selected=NULL, simple_value=0, is_expanded=FALSE){
+                     current_selected=NULL, simple_value=0, is_expanded=FALSE, value_map=list()){
   
   output$inputRow <- renderUI({
     ns <- session$ns
@@ -25,7 +25,7 @@ ratePart <- function(input, output, session, part_name, part_name_long="", depen
          conditionalPanel(condition = sprintf("input['%s'] == true", ns("expanded")),
            column(5, strong( paste0(part_name_long, ":\n(depends on...)") ) ),
            column(5, selectInput(ns("depend_cols"), label=NULL, choices=depends_col_list, 
-                       selected=current_selected, multiple=TRUE)
+                       selected=c(current_selected), multiple=TRUE)
            )
          )
       ),
@@ -47,9 +47,11 @@ ratePart <- function(input, output, session, part_name, part_name_long="", depen
       # Display text entry boxes if the values depends on another
       conditionalPanel(condition = sprintf("input['%s'] == true", ns("expanded")),
          fluidRow(
-           column(8, textAreaInput(ns("depend_values"), label="Values", value=unique_values(input$depend_cols),
+           column(8, textAreaInput(ns("depend_values"), label="Values", 
+                                   value=unique_values(input$depend_cols),
                                    height=text_height(input$depend_cols) )),
-           column(4, textAreaInput(ns("depend_charges"), label="Charges ($)", value=simple_value,
+           column(4, textAreaInput(ns("depend_charges"), label="Charges ($)", 
+                                   value=eval_uniques(input$depend_cols, value_map),
                                    height=text_height(input$depend_cols)))
          )
       )
@@ -57,7 +59,7 @@ ratePart <- function(input, output, session, part_name, part_name_long="", depen
     
   })
 
-  # return(input)
+  return(input)
 }
 
 
@@ -91,6 +93,29 @@ num_uniques <- function(colList){
   ls <- unique_value_list(colList)
   return(length(ls))
 }
+
+eval_uniques <- function(colList, value_map){
+  ls <- unique_value_list(colList)
+  retVal <- c()
+  
+  for(v in ls){
+    print(v)
+    if(v != ""){
+      value <- value_map[[v]]
+      
+      if(!is.null(value)){
+        retVal <- c(retVal, value)
+      }else{
+        retVal <- c(retVal, 0.0)
+      }
+      
+    }else{
+      retVal <- c(retVal, 0.0)
+    }
+  }
+  return( paste0(retVal, collapse="\n") )
+}
+
 
 text_height <- function(colList){
   return(26+21*num_uniques(colList))

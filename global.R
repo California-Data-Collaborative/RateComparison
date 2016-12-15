@@ -57,8 +57,9 @@ read_data <- function(filename, cust_col, usage_col, month_col, year_col, et_col
   return(data)
 }
 
+generated_inputs <- list()
 baseline_rate_list <- RateParser::read_owrs_file("../open-water-rate-specification/examples/mnwd.owrs")
-hypothetical_rate_list <- baseline_rate_list
+# hypothetical_rate_list <- baseline_rate_list
 
 is_budget <- switch(utility_code,
                     "IRWD"=,
@@ -71,12 +72,12 @@ less_than_date <- switch(utility_code,
                          "IRWD"="2017-01-01",
                          "MNWD"="2017-01-01",
                          "LVMWD"="2017-01-01",
-                         "SMWD"="2016-01-01",
+                           "SMWD"="2016-01-01",
                          "SMC"="2017-01-01")
 
 test_file <- switch(utility_code,
                     "IRWD"="data/irwd_test.csv",
-                    "MNWD"="data/mnwd_test.csv",
+                    "MNWD"="data/mnwd_sample.csv",
                     "LVMWD"="data/lvmwd_test.csv",
                     "SMWD"="data/smwd_test.csv",
                     "SMC"="data/smc_test.csv")
@@ -126,12 +127,12 @@ default_budget_tiers_html <- switch(utility_code,
                                     "SMWD"='<textarea id="budgetTiers" rows="6" cols="15" style="resize: none;">0\nIndoor\n101%\n151%\n201%</textarea>',
                                     "SMC"='<textarea id="budgetTiers" rows="6" cols="15" style="resize: none;">0\nIndoor\n101%\n151%\n201%</textarea>') 
 
-default_budget_prices_html <- switch(utility_code,
-                                     "IRWD"='<textarea id="budgetPrice" rows="6" cols="15" style="resize: none;">1.11\n1.62\n3.92\n14.53</textarea>',
-                                     "MNWD"='<textarea id="budgetPrice" rows="6" cols="15" style="resize: none;">1.49\n1.70\n2.62\n4.38\n9.17</textarea>',
-                                     "LVMWD"='<textarea id="budgetPrice" rows="6" cols="15" style="resize: none;">2.36\n3.18\n3.96\n4.98</textarea>',
-                                     "SMWD"='<textarea id="budgetPrice" rows="6" cols="15" style="resize: none;">1.86\n2.11\n2.61\n3.21\n4.67</textarea>',
-                                     "SMC"='<textarea id="budgetPrice" rows="6" cols="15" style="resize: none;">0\n0\n0\n0\n0</textarea>') 
+default_budget_prices <- switch(utility_code,
+                                     "IRWD"='1.11\n1.62\n3.92\n14.53',
+                                     "MNWD"='1.49\n1.70\n2.62\n4.38\n9.17',
+                                     "LVMWD"='2.36\n3.18\n3.96\n4.98',
+                                     "SMWD"='1.86\n2.11\n2.61\n3.21\n4.67',
+                                     "SMC"='0\n0\n0\n0\n0') 
 
 
 # Read data from file and rename the columns to be compatable with internal calls

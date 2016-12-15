@@ -98,7 +98,7 @@ get_usage_in_tiers <- function(data, tier_starts, budget_based=FALSE){
 # Split text box input into a vector of strings
 #******************************************************************
 parse_strings <- function(str){
-  return( unlist(strsplit(str, "[\n| ]+")) )
+  return( stringr::str_trim(unlist(strsplit(str, "[\n]"))) )
 }
 
 #******************************************************************
@@ -160,15 +160,6 @@ get_budget_tiers <- function(data, tier_start_strs, indoor_tier, outdoor_tier){
 }
 
 
-
-get_commodity_charge <- function(class_rate){
-  for(i in 1:length(class_rate)){
-    name <- names(class_rate[[i]])
-    if(name=="commodity_charge"){
-      return(class_rate[[i]][[name]])
-    }
-  }
-}
 
 is_valid_rate_part <- function(rate_part){
   tryCatch({

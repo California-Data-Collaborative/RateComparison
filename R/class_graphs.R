@@ -13,13 +13,13 @@ classGraphOutput <- function(id, rate_codes){
 #                        tabPanel("Current Rate Comparision",
                                 
               fluidRow(
-#                 column(8, 
-#                        radioButtons(ns("rateType"), label = "Rate Type", inline=TRUE,
-#                                     choices = list("Flat" = "Flat", "Tiered" = "Tiered", "Budget" = "Budget"), 
-#                                     selected = "Flat")
-#                 ),
+                column(8, 
+                       radioButtons(ns("rateType"), label = "Rate Type", inline=TRUE,
+                                    choices = list("Flat" = "Flat", "Tiered" = "Tiered", "Budget" = "Budget"), 
+                                    selected = "Flat")
+                ),
                 column(4, 
-                       radioButtons(ns("displayType"), label = "Display", selected = "Revenue", inline=TRUE,
+                       radioButtons(ns("displayType"), label = "Display", selected = "Revenue", inline=FALSE,
                                     choices = list("Revenue" = "Revenue", "Usage" = "Usage"))
                 )
               ),#end row
@@ -33,31 +33,90 @@ classGraphOutput <- function(id, rate_codes){
                 column(1)
               ),
               
-#               fluidRow(
-#                 column(12,
-#                        ratePartInput(ns("service_charge"))
-#                 )
-#               ),
-
-              uiOutput(ns("rateInputs"))
               
-#               # FLAT RATES
-#               conditionalPanel(
-#                 condition = sprintf("input['%s'] == 'Flat'", ns("rateType")),
-#                 uiOutput(ns("flatInputs"))
-#               ),#end conditionalPanel
-#               
-#               # TIERED RATES
-#               conditionalPanel(
-#                 condition = sprintf("input['%s'] == 'Tiered'", ns("rateType")),
-#                 uiOutput(ns("tieredInputs"))
-#               ),#end conditionalPanel
-#               
-#               # BUDGET BASED
-#               conditionalPanel(
-#                 condition = sprintf("input['%s'] == 'Budget'", ns("rateType")),
-#                 uiOutput(ns("budgetInputs"))
-#               )
+              fluidRow(
+                column(12,
+                       ratePartInput(ns("service_charge"))
+                )
+              ),
+
+              
+              # FLAT RATES
+              conditionalPanel(
+                condition = sprintf("input['%s'] == 'Flat'", ns("rateType")),
+                fluidRow(
+                  column(12,
+                         ratePartInput(ns("flat_rate"))
+                  )
+                )#end row
+              ),#end conditionalPanel
+              
+              # TIERED RATES
+              conditionalPanel(
+                condition = sprintf("input['%s'] == 'Tiered'", ns("rateType")),
+                fluidRow(
+                  column(6,
+                         fluidRow(
+                           strong("Tier start (CCF)")
+                         ),
+                         fluidRow(
+                           HTML(default_tiered_tiers_html)
+                         )
+                  ),
+                  column(6,
+                         fluidRow(
+                           strong("Tier prices")
+                         ),
+                         fluidRow(
+                           HTML(default_tiered_prices_html)
+                         )
+                  )
+                )#end row
+              ),#end conditionalPanel
+              
+              # BUDGET BASED
+              conditionalPanel(
+                condition = sprintf("input['%s'] == 'Budget'", ns("rateType")),
+                fluidRow(
+                  column(12,
+                         ratePartInput(ns("gpcd"))
+                  )
+                ),
+                
+                fluidRow(
+                  column(12,
+                         ratePartInput(ns("landscape_factor"))
+                  )
+                ),
+                fluidRow(
+                  column(6,
+                         fluidRow(
+                           strong("Tier start")
+                         ),
+                         fluidRow(
+                           HTML(default_budget_tiers_html)
+                         )
+                  ),
+                  column(6,
+#                          fluidRow(
+#                            strong("Tier prices ($)")
+#                          ),
+                         fluidRow(
+                           textAreaInput(ns("tier_prices"), label="Tier prices ($)", value=default_budget_prices,
+                                         height=50)#text_height(input$depend_cols))
+                         )
+                  )
+                ),#end row
+                fluidRow(paste("Enter the starting value for each tier either as a CCF value, ",
+                               " or as a percent of budget (water budget assumed as Indoor + Outdoor). ",
+                               "Where:")
+                ),
+                fluidRow(br(),
+                         em("Indoor = GPCD * HHSize * (365/12/748)"),
+                         br(),
+                         em("Outdoor = ET_Factor * ET * LA  * (0.62/748)")
+                )
+              )
                     
 #                     
 #            )
@@ -106,9 +165,11 @@ classGraphOutput <- function(id, rate_codes){
 }
 
 
-classGraph <- function(input, output, session, df_original, df_total_bill, 
+classGraph <- function(input, output, session, cust_class, df_original, df_total_bill, 
                        df_baseline_bill, baseline_class_rate){
   ns <- session$ns
+  
+  input_list <- list()
   
 #   defaultFlatInputs <- renderUI({
 #     tagList(
@@ -203,49 +264,73 @@ classGraph <- function(input, output, session, df_original, df_total_bill,
 #     output$budgetInputs <- defaultBudgetInputs
 #   }
   
-  output$rateInputs <- renderUI({
-    
-    lapply(1:length(baseline_class_rate), function(i) {
-      rate_part <- baseline_class_rate[[i]]
-      name <- names(rate_part)
-      
-      fluidRow(
-        column(12, 
-               ratePartInput(ns(name))
-        )
-      )
-    })
-    
-  })
+#   output$rateInputs <- renderUI({
+#     
+#     lapply(1:length(baseline_class_rate), function(i) {
+#       rate_part <- baseline_class_rate[[i]]
+#       name <- names(rate_part)
+#       
+#       
+#     })
+#     
+#   })
+ 
+  # part_name = "service_charge"
+#   service_charge_current_selected <- reactive({get_rate_part_depends_col(baseline_class_rate, "service_charge")})
+#   service_charge_is_expanded <- reactive({rate_part_is_map(baseline_class_rate, "service_charge")})
+#   service_charge_value_map <- reactive({get_rate_part_value(baseline_class_rate, "service_charge")})
+  browser()
+  input_list[["service_charge"]] <- callModule(ratePart, "service_charge", 
+             part_name="service_charge", part_name_long="Service Charge",
+             depends_col_list=dropdown_cols, 
+             current_selected= c(baseline_class_rate$service_charge$depends_on),
+             is_expanded = TRUE,
+             value_map = baseline_class_rate$service_charge$values)
   
-  generated_input_list <- list()
-  for(i in 1:length(baseline_class_rate)){
-    rate_part <- baseline_class_rate[[i]]
-    name <- names(rate_part)
-    
-    stopif(!is_valid_rate_part(rate_part),
-           paste("The OWRS file might not be formatted properly. ",
-                 "\nError occured in customer class ", df$cust_class[1],
-                 ", near to: ", paste(name,collapse=" ") )
-    )
-    
-    if( is_map(rate_part[[name]]) ){# if rate_part is a map
-      # df[[name]] <- eval_map(df, rate_part)
-    }
-    else if(length(rate_part[[name]]) > 1){# if rate_part specifies tiers
-      # df[[name]] <- paste(rate_part[[name]], collapse="\n")
-    }
-    else if(is_rate_type(rate_part)){
-      
-    }
-    else{
-      ln <- get_long_part_name(name)
-      generated_input_list[[i]] <- callModule(ratePart, name, part_name=name, 
-                                              part_name_long=ln,
-                                              depends_col_list=dropdown_cols,
-                                              simple_value=rate_part[[name]])
-    }
-  }
+#   flat_rate_current_selected <- reactive({get_rate_part_depends_col(baseline_class_rate, "flat_rate")})
+#   flat_rate_is_expanded <- reactive({rate_part_is_map(baseline_class_rate, "flat_rate")})
+#   flat_rate_value_map <- reactive({get_rate_part_value(baseline_class_rate, "flat_rate")})
+#   
+  callModule(ratePart, "flat_rate", part_name="flat_rate", part_name_long="Charge per CCF",
+             depends_col_list=dropdown_cols, simple_value=2.1)
+  
+  callModule(ratePart, "gpcd", part_name="gpcd", part_name_long="GPCD",
+             depends_col_list=dropdown_cols, simple_value=60)
+  
+  callModule(ratePart, "landscape_factor", part_name="landscape_factor", part_name_long="Landscape Factor",
+             depends_col_list=dropdown_cols, simple_value=0.7)
+#   
+#   callModule(ratePart, "service_charge", part_name="service_charge", part_name_long="Service Charge",
+#              depends_col_list=dropdown_cols, simple_value=11.39)
+  
+#   generated_input_list <- list()
+#   for(i in 1:length(baseline_class_rate)){
+#     rate_part <- baseline_class_rate[[i]]
+#     name <- names(rate_part)
+#     
+#     stopif(!is_valid_rate_part(rate_part),
+#            paste("The OWRS file might not be formatted properly. ",
+#                  "\nError occured in customer class ", df$cust_class[1],
+#                  ", near to: ", paste(name,collapse=" ") )
+#     )
+#     
+#     if( is_map(rate_part[[name]]) ){# if rate_part is a map
+#       # df[[name]] <- eval_map(df, rate_part)
+#     }
+#     else if(length(rate_part[[name]]) > 1){# if rate_part specifies tiers
+#       # df[[name]] <- paste(rate_part[[name]], collapse="\n")
+#     }
+#     else if(is_rate_type(rate_part)){
+#       
+#     }
+#     else{
+#       ln <- get_long_part_name(name)
+#       generated_input_list[[i]] <- callModule(ratePart, name, part_name=name, 
+#                                               part_name_long=ln,
+#                                               depends_col_list=dropdown_cols,
+#                                               simple_value=rate_part[[name]])
+#     }
+#   }
   
 #   ratePartInputs <- callModule(ratePart, "service_charge", part_name="service_charge", 
 #                                part_name_long="Service Charge",depends_col_list=dropdown_cols)
@@ -325,4 +410,55 @@ classGraph <- function(input, output, session, df_original, df_total_bill,
     plot_fixed_revenue(df_plots(), input$barType)
   })
   
+  return(input_list)
+}
+
+
+
+
+get_rate_part_value <- function(class_rate, rate_part_name){
+  for(i in 1:length(class_rate)){
+    rate_part <- class_rate[[i]]
+    name <- names(rate_part)
+    
+    if(name==rate_part_name){
+      
+      if(is_map(rate_part[[name]])){
+        return(rate_part[[name]]$value)
+      }else{
+        return(rate_part[[name]])
+      }
+    }
+  }
+  return(0)
+}
+
+get_rate_part_depends_col <- function(class_rate, rate_part_name){
+  for(i in 1:length(class_rate)){
+    rate_part <- class_rate[[i]]
+    name <- names(rate_part)
+    
+    if(name==rate_part_name){
+      if(is_map(rate_part[[name]])){
+        return(rate_part[[name]]$depends_on)
+      }
+    }
+  }
+  return(NULL)
+}
+
+# extract_depends_values()
+
+rate_part_is_map <- function(class_rate, rate_part_name){
+  for(i in 1:length(class_rate)){
+    rate_part <- class_rate[[i]]
+    name <- names(rate_part)
+    
+    if(name==rate_part_name){
+      if(is_map(rate_part[[name]])){
+        return(TRUE)
+      }
+    }
+  }
+  return(FALSE)
 }
