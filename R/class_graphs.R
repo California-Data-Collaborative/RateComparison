@@ -166,7 +166,7 @@ classGraphOutput <- function(id, rate_codes){
 
 
 classGraph <- function(input, output, session, cust_class, df_original, df_total_bill, 
-                       df_baseline_bill, active_class){
+                       df_baseline_bill, active_class, rate_list){
   ns <- session$ns
   
   input_list <- list()
@@ -283,9 +283,9 @@ classGraph <- function(input, output, session, cust_class, df_original, df_total
   input_list[["service_charge"]] <- callModule(ratePart, "service_charge", 
              part_name="service_charge", part_name_long="Service Charge",
              depends_col_list=dropdown_cols, 
-             current_selected= c(baseline_rate_list$rate_structure[[active_class()]]$service_charge$depends_on),
+             current_selected= c(rate_list()$rate_structure[[active_class()]]$service_charge$depends_on),
              is_expanded = TRUE,
-             value_map = baseline_rate_list$rate_structure[[active_class()]]$service_charge$values)
+             value_map = rate_list()$rate_structure[[active_class()]]$service_charge$values)
   
 #   flat_rate_current_selected <- reactive({get_rate_part_depends_col(baseline_class_rate, "flat_rate")})
 #   flat_rate_is_expanded <- reactive({rate_part_is_map(baseline_class_rate, "flat_rate")})

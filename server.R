@@ -319,15 +319,34 @@ shinyServer(function(input, output, clientData, session) {
   hypothetical_rate_list <- reactive({
     ls <- baseline_rate_list
     
-    the_input <- generated_inputs[["RESIDENTIAL_SINGLE"]][["service_charge"]]
-    is_expanded <- the_input$expanded
-    if(!is.null(is_expanded)){
-      if(is_expanded && nchar(the_input$depend_values) > 0 && nchar(the_input$depend_charges)){
-        browser()
-      }else{
-        print(paste("PRINTING GENERATED INPUTS simpleValue:", generated_inputs[["RESIDENTIAL_SINGLE"]][["service_charge"]]$simpleValue))
+    rate_parts <- c("service_charge")
+    
+    for(cust_class in cust_class_list){
+      for(rate_part_name in rate_parts){
+        
+        the_input <- generated_inputs[[cust_class]][[rate_part_name]]
+        is_expanded <- the_input$expanded
+        if(!is.null(is_expanded)){
+          if(is_expanded && nchar(the_input$depend_values) > 0 && nchar(the_input$depend_charges)){
+            ls$rate_structure[[cust_class]][[rate_part_name]]$depends_on <- the_input$depend_cols
+            
+            #convert the strings to a list
+            values <- parse_strings(the_input$depend_values)
+            charges <- parse_numerics(the_input$depend_charges)
+            names(charges) <- values
+            value_list <- as.list(charges)
+            
+            ls$rate_structure[[cust_class]][[rate_part_name]]$values <- value_list
+            
+            # browser()
+          }else{
+            print(paste("PRINTING GENERATED INPUTS simpleValue:", generated_inputs[[cust_class]][[cust_class]]$simpleValue))
+          }
+          
+        }
       }
     }
+    
     # ls$rate_structure$RESIDENTIAL_SINGLE[[1]]$service_charge <- generated_inputs[["RESIDENTIAL_SINGLE"]][["service_charge"]]
     # print(paste("PRINTING GENERATED INPUTS expanded:", generated_inputs[["RESIDENTIAL_SINGLE"]][["service_charge"]]$expanded))
     ls
@@ -378,7 +397,6 @@ shinyServer(function(input, output, clientData, session) {
   })
   
   active_tab <- reactive({
-    browser()
     input$classTabs
     })
   
@@ -386,7 +404,7 @@ shinyServer(function(input, output, clientData, session) {
   # callModule to connect server code with each of the customer class panels
   for(c in cust_class_list){
     # class_rate <- baseline_rate_list$rate_structure[[c]]
-    generated_inputs[[c]] <- callModule(classGraph, paste0("panel_",c), c, DF, total_bill_info, baseline_bill_info, active_tab)
+    generated_inputs[[c]] <- callModule(classGraph, paste0("panel_",c), c, DF, total_bill_info, baseline_bill_info, active_tab, hypothetical_rate_list)
     # browser()
   }
   
@@ -409,10 +427,6 @@ shinyServer(function(input, output, clientData, session) {
   })
   
 })
-
-
-
-
 
 
 
