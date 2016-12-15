@@ -35,12 +35,14 @@ plot_revenue_over_time <- function(data, display_type){
     p <- ggplot(monthly_revenue, aes(x=usage_date, y=value, color=Revenue)) + 
     # geom_ribbon(aes(x=usage_date, ymax=rev_mill, ymin=base_rev_mill), fill="grey", alpha=.5) +
          geom_line() + 
+         #geom_vline(xintercept=as.numeric(max(df$usage_date)),color='red3',linetype=2) +
          scale_linetype_manual(values = c("Baseline"="dashed", "Hypothetical"="solid")) +
          scale_color_manual(values=c("Baseline"="black", "Hypothetical"="steelblue")) +
          xlab("") + ylab("Revenue (Million $)") + 
          # theme(axis.text.x = element_text(angle = 30, hjust = 1)) +
          # scale_x_date(labels = date_format("%m-%y"), date_breaks="1 months") +
-         scale_y_continuous(labels = comma)
+         scale_y_continuous(labels = comma) 
+         #geom_text(data=data.table(date=max(df$usage_date),extracol=0),aes(date,extracol),label="forecast",color='red3',angle=45,vjust=-0.5,hjust=-0.5)
   
     end.time <- Sys.time()
     time.taken <- end.time - start.time
@@ -65,12 +67,14 @@ plot_revenue_over_time <- function(data, display_type){
     p <- ggplot(monthly_usage, aes(x=usage_date, y=value, color=Usage)) + 
          # geom_ribbon(aes(x=usage_date, ymax=rev_mill, ymin=base_rev_mill), fill="grey", alpha=.5) +
          geom_line() + 
+         #geom_vline(xintercept=as.numeric(max(df$usage_date)),color='red3',linetype=2) +
          scale_linetype_manual(values = c("Baseline"="dashed", "Hypothetical"="solid")) +
          scale_color_manual(values=c("Baseline"="black", "Hypothetical"="steelblue")) +
          xlab("") + ylab("Usage (Million ccf)") + 
          # theme(axis.text.x = element_text(angle = 30, hjust = 1)) +
          # scale_x_date(labels = date_format("%m-%y"), date_breaks="1 months") +
-         scale_y_continuous(labels = comma)
+         scale_y_continuous(labels = comma) 
+         #geom_text(data=data.table(date=max(df$usage_date),extracol=0),aes(date,extracol),label="forecast",color='red3',angle=45,vjust=-0.5,hjust=-0.5)
     
     end.time <- Sys.time()
     time.taken <- end.time - start.time
@@ -80,7 +84,7 @@ plot_revenue_over_time <- function(data, display_type){
   }
 
 
-  ggplotly(p) %>% config(displayModeBar = FALSE)
+  p#ggplotly(p) %>% config(displayModeBar = FALSE)
 }
 
 #' Histogram of bill changes.

@@ -8,10 +8,8 @@ shinyServer(function(input, output, clientData, session) {
   
  planneddf <- reactive({
    
-
-   
   if(input$Planning == TRUE){
-    
+    set.seed(10000)
     getmode <- function(v) {
       #fn to get mode of a vector
       uniqv <- unique(v)
@@ -45,24 +43,28 @@ shinyServer(function(input, output, clientData, session) {
     
      
       if(is_budget){
+        if("et_amount" %in% colnames(df)){
+          #average et by month
+          avg_et_df <-  df%>%  group_by(usage_month) %>% summarise(et_amount = mean(et_amount,na.rm=TRUE))
+        }
         
-        #average et by month
-        avg_et_df <-  df%>%  group_by(usage_month) %>% summarise(et_amount = mean(et_amount,na.rm=TRUE))
-        
-        #average hhsize by customer class
-        mean_hhsize <- df %>% 
+        if("hhsize" %in% colnames(df)){
+          #average hhsize by customer class
+          mean_hhsize <- df %>% 
                        group_by(cust_class) %>% 
                        summarise(hhsize = round(mean(hhsize,na.rm=TRUE)))
+        }
         
-        #average irr_area by customer class
-        #irrarea <- mean(df$irr_area[!df$irr_area %in% boxplot.stats(df$irr_area)$out]) #removing outliers
-        mean_irr_area <- df %>% 
+        if("irr_area" %in% colnames(df)){
+          #irrarea <- mean(df$irr_area[!df$irr_area %in% boxplot.stats(df$irr_area)$out]) #removing outliers
+          #average irr_area by customer class
+          mean_irr_area <- df %>% 
                          group_by(cust_class) %>% 
                          summarise(irr_area = round(mean(irr_area,na.rm=TRUE)))
+        }
         
-        
-        
-        for(i in month_Vec){
+         #Begin generating data if budget type
+         for(i in month_Vec){
           
           new_recent_month_data <- recent_month_data
           
@@ -110,12 +112,16 @@ shinyServer(function(input, output, clientData, session) {
           
          
           #fill in meter size for new accounts
-          new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]),"cust_loc_meter_size"] <- rep(getmode(df$cust_loc_meter_size),
+          if("cust_loc_meter_size" %in% colnames(df)){
+            new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]),"cust_loc_meter_size"] <- rep(getmode(df$cust_loc_meter_size),
                                                                                                        length.out = increment_Vec[i])
-          #fill in water type for new accounts
-          new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]),"cust_loc_water_type"] <- rep(getmode(df$cust_loc_water_type),
-                                                                                                       length.out = increment_Vec[i])
+          }
           
+          #fill in water type for new accounts
+          if("cust_loc_water_type" %in% colnames(df)){
+            new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]),"cust_loc_water_type"] <- rep(getmode(df$cust_loc_water_type),
+                                                                                                       length.out = increment_Vec[i])
+          }
           
           #fill in rate code for new accounts
           tmp <- new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]),]
@@ -127,23 +133,23 @@ shinyServer(function(input, output, clientData, session) {
          
           planneddflist[[i]] <- new_recent_month_data
           
-        }
+        }#End generating data for budget type
         
         
 
        }else{
-         
+         #Begin generating data if any other type
          for(i in month_Vec){
            
            new_recent_month_data <- recent_month_data
            
            new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]), "cust_id"] <- 1:increment_Vec[i]
+          
+           new_recent_month_data[, "usage_date"] <- rep(recent_date_Vec[i], nrow(recent_month_data)+increment_Vec[i])
            
-           new_recent_month_data[, "usage_date"] <- rep(recent_date_Vec[i], increment_Vec[i])
+           new_recent_month_data[, "usage_month"] <- rep(month(recent_date_Vec[i]), nrow(recent_month_data)+increment_Vec[i])
            
-           new_recent_month_data[, "usage_month"] <- rep(month(recent_date_Vec[i]), increment_Vec[i])
-           
-           new_recent_month_data[, "usage_year"] <- rep(year(recent_date_Vec[i]), increment_Vec[i])
+           new_recent_month_data[, "usage_year"] <- rep(year(recent_date_Vec[i]), nrow(recent_month_data)+increment_Vec[i])
            
            new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]), "cust_class"] <- sample(class_proportions$Var1, replace = TRUE, 
                                                                                                                                  prob = class_proportions$Freq,
@@ -158,15 +164,17 @@ shinyServer(function(input, output, clientData, session) {
            #fill in the usage for new accounts with the estimated usage input
            new_recent_month_data[(nrow(recent_month_data)-increment_Vec[i]+1):nrow(recent_month_data), "usage_ccf"] <- input$EstUsagePerAccount
            
-           
+           if("cust_loc_meter_size" %in% colnames(df)){
            #fill in meter size for new accounts
            new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]),"cust_loc_meter_size"] <- rep(getmode(df$cust_loc_meter_size),
                                                                                                                                       length.out = increment_Vec[i])
+           }
+           if("cust_loc_water_type" %in% colnames(df)){
            #fill in water type for new accounts
            new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]),"cust_loc_water_type"] <- rep(getmode(df$cust_loc_water_type),
                                                                                                                                       length.out = increment_Vec[i])
            
-           
+           }
            #fill in rate code for new accounts
            tmp <- new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]),]
            
@@ -180,15 +188,28 @@ shinyServer(function(input, output, clientData, session) {
          }
          
          
-      }
+       }#End generating data if any other type
   
   planneddf = do.call(rbind, planneddflist)
   planneddf <- rbind(df, planneddf)
-  
+
   }
 
 })  
+ 
+
   
+ observe({
+   if(input$Planning == TRUE){
+    updateSliderInput(session, "timeSlider", label = "Time Range", min = min(planneddf()$usage_date), 
+    max = max(planneddf()$usage_date), value = c(min(planneddf()$usage_date), max(planneddf()$usage_date)))
+  
+  }else{
+    updateSliderInput(session, "timeSlider", label = "Time Range", min = min(df$usage_date), 
+    max = max(df$usage_date), value = c(min(df$usage_date), max(df$usage_date)))
+  } 
+ })
+ 
   # Get the indoor tier cutoffs
   indoor <- reactive({
     if(input$Planning == TRUE){
@@ -272,17 +293,17 @@ shinyServer(function(input, output, clientData, session) {
   #******************************************************************
   df_plots <- reactive({
     if(input$Planning == TRUE){
-         combined <- dplyr::bind_cols(planneddf(), total_bill_info(), baseline_bill_info())%>%
-          # filter(usage_date >= input$timeSlider[1],
-          #    usage_date <= input$timeSlider[2])
-              filter(rate_code %in% input$RateCode)
+      combined <- dplyr::bind_cols(planneddf(), total_bill_info(), baseline_bill_info())%>%
+        filter(usage_date >= input$timeSlider[1],
+              usage_date <= input$timeSlider[2],
+              rate_code %in% input$RateCode)
          
     }
     else{
-         combined <- dplyr::bind_cols(df, total_bill_info(), baseline_bill_info()) %>%
-          filter(usage_date >= input$timeSlider[1],
-                 usage_date <= input$timeSlider[2],
-                 rate_code %in% input$RateCode)
+      combined <- dplyr::bind_cols(df, total_bill_info(), baseline_bill_info()) %>%
+        filter(usage_date >= input$timeSlider[1],
+                usage_date <= input$timeSlider[2],
+                rate_code %in% input$RateCode)
     }
     
     combined
@@ -291,9 +312,9 @@ shinyServer(function(input, output, clientData, session) {
   df_plots1 <- reactive({
     if(input$Planning == TRUE){
       combined <- dplyr::bind_cols(planneddf(), total_bill_info(), baseline_bill_info()) %>%
-        #filter(usage_date >= input$timeSlider[1],
-               #usage_date <= input$timeSlider[2],
-               filter(rate_code %in% input$RateCode1)
+        filter(usage_date >= input$timeSlider[1],
+               usage_date <= input$timeSlider[2],
+               rate_code %in% input$RateCode1)
       
     }
     else{
@@ -308,9 +329,9 @@ shinyServer(function(input, output, clientData, session) {
   df_plots2 <- reactive({
     if(input$Planning == TRUE){
       combined <- dplyr::bind_cols(planneddf(), total_bill_info(), baseline_bill_info()) %>%
-        #filter(usage_date >= input$timeSlider[1],
-         #      usage_date <= input$timeSlider[2],
-               filter(rate_code %in% input$RateCode2)
+        filter(usage_date >= input$timeSlider[1],
+               usage_date <= input$timeSlider[2],
+               rate_code %in% input$RateCode2)
       
     }
     else{
@@ -325,9 +346,9 @@ shinyServer(function(input, output, clientData, session) {
   df_plots3 <- reactive({
     if(input$Planning == TRUE){
       combined <- dplyr::bind_cols(planneddf(), total_bill_info(), baseline_bill_info()) %>%
-        #filter(usage_date >= input$timeSlider[1],
-         #      usage_date <= input$timeSlider[2],
-               filter(rate_code %in% input$RateCode3)
+        filter(usage_date >= input$timeSlider[1],
+               usage_date <= input$timeSlider[2],
+               rate_code %in% input$RateCode3)
       
     }
     else{
@@ -342,9 +363,9 @@ shinyServer(function(input, output, clientData, session) {
   df_plots4 <- reactive({
     if(input$Planning == TRUE){
       combined <- dplyr::bind_cols(planneddf(), total_bill_info(), baseline_bill_info()) %>%
-        # filter(usage_date >= input$timeSlider[1],
-        #        usage_date <= input$timeSlider[2],
-              filter(rate_code %in% input$RateCode4)
+        filter(usage_date >= input$timeSlider[1],
+               usage_date <= input$timeSlider[2],
+               rate_code %in% input$RateCode4)
       
     }
     else{
@@ -359,9 +380,9 @@ shinyServer(function(input, output, clientData, session) {
   df_plots5 <- reactive({
     if(input$Planning == TRUE){
       combined <- dplyr::bind_cols(planneddf(), total_bill_info(), baseline_bill_info()) %>%
-        # filter(usage_date >= input$timeSlider[1],
-        #        usage_date <= input$timeSlider[2],
-               filter(rate_code %in% input$RateCode5)
+         filter(usage_date >= input$timeSlider[1],
+                usage_date <= input$timeSlider[2],
+                rate_code %in% input$RateCode5)
       
     }
     else{
@@ -405,40 +426,70 @@ shinyServer(function(input, output, clientData, session) {
   
   output$revenue_time_series <- renderPlotly({
     # print(glimpse(df_plots()[1,]))
-    p <- plot_revenue_over_time( df_plots(), input$displayType )
-    # ggplotly(p)
-    p
+    if(input$Planning == TRUE){
+      p <- plot_revenue_over_time( df_plots(), input$displayType ) + 
+           geom_vline(xintercept=as.numeric(max(df$usage_date)),color='red3',linetype=2) +
+           geom_text(data=data.table(date=max(df$usage_date),extracol=0),aes(date,extracol),label="forecast",color='red3',angle=45,vjust=-0.5,hjust=-0.5)  
+    }else{
+      p <- plot_revenue_over_time( df_plots(), input$displayType )  
+    }
+     ggplotly(p) %>% config(displayModeBar = FALSE)
+    
   }) 
   
   output$revenue_time_series1 <- renderPlotly({
     # print(glimpse(df_plots()[1,]))
-    p <- plot_revenue_over_time( df_plots1(), input$displayType )
-    # ggplotly(p)
-    p
+    if(input$Planning == TRUE){
+      p <- plot_revenue_over_time( df_plots(), input$displayType ) + 
+        geom_vline(xintercept=as.numeric(max(df$usage_date)),color='red3',linetype=2) +
+        geom_text(data=data.table(date=max(df$usage_date),extracol=0),aes(date,extracol),label="forecast",color='red3',angle=45,vjust=-0.5,hjust=-0.5)  
+    }else{
+      p <- plot_revenue_over_time( df_plots(), input$displayType )  
+    }
+    ggplotly(p) %>% config(displayModeBar = FALSE)
   }) 
   output$revenue_time_series2 <- renderPlotly({
     # print(glimpse(df_plots()[1,]))
-    p <- plot_revenue_over_time( df_plots2(), input$displayType )
-    # ggplotly(p)
-    p
+    if(input$Planning == TRUE){
+      p <- plot_revenue_over_time( df_plots(), input$displayType ) + 
+        geom_vline(xintercept=as.numeric(max(df$usage_date)),color='red3',linetype=2) +
+        geom_text(data=data.table(date=max(df$usage_date),extracol=0),aes(date,extracol),label="forecast",color='red3',angle=45,vjust=-0.5,hjust=-0.5)  
+    }else{
+      p <- plot_revenue_over_time( df_plots(), input$displayType )  
+    }
+    ggplotly(p) %>% config(displayModeBar = FALSE)
   }) 
   output$revenue_time_series3 <- renderPlotly({
-    # print(glimpse(df_plots()[1,]))
-    p <- plot_revenue_over_time( df_plots3(), input$displayType )
-    # ggplotly(p)
-    p
+    if(input$Planning == TRUE){
+      p <- plot_revenue_over_time( df_plots(), input$displayType ) + 
+        geom_vline(xintercept=as.numeric(max(df$usage_date)),color='red3',linetype=2) +
+        geom_text(data=data.table(date=max(df$usage_date),extracol=0),aes(date,extracol),label="forecast",color='red3',angle=45,vjust=-0.5,hjust=-0.5)  
+    }else{
+      p <- plot_revenue_over_time( df_plots(), input$displayType )  
+    }
+    ggplotly(p) %>% config(displayModeBar = FALSE)
   }) 
   output$revenue_time_series4 <- renderPlotly({
     # print(glimpse(df_plots()[1,]))
-    p <- plot_revenue_over_time( df_plots4(), input$displayType )
-    # ggplotly(p)
-    p
+    if(input$Planning == TRUE){
+      p <- plot_revenue_over_time( df_plots(), input$displayType ) + 
+        geom_vline(xintercept=as.numeric(max(df$usage_date)),color='red3',linetype=2) +
+        geom_text(data=data.table(date=max(df$usage_date),extracol=0),aes(date,extracol),label="forecast",color='red3',angle=45,vjust=-0.5,hjust=-0.5)  
+    }else{
+      p <- plot_revenue_over_time( df_plots(), input$displayType )  
+    }
+    ggplotly(p) %>% config(displayModeBar = FALSE)
   }) 
   output$revenue_time_series5 <- renderPlotly({
     # print(glimpse(df_plots()[1,]))
-    p <- plot_revenue_over_time( df_plots5(), input$displayType )
-    # ggplotly(p)
-    p
+    if(input$Planning == TRUE){
+      p <- plot_revenue_over_time( df_plots(), input$displayType ) + 
+        geom_vline(xintercept=as.numeric(max(df$usage_date)),color='red3',linetype=2) +
+        geom_text(data=data.table(date=max(df$usage_date),extracol=0),aes(date,extracol),label="forecast",color='red3',angle=45,vjust=-0.5,hjust=-0.5)  
+    }else{
+      p <- plot_revenue_over_time( df_plots(), input$displayType )  
+    }
+    ggplotly(p) %>% config(displayModeBar = FALSE)
   })
   
   
