@@ -15,7 +15,7 @@ ratePart <- function(input, output, session, part_name, part_name_long="", depen
   
   output$inputRow <- renderUI({
     ns <- session$ns
-# browser()
+
     tagList(
       fluidRow(
          column(1, checkboxInput(ns("expanded"), label=NULL, value = is_expanded)),
@@ -48,10 +48,10 @@ ratePart <- function(input, output, session, part_name, part_name_long="", depen
       # Display text entry boxes if the values depends on another
       conditionalPanel(condition = sprintf("input['%s'] == true", ns("expanded")),
          fluidRow(
-           column(8, textAreaInput(ns("depend_values"), label="Values", 
+           column(7, textAreaInput(ns("depend_values"), label="Values", 
                                    value=unique_values(input$depend_cols),
                                    height=text_height(input$depend_cols) )),
-           column(4, textAreaInput(ns("depend_charges"), label="Charges ($)", 
+           column(5, textAreaInput(ns("depend_charges"), label="Charges ($)", 
                                    value=eval_uniques(input$depend_cols, value_map),
                                    height=text_height(input$depend_cols)))
          )

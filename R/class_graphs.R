@@ -192,16 +192,23 @@ classGraph <- function(input, output, session, cust_class, df_original, df_total
   input_list[[rate_part_name3]] <- callModule(ratePart, rate_part_name3, 
             part_name=rate_part_name3, part_name_long="GPCD",
             depends_col_list=dropdown_cols, 
-            current_selected= c(rate_list()$rate_structure[[active_class()]][[rate_part_name3]]$depends_on),
-            is_expanded = FALSE,
-            value_map = rate_list()$rate_structure[[active_class()]][[rate_part_name3]]$values)   
+            # current_selected= c(rate_list()$rate_structure[[active_class()]][[rate_part_name3]]$depends_on),
+            is_expanded = FALSE, 
+            simple_value_provided= rate_list()$rate_structure[[active_class()]][[rate_part_name3]]
+            # value_map = rate_list()$rate_structure[[active_class()]][[rate_part_name3]]$values
+            )   
 
+  rate_part_name4 <- "landscape_factor"
+  input_list[[rate_part_name4]] <- callModule(ratePart, rate_part_name4, 
+                                              part_name=rate_part_name4, part_name_long="GPCD",
+                                              depends_col_list=dropdown_cols, 
+                                              # current_selected= c(rate_list()$rate_structure[[active_class()]][[rate_part_name4]]$depends_on),
+                                              is_expanded = FALSE, 
+                                              simple_value_provided= rate_list()$rate_structure[[active_class()]][[rate_part_name4]]
+                                              # value_map = rate_list()$rate_structure[[active_class()]][[rate_part_name4]]$values
+  )  
   
-#   callModule(ratePart, "gpcd", part_name="gpcd", part_name_long="GPCD",
-#              depends_col_list=dropdown_cols, simple_value=60)
-  
-  callModule(ratePart, "landscape_factor", part_name="landscape_factor", part_name_long="Landscape Factor",
-             depends_col_list=dropdown_cols, simple_value=0.7)
+
 #   
 #   callModule(ratePart, "service_charge", part_name="service_charge", part_name_long="Service Charge",
 #              depends_col_list=dropdown_cols, simple_value=11.39)
