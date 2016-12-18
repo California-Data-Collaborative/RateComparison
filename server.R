@@ -1,4 +1,4 @@
-options(shiny.error = NULL)
+options(shiny.error=NULL, shiny.minified=TRUE)
 # Load functions
 
 
@@ -249,84 +249,25 @@ shinyServer(function(input, output, clientData, session) {
 })  
  
 
-#   # Get the indoor tier cutoffs
-#   indoor <- reactive({
-#     if(input$Planning == TRUE){
-#     get_indoor_tier(planneddf(), input$galPerCapitaSlider)
-#     }
-#     else{
-#     get_indoor_tier(df, input$galPerCapitaSlider)
-#     }
-#   })
-#   # Get the outdoor tier cutoffs
-#   outdoor <- reactive({
-#     if(input$Planning == TRUE){
-#       get_indoor_tier(planneddf(), input$galPerCapitaSlider)
-#     }
-#     else{
-#     get_outdoor_tier(df, input$ETFactorSlider)
-#     }
-#   })
-#   
-#   #******************************************************************
-#   # Calculate variable potion of the bill, dependent on rate type
-#   #******************************************************************
-#   variable_charge <- reactive({
-#     if(input$Planning == TRUE){
-#     bill_info <- calculate_variable_bill(data=planneddf(), rate_type=input$rateType, 
-#                                          tier_starts=tier_info()$starts,
-#                                          tier_prices=tier_info()$prices )
-#     }
-#     else{
-#       bill_info <- calculate_variable_bill(data=df, rate_type=input$rateType, 
-#                                            tier_starts=tier_info()$starts,
-#                                            tier_prices=tier_info()$prices )
-#     }
-#     
-#     # bill_info <- bill_info %>% arrange(sort_index)
-#     
-#     print( paste("Variable Revenue:",sum(bill_info$variable_bill, na.rm=TRUE)) )
-#     
-#     bill_info
-#   })
-#   
-#   tier_info <- reactive({
-#     tier_info <- list()
-#     if(input$rateType == "Flat"){
-#       tier_info$starts <- NULL
-#       tier_info$prices <- parse_numerics(as.character(input$flatRate))
-#     }
-#     else if(input$rateType == "Tiered"){
-#       tier_info$starts <- parse_numerics(input$tieredTiers)
-#       tier_info$prices <- parse_numerics(input$tieredPrice)
-#     }
-#     else if(input$rateType == "Budget"){
-#       tier_info$starts <- budget_tier_starts()
-#       tier_info$prices <- parse_numerics(input$budgetPrice)
-#     }
-#     tier_info
-#   })
-#   
-#   budget_tier_starts <- reactive({
-#     if(input$Planning == TRUE){
-#       get_budget_tiers(planneddf(), parse_strings(input$budgetTiers), indoor(), outdoor())
-#     }
-#     else{
-#       get_budget_tiers(df, parse_strings(input$budgetTiers), indoor(), outdoor())
-#     }
-#   })
  
   hypothetical_rate_list <- reactive({
     ls <- baseline_rate_list
     
-    rate_parts <- c("service_charge")
+    
+    
+    rate_parts <- c("service_charge", "flat_rate")
     
     for(cust_class in cust_class_list){
+      
+      class_input <- generated_inputs[[cust_class]]
+      
       for(rate_part_name in rate_parts){
         
-        the_input <- generated_inputs[[cust_class]][[rate_part_name]]
+        the_input <- class_input[[rate_part_name]]
         is_expanded <- the_input$expanded
         if(!is.null(is_expanded)){
+          
+          #box is expanded?
           if(is_expanded && nchar(the_input$depend_values) > 0 && nchar(the_input$depend_charges)){
             ls$rate_structure[[cust_class]][[rate_part_name]]$depends_on <- the_input$depend_cols
             
@@ -338,19 +279,26 @@ shinyServer(function(input, output, clientData, session) {
             
             ls$rate_structure[[cust_class]][[rate_part_name]]$values <- value_list
             
-            # browser()
-          }else{
-            print(paste("PRINTING GENERATED INPUTS simpleValue:", generated_inputs[[cust_class]][[cust_class]]$simpleValue))
+           #box not expanded
+          }else if(!is_expanded && !is.null(the_input$simpleValue)){
+            ls$rate_structure[[cust_class]][[rate_part_name]] <- the_input$simpleValue
           }
           
         }
       }
+      
+      if(!is.null(class_input$other_inputs$rateType)){
+        if(class_input$other_inputs$rateType == "Flat" && !is.null(ls$rate_structure[[cust_class]][["flat_rate"]])){
+          ls$rate_structure[[cust_class]][["commodity_charge"]] <- "flat_rate*usage_ccf"
+        }else if(class_input$other_inputs$rateType %in% c("Tiered", "Budget")){
+          ls$rate_structure[[cust_class]][["commodity_charge"]] <- class_input$other_inputs$rateType
+        }
+      }
+      
     }
     
-    # ls$rate_structure$RESIDENTIAL_SINGLE[[1]]$service_charge <- generated_inputs[["RESIDENTIAL_SINGLE"]][["service_charge"]]
-    # print(paste("PRINTING GENERATED INPUTS expanded:", generated_inputs[["RESIDENTIAL_SINGLE"]][["service_charge"]]$expanded))
     ls
-  }) 
+  })
   
   #******************************************************************
   # Calculate total bill

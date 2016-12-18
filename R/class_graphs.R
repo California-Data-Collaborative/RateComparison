@@ -170,132 +170,35 @@ classGraph <- function(input, output, session, cust_class, df_original, df_total
   ns <- session$ns
   
   input_list <- list()
+  input_list$other_inputs <- input
   
-#   defaultFlatInputs <- renderUI({
-#     tagList(
-#       fluidRow(
-#         column(12,
-#                ratePartInput(ns("flatRate"))
-#         )
-#       )#end row
-#     )
-#   })
-#   
-#   defaultTieredInputs <- renderUI({
-#     tagList(
-#       fluidRow(
-#         column(6,
-#                fluidRow(
-#                  strong("Tier start (CCF)")
-#                ),
-#                fluidRow(
-#                  HTML(default_tiered_tiers_html)
-#                )
-#         ),
-#         column(6,
-#                fluidRow(
-#                  strong("Tier prices")
-#                ),
-#                fluidRow(
-#                  HTML(default_tiered_prices_html)
-#                )
-#         )
-#       )#end row
-#     )
-#   })
-#   
-#   defaultBudgetInputs  <- renderUI({
-#     
-#     
-#     tagList(
-#       fluidRow(
-#         column(6, 
-#                sliderInput(ns("galPerCapitaSlider"), label = "GPCD", min = 25, 
-#                            max = 75, value = default_gpcd, step=5)
-#         ),
-#         column(6, 
-#                sliderInput(ns("ETFactorSlider"), label = "ET Factor", min = 0, 
-#                            max = 1, value = default_et_factor, step=0.05)
-#         )
-#       ),#end row
-#       fluidRow(
-#         column(6,
-#                fluidRow(
-#                  strong("Tier start")
-#                ),
-#                fluidRow(
-#                  HTML(default_budget_tiers_html)
-#                )
-#         ),
-#         column(6,
-#                fluidRow(
-#                  strong("Tier prices ($)")
-#                ),
-#                fluidRow(
-#                  HTML(default_budget_prices_html)
-#                )
-#         )
-#       ),#end row
-#       fluidRow(paste("Enter the starting value for each tier either as a CCF value, ",
-#                      " or as a percent of budget (water budget assumed as Indoor + Outdoor). ",
-#                      "Where:")
-#       ),
-#       fluidRow(br(),
-#                em("Indoor = GPCD * HHSize * (365/12/748)"),
-#                br(),
-#                em("Outdoor = ET_Factor * ET * LA  * (0.62/748)")
-#       )
-#     )
-#   })
-  
-  
-#   baseline_rate_type <- get_commodity_charge(baseline_class_rate)
-#   if(baseline_rate_type == "Budget"){
-#     output$flatInputs <- defaultFlatInputs
-#     output$tieredInputs <- defaultTieredInputs
-#     output$budgetInputs <- generate_inputs(baseline_class_rate)
-#   }else if(baseline_rate_type == "Tiered"){
-#     output$flatInputs <- defaultFlatInputs
-#     output$tieredInputs <- generate_inputs(baseline_class_rate)
-#     output$budgetInputs <- defaultBudgetInputs
-#   }else{
-#     output$flatInputs <- generate_inputs(baseline_class_rate)
-#     output$tieredInputs <- defaultTieredInputs
-#     output$budgetInputs <- defaultBudgetInputs
-#   }
-  
-#   output$rateInputs <- renderUI({
-#     
-#     lapply(1:length(baseline_class_rate), function(i) {
-#       rate_part <- baseline_class_rate[[i]]
-#       name <- names(rate_part)
-#       
-#       
-#     })
-#     
-#   })
- 
-  # part_name = "service_charge"
-#   service_charge_current_selected <- reactive({get_rate_part_depends_col(baseline_class_rate, "service_charge")})
-#   service_charge_is_expanded <- reactive({rate_part_is_map(baseline_class_rate, "service_charge")})
-#   service_charge_value_map <- reactive({get_rate_part_value(baseline_class_rate, "service_charge")})
-  # browser()
-  input_list[["service_charge"]] <- callModule(ratePart, "service_charge", 
-             part_name="service_charge", part_name_long="Service Charge",
+  rate_part_name <- "service_charge"
+  input_list[[rate_part_name]] <- callModule(ratePart, rate_part_name, 
+             part_name=rate_part_name, part_name_long="Service Charge",
              depends_col_list=dropdown_cols, 
-             current_selected= c(rate_list()$rate_structure[[active_class()]]$service_charge$depends_on),
+             current_selected= c(rate_list()$rate_structure[[active_class()]][[rate_part_name]]$depends_on),
              is_expanded = TRUE,
-             value_map = rate_list()$rate_structure[[active_class()]]$service_charge$values)
+             value_map = rate_list()$rate_structure[[active_class()]][[rate_part_name]]$values)
+  # browser()
+  rate_part_name2 <- "flat_rate"
+  input_list[[rate_part_name2]] <- callModule(ratePart, rate_part_name2, 
+             part_name=rate_part_name2, part_name_long="Charge per CCF",
+             depends_col_list=dropdown_cols, 
+             current_selected= c(rate_list()$rate_structure[[active_class()]][[rate_part_name2]]$depends_on),
+             is_expanded = FALSE,
+             value_map = rate_list()$rate_structure[[active_class()]][[rate_part_name2]]$values)   
   
-#   flat_rate_current_selected <- reactive({get_rate_part_depends_col(baseline_class_rate, "flat_rate")})
-#   flat_rate_is_expanded <- reactive({rate_part_is_map(baseline_class_rate, "flat_rate")})
-#   flat_rate_value_map <- reactive({get_rate_part_value(baseline_class_rate, "flat_rate")})
-#   
-  callModule(ratePart, "flat_rate", part_name="flat_rate", part_name_long="Charge per CCF",
-             depends_col_list=dropdown_cols, simple_value=2.1)
+  rate_part_name3 <- "gpcd"
+  input_list[[rate_part_name3]] <- callModule(ratePart, rate_part_name3, 
+            part_name=rate_part_name3, part_name_long="GPCD",
+            depends_col_list=dropdown_cols, 
+            current_selected= c(rate_list()$rate_structure[[active_class()]][[rate_part_name3]]$depends_on),
+            is_expanded = FALSE,
+            value_map = rate_list()$rate_structure[[active_class()]][[rate_part_name3]]$values)   
+
   
-  callModule(ratePart, "gpcd", part_name="gpcd", part_name_long="GPCD",
-             depends_col_list=dropdown_cols, simple_value=60)
+#   callModule(ratePart, "gpcd", part_name="gpcd", part_name_long="GPCD",
+#              depends_col_list=dropdown_cols, simple_value=60)
   
   callModule(ratePart, "landscape_factor", part_name="landscape_factor", part_name_long="Landscape Factor",
              depends_col_list=dropdown_cols, simple_value=0.7)

@@ -10,17 +10,18 @@ ratePartInput <- function(id){
 }
 
 ratePart <- function(input, output, session, part_name, part_name_long="", depends_col_list, 
-                     current_selected=NULL, simple_value=0, is_expanded=FALSE, value_map=list()){
+                     current_selected=NULL, simple_value_provided=NULL, is_expanded=FALSE, value_map=list()){
+  
   
   output$inputRow <- renderUI({
     ns <- session$ns
-    
+# browser()
     tagList(
       fluidRow(
          column(1, checkboxInput(ns("expanded"), label=NULL, value = is_expanded)),
          conditionalPanel(condition = sprintf("input['%s'] == false", ns("expanded")),
            column(5, strong( paste0(part_name_long, " ($):" ) )),
-           column(5, numericInput(ns("simpleValue"), label=NULL, value=simple_value) )
+           column(5, numericInput(ns("simpleValue"), label=NULL, value=simple_value(simple_value_provided, part_name)) )
          ),
          conditionalPanel(condition = sprintf("input['%s'] == true", ns("expanded")),
            column(5, strong( paste0(part_name_long, ":\n(depends on...)") ) ),
@@ -60,6 +61,18 @@ ratePart <- function(input, output, session, part_name, part_name_long="", depen
   })
 
   return(input)
+}
+
+
+simple_value <- function(simple_value_provided, part_name){
+  if(is.null(simple_value_provided)){
+    ls <- list("flat_rate"=3, "gpcd"=55, "landscape_factor"=0.7)
+    value <- ls[[part_name]]
+  }else{
+    value <- simple_value_provided
+  }
+  
+  value
 }
 
 
