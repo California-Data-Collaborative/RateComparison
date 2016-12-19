@@ -10,12 +10,24 @@ ratePartInput <- function(id){
 }
 
 ratePart <- function(input, output, session, part_name, part_name_long="", depends_col_list, 
-                     current_selected=NULL, simple_value_provided=NULL, is_expanded=FALSE, value_map=list()){
+                     current_selected=NULL, simple_value_provided=NULL, is_expanded=FALSE, value_map=list(),
+                     rate_part=NULL){
   
   
   output$inputRow <- renderUI({
     ns <- session$ns
-
+    
+    if(!is.null(rate_part)){
+      if(is_map(rate_part)){
+        print(paste0(part_name, " is a map!"))
+        current_selected <- c(rate_part$depends_on)
+        value_map <- rate_part$values
+        is_expanded <- TRUE
+      }else{
+        simple_value_provided <- rate_part
+      }
+    }
+    
     tagList(
       fluidRow(
          column(1, checkboxInput(ns("expanded"), label=NULL, value = is_expanded)),
@@ -43,6 +55,17 @@ ratePart <- function(input, output, session, part_name, part_name_long="", depen
   
   output$inputDropdown <- renderUI({
     ns <- session$ns
+    
+    if(!is.null(rate_part)){
+      if(is_map(rate_part)){
+        print(paste0(part_name, " is a map!"))
+        current_selected <- c(rate_part$depends_on)
+        value_map <- rate_part$values
+        is_expanded <- TRUE
+      }else{
+        simple_value_provided <- rate_part
+      }
+    }
     
     tagList(
       # Display text entry boxes if the values depends on another

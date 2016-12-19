@@ -200,11 +200,12 @@ classGraph <- function(input, output, session, cust_class, df_original, df_total
 
   rate_part_name4 <- "landscape_factor"
   input_list[[rate_part_name4]] <- callModule(ratePart, rate_part_name4, 
-                                              part_name=rate_part_name4, part_name_long="GPCD",
+                                              part_name=rate_part_name4, part_name_long="Landscape Factor",
                                               depends_col_list=dropdown_cols, 
                                               # current_selected= c(rate_list()$rate_structure[[active_class()]][[rate_part_name4]]$depends_on),
                                               is_expanded = FALSE, 
-                                              simple_value_provided= rate_list()$rate_structure[[active_class()]][[rate_part_name4]]
+                                              simple_value_provided= rate_list()$rate_structure[[active_class()]][[rate_part_name4]],
+                                              rate_part = rate_list()$rate_structure[[active_class()]][[rate_part_name4]]
                                               # value_map = rate_list()$rate_structure[[active_class()]][[rate_part_name4]]$values
   )  
   
@@ -359,16 +360,16 @@ get_rate_part_depends_col <- function(class_rate, rate_part_name){
 
 # extract_depends_values()
 
-rate_part_is_map <- function(class_rate, rate_part_name){
-  for(i in 1:length(class_rate)){
-    rate_part <- class_rate[[i]]
-    name <- names(rate_part)
-    
-    if(name==rate_part_name){
-      if(is_map(rate_part[[name]])){
-        return(TRUE)
-      }
-    }
-  }
-  return(FALSE)
-}
+# rate_part_is_map <- function(class_rate, rate_part_name){
+#   for(i in 1:length(class_rate)){
+#     rate_part <- class_rate[[i]]
+#     name <- names(rate_part)
+#     
+#     if(name==rate_part_name){
+#       if(is_map(rate_part[[name]])){
+#         return(TRUE)
+#       }
+#     }
+#   }
+#   return(FALSE)
+# }
