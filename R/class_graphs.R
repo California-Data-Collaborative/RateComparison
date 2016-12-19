@@ -65,10 +65,7 @@ classGraphOutput <- function(id, rate_codes){
                   ),
                   column(6,
                          fluidRow(
-                           strong("Tier prices")
-                         ),
-                         fluidRow(
-                           HTML(default_tiered_prices_html)
+                           tierBoxInput(ns("tiered_prices"))
                          )
                   )
                 )#end row
@@ -98,12 +95,8 @@ classGraphOutput <- function(id, rate_codes){
                          )
                   ),
                   column(6,
-#                          fluidRow(
-#                            strong("Tier prices ($)")
-#                          ),
                          fluidRow(
-                           textAreaInput(ns("tier_prices"), label="Tier prices ($)", value=default_budget_prices,
-                                         height=50)#text_height(input$depend_cols))
+                           tierBoxInput(ns("budget_prices"))
                          )
                   )
                 ),#end row
@@ -175,80 +168,46 @@ classGraph <- function(input, output, session, cust_class, df_original, df_total
   rate_part_name <- "service_charge"
   input_list[[rate_part_name]] <- callModule(ratePart, rate_part_name, 
              part_name=rate_part_name, part_name_long="Service Charge",
-             depends_col_list=dropdown_cols, 
-             current_selected= c(rate_list()$rate_structure[[active_class()]][[rate_part_name]]$depends_on),
-             is_expanded = TRUE,
-             value_map = rate_list()$rate_structure[[active_class()]][[rate_part_name]]$values)
+             depends_col_list=dropdown_cols,
+             rate_part = rate_list()$rate_structure[[active_class()]][[rate_part_name]])
   # browser()
   rate_part_name2 <- "flat_rate"
   input_list[[rate_part_name2]] <- callModule(ratePart, rate_part_name2, 
              part_name=rate_part_name2, part_name_long="Charge per CCF",
              depends_col_list=dropdown_cols, 
-             current_selected= c(rate_list()$rate_structure[[active_class()]][[rate_part_name2]]$depends_on),
-             is_expanded = FALSE,
              value_map = rate_list()$rate_structure[[active_class()]][[rate_part_name2]]$values)   
   
   rate_part_name3 <- "gpcd"
   input_list[[rate_part_name3]] <- callModule(ratePart, rate_part_name3, 
             part_name=rate_part_name3, part_name_long="GPCD",
             depends_col_list=dropdown_cols, 
-            # current_selected= c(rate_list()$rate_structure[[active_class()]][[rate_part_name3]]$depends_on),
-            is_expanded = FALSE, 
-            simple_value_provided= rate_list()$rate_structure[[active_class()]][[rate_part_name3]]
-            # value_map = rate_list()$rate_structure[[active_class()]][[rate_part_name3]]$values
+            rate_part = rate_list()$rate_structure[[active_class()]][[rate_part_name3]]
             )   
 
   rate_part_name4 <- "landscape_factor"
   input_list[[rate_part_name4]] <- callModule(ratePart, rate_part_name4, 
-                                              part_name=rate_part_name4, part_name_long="Landscape Factor",
-                                              depends_col_list=dropdown_cols, 
-                                              # current_selected= c(rate_list()$rate_structure[[active_class()]][[rate_part_name4]]$depends_on),
-                                              is_expanded = FALSE, 
-                                              simple_value_provided= rate_list()$rate_structure[[active_class()]][[rate_part_name4]],
-                                              rate_part = rate_list()$rate_structure[[active_class()]][[rate_part_name4]]
-                                              # value_map = rate_list()$rate_structure[[active_class()]][[rate_part_name4]]$values
+            part_name=rate_part_name4, part_name_long="Landscape Factor",
+            depends_col_list=dropdown_cols, 
+            rate_part = rate_list()$rate_structure[[active_class()]][[rate_part_name4]]
   )  
   
-
-#   
-#   callModule(ratePart, "service_charge", part_name="service_charge", part_name_long="Service Charge",
-#              depends_col_list=dropdown_cols, simple_value=11.39)
+  rate_part_name5 <- "tiered_prices"
+  input_list[[rate_part_name5]] <- callModule(tierBox, rate_part_name5, 
+            part_name=rate_part_name5, part_name_long="Tier Prices ($)", 
+            rate_type=rate_list()$rate_structure[[active_class()]][["commodity_charge"]], 
+            rate_type_provided="Tiered", 
+            rate_part=rate_list()$rate_structure[[active_class()]][["tier_prices"]]
+  )
   
-#   generated_input_list <- list()
-#   for(i in 1:length(baseline_class_rate)){
-#     rate_part <- baseline_class_rate[[i]]
-#     name <- names(rate_part)
-#     
-#     stopif(!is_valid_rate_part(rate_part),
-#            paste("The OWRS file might not be formatted properly. ",
-#                  "\nError occured in customer class ", df$cust_class[1],
-#                  ", near to: ", paste(name,collapse=" ") )
-#     )
-#     
-#     if( is_map(rate_part[[name]]) ){# if rate_part is a map
-#       # df[[name]] <- eval_map(df, rate_part)
-#     }
-#     else if(length(rate_part[[name]]) > 1){# if rate_part specifies tiers
-#       # df[[name]] <- paste(rate_part[[name]], collapse="\n")
-#     }
-#     else if(is_rate_type(rate_part)){
-#       
-#     }
-#     else{
-#       ln <- get_long_part_name(name)
-#       generated_input_list[[i]] <- callModule(ratePart, name, part_name=name, 
-#                                               part_name_long=ln,
-#                                               depends_col_list=dropdown_cols,
-#                                               simple_value=rate_part[[name]])
-#     }
-#   }
+  rate_part_name6 <- "budget_prices"
+  input_list[[rate_part_name6]] <- callModule(tierBox, rate_part_name6, 
+            part_name=rate_part_name6, part_name_long="Tier Prices ($)", 
+            rate_type=rate_list()$rate_structure[[active_class()]][["commodity_charge"]], 
+            rate_type_provided="Budget", 
+            rate_part=rate_list()$rate_structure[[active_class()]][["tier_prices"]]
+  )
   
-#   ratePartInputs <- callModule(ratePart, "service_charge", part_name="service_charge", 
-#                                part_name_long="Service Charge",depends_col_list=dropdown_cols)
-#   
-#   ratePartInput2 <- callModule(ratePart, "flatRate", part_name="flatRate", simple_value=2.1,
-#                                part_name_long="Price per CCF",depends_col_list=dropdown_cols)
-  
+  #TODO: add other tier boxes, and link the boxes up with the hypothetical_rate_list
   
   df_plots <- reactive({
     

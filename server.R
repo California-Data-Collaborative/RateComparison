@@ -286,6 +286,22 @@ shinyServer(function(input, output, clientData, session) {
         }
       }
       
+      tier_boxes <- c("tiered_prices", "budget_prices")
+      
+      for(rate_part_name in tier_boxes){
+        
+        the_input <- class_input[[rate_part_name]]
+        
+        tier_str <- the_input$tier_box
+        if(!is.null(tier_str)){
+          browser()
+          ls$rate_structure[[cust_class]][["tier_prices"]] <- parse_numerics(strsplit(tier_str, "\n")[[1]])
+          
+        }
+      }
+      
+      
+      # link commodity_charge to hypothetical_rate_list
       if(!is.null(class_input$other_inputs$rateType)){
         if(class_input$other_inputs$rateType == "Flat" && !is.null(ls$rate_structure[[cust_class]][["flat_rate"]])){
           ls$rate_structure[[cust_class]][["commodity_charge"]] <- "flat_rate*usage_ccf"

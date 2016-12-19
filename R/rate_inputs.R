@@ -1,4 +1,42 @@
 
+tierBoxInput <- function(id){
+  ns <- NS(id)
+  tagList(uiOutput(ns("tierInfoBox")))
+}
+
+tierBox <- function(input, output, session, part_name, part_name_long, 
+                    rate_type, rate_type_provided, rate_part){
+  
+  output$tierInfoBox <- renderUI({
+    ns <- session$ns
+    
+    defaults <- list(
+      "tiered_starts"="0\n15\n41\n149",
+      "tiered_prices"="2.87\n4.29\n6.44\n10.07",
+      "budget_starts"="0\n40%\n101%\n131%",
+      "budget_prices"="1.11\n1.62\n3.92\n14.53"
+    )
+# browser()
+    # should use defaults?
+    if(is.null(rate_part) || rate_type != rate_type_provided){
+      box_info <- defaults[[rate_type]][[part_name]]
+    }else{
+      box_info <- paste0(rate_part, collapse="\n")
+      print(paste0("BOX INFO: ", box_info))
+    }
+    
+    tagList(
+      textAreaInput(ns("tier_box"), label=part_name_long, value=box_info,
+                    height=50)#text_height(input$depend_cols))
+    )
+  })
+  
+  return(input)
+} 
+
+
+
+
 
 ratePartInput <- function(id){
   ns <- NS(id)
