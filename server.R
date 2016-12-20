@@ -133,56 +133,6 @@ shinyServer(function(input, output, clientData, session) {
           
           planneddflist[[i]] <- new_recent_month_data
           
-        }
-        
-        
-        
-      }else{
-        
-        for(i in month_Vec){
-          
-          new_recent_month_data <- recent_month_data
-          
-          new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]), "cust_id"] <- 1:increment_Vec[i]
-          
-          new_recent_month_data[, "usage_date"] <- rep(recent_date_Vec[i], increment_Vec[i])
-          
-          new_recent_month_data[, "usage_month"] <- rep(month(recent_date_Vec[i]), increment_Vec[i])
-          
-          new_recent_month_data[, "usage_year"] <- rep(year(recent_date_Vec[i]), increment_Vec[i])
-          
-          new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]), "cust_class"] <- sample(class_proportions$Var1, replace = TRUE, 
-                                                                                                                                prob = class_proportions$Freq,
-                                                                                                                                size = increment_Vec[i])
-          
-          
-          #fill in average usage by account and month
-          tmp <- left_join(new_recent_month_data[1:nrow(recent_month_data)], monthlyusagebyaccount, by = c('cust_id','usage_month'))
-          
-          new_recent_month_data$usage_ccf[1:nrow(recent_month_data)] <- tmp$usage_ccf.y
-          
-          #fill in the usage for new accounts with the estimated usage input
-          new_recent_month_data[(nrow(recent_month_data)-increment_Vec[i]+1):nrow(recent_month_data), "usage_ccf"] <- input$EstUsagePerAccount
-          
-          
-          #fill in meter size for new accounts
-          new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]),"meter_size"] <- rep(getmode(df$meter_size),
-                                                                                                                            length.out = increment_Vec[i])
-          #fill in water type for new accounts
-          new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]),"water_type"] <- rep(getmode(df$water_type),
-                                                                                                                            length.out = increment_Vec[i])
-          
-          
-          #fill in rate code for new accounts
-          tmp <- new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]),]
-          
-          tmp <- left_join(tmp, ratecode_filler, by = c("cust_class"))%>% arrange(cust_id)
-          
-          new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]), "rate_code"] <- tmp$rate_code.y
-          
-          
-          planneddflist[[i]] <- new_recent_month_data
-          
         }#End generating data for budget type
         
 
@@ -204,7 +154,7 @@ shinyServer(function(input, output, clientData, session) {
                                                                                                                                  prob = class_proportions$Freq,
                                                                                                                                  size = increment_Vec[i])
       
-           
+
            #fill in average usage by account and month
            tmp <- left_join(new_recent_month_data[1:nrow(recent_month_data)], monthlyusagebyaccount, by = c('cust_id','usage_month'))
            
@@ -248,6 +198,38 @@ shinyServer(function(input, output, clientData, session) {
 
 })  
  
+ 
+ hypothetical_tier_boxes <- reactive({
+   
+   boxes <- tier_boxes
+
+   for(cust_class in cust_class_list){
+     class_input <- generated_inputs[[cust_class]]
+     
+     the_input <- class_input[["tiered_prices"]]$tier_box
+     if(!is.null(the_input)){
+       boxes[[cust_class]][["Tiered"]][["tier_prices"]] <- parse_numerics(strsplit(the_input, "\n")[[1]])
+     }
+     
+     the_input <- class_input[["tiered_starts"]]$tier_box
+     if(!is.null(the_input)){
+       boxes[[cust_class]][["Tiered"]][["tier_starts"]] <- parse_numerics(strsplit(the_input, "\n")[[1]])
+     }
+     
+     the_input <- class_input[["budget_prices"]]$tier_box
+     if(!is.null(the_input)){
+       boxes[[cust_class]][["Budget"]][["tier_prices"]] <- parse_numerics(strsplit(the_input, "\n")[[1]])
+     }
+     
+     the_input <- class_input[["budget_starts"]]$tier_box
+     if(!is.null(the_input)){
+       boxes[[cust_class]][["Budget"]][["tier_starts"]] <- parse_strings(strsplit(the_input, "\n")[[1]])
+     }
+   }
+   
+   boxes
+ })
+  
 
  
   hypothetical_rate_list <- reactive({
@@ -286,27 +268,16 @@ shinyServer(function(input, output, clientData, session) {
         }
       }
       
-      tier_boxes <- c("tiered_prices", "budget_prices")
-      
-      for(rate_part_name in tier_boxes){
-        
-        the_input <- class_input[[rate_part_name]]
-        
-        tier_str <- the_input$tier_box
-        if(!is.null(tier_str)){
-          browser()
-          ls$rate_structure[[cust_class]][["tier_prices"]] <- parse_numerics(strsplit(tier_str, "\n")[[1]])
-          
-        }
-      }
-      
       
       # link commodity_charge to hypothetical_rate_list
       if(!is.null(class_input$other_inputs$rateType)){
         if(class_input$other_inputs$rateType == "Flat" && !is.null(ls$rate_structure[[cust_class]][["flat_rate"]])){
           ls$rate_structure[[cust_class]][["commodity_charge"]] <- "flat_rate*usage_ccf"
         }else if(class_input$other_inputs$rateType %in% c("Tiered", "Budget")){
-          ls$rate_structure[[cust_class]][["commodity_charge"]] <- class_input$other_inputs$rateType
+          rate_type <- class_input$other_inputs$rateType
+          ls$rate_structure[[cust_class]][["commodity_charge"]] <- rate_type
+          ls$rate_structure[[cust_class]][["tier_starts"]] <- hypothetical_tier_boxes()[[cust_class]][[rate_type]]$tier_starts
+          ls$rate_structure[[cust_class]][["tier_prices"]] <- hypothetical_tier_boxes()[[cust_class]][[rate_type]]$tier_prices
         }
       }
       
@@ -368,7 +339,6 @@ shinyServer(function(input, output, clientData, session) {
   for(c in cust_class_list){
     # class_rate <- baseline_rate_list$rate_structure[[c]]
     generated_inputs[[c]] <- callModule(classGraph, paste0("panel_",c), c, DF, total_bill_info, baseline_bill_info, active_tab, hypothetical_rate_list)
-    # browser()
   }
   
   

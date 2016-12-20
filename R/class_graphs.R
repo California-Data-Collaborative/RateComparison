@@ -57,10 +57,7 @@ classGraphOutput <- function(id, rate_codes){
                 fluidRow(
                   column(6,
                          fluidRow(
-                           strong("Tier start (CCF)")
-                         ),
-                         fluidRow(
-                           HTML(default_tiered_tiers_html)
+                           tierBoxInput(ns("tiered_starts"))
                          )
                   ),
                   column(6,
@@ -88,10 +85,7 @@ classGraphOutput <- function(id, rate_codes){
                 fluidRow(
                   column(6,
                          fluidRow(
-                           strong("Tier start")
-                         ),
-                         fluidRow(
-                           HTML(default_budget_tiers_html)
+                           tierBoxInput(ns("budget_starts"))
                          )
                   ),
                   column(6,
@@ -170,7 +164,7 @@ classGraph <- function(input, output, session, cust_class, df_original, df_total
              part_name=rate_part_name, part_name_long="Service Charge",
              depends_col_list=dropdown_cols,
              rate_part = rate_list()$rate_structure[[active_class()]][[rate_part_name]])
-  # browser()
+
   rate_part_name2 <- "flat_rate"
   input_list[[rate_part_name2]] <- callModule(ratePart, rate_part_name2, 
              part_name=rate_part_name2, part_name_long="Charge per CCF",
@@ -205,6 +199,22 @@ classGraph <- function(input, output, session, cust_class, df_original, df_total
             rate_type=rate_list()$rate_structure[[active_class()]][["commodity_charge"]], 
             rate_type_provided="Budget", 
             rate_part=rate_list()$rate_structure[[active_class()]][["tier_prices"]]
+  )
+  
+  rate_part_name7 <- "tiered_starts"
+  input_list[[rate_part_name7]] <- callModule(tierBox, rate_part_name7, 
+                                              part_name=rate_part_name7, part_name_long="Tier Starts (CCF)", 
+                                              rate_type=rate_list()$rate_structure[[active_class()]][["commodity_charge"]], 
+                                              rate_type_provided="Tiered", 
+                                              rate_part=rate_list()$rate_structure[[active_class()]][["tier_starts"]]
+  )
+  
+  rate_part_name8 <- "budget_starts"
+  input_list[[rate_part_name8]] <- callModule(tierBox, rate_part_name8, 
+                                              part_name=rate_part_name8, part_name_long="Tier Starts (CCF)", 
+                                              rate_type=rate_list()$rate_structure[[active_class()]][["commodity_charge"]], 
+                                              rate_type_provided="Budget", 
+                                              rate_part=rate_list()$rate_structure[[active_class()]][["tier_starts"]]
   )
   
   #TODO: add other tier boxes, and link the boxes up with the hypothetical_rate_list

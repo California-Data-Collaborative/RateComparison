@@ -135,6 +135,7 @@ default_budget_prices <- switch(utility_code,
                                      "SMC"='0\n0\n0\n0\n0') 
 
 
+
 # Read data from file and rename the columns to be compatable with internal calls
 if(is_budget){
   df <- read_data(test_file, cust_col="cust_loc_id", usage_col="usage_ccf", month_col="usage_month", 
@@ -164,6 +165,24 @@ print(min_date, max_date)
 
 cust_class_list <- df %>%group_by(cust_class) %>% summarise(count=length(cust_class) ) %>% arrange(desc(count))
 cust_class_list <- cust_class_list$cust_class
+
+tier_boxes <- list()
+for(c in cust_class_list){
+  tier_boxes[[c]] <- list("Tiered"=list(), "Budget"=list())
+  tier_boxes[[c]][["Tiered"]][["tier_starts"]] <- c(0, 15, 41, 149)
+  tier_boxes[[c]][["Tiered"]][["tier_prices"]] <- c(2.87, 4.29, 6.44, 10.07)
+  tier_boxes[[c]][["Budget"]][["tier_starts"]] <- list(0, "40%", "101%", "131%")
+  tier_boxes[[c]][["Budget"]][["tier_prices"]] <- c(1.11, 1.62, 3.92, 14.53)
+  
+  if(baseline_rate_list$rate_structure[[c]]$commodity_charge %in% c("Tiered", "Budget") &&
+     !is.null(baseline_rate_list$rate_structure[[c]]$tier_starts) &&
+     !is.null(baseline_rate_list$rate_structure[[c]]$tier_prices)){
+    rate_type <- baseline_rate_list$rate_structure[[c]]$commodity_charge
+    
+    tier_boxes[[c]][[rate_type]][["tier_starts"]] <- baseline_rate_list$rate_structure[[c]]$tier_starts
+    tier_boxes[[c]][[rate_type]][["tier_prices"]] <- baseline_rate_list$rate_structure[[c]]$tier_prices
+  }
+}
 
 
 # filtering rate codes by customer class
