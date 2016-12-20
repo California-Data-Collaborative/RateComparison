@@ -1,6 +1,16 @@
-
-
-
+#****************************************************************************************** 
+#class_graphs.R
+#
+# This file defines a module called classGraph that corresponds to a self-contained panel
+# for a single customer class. This panel is self contained in the sense that it contains
+# a set of inputs and graphical outputs for the specified customer class. These inputs are
+# independent from the inputs of any other class, allowing for changes to be made to one
+# customer class without affecting any others.
+#
+# most of the code needed to define the inputs on the left side, connect the inputs to the data,
+# and connect the data to the graphs should will probably be located here.
+#
+#******************************************************************************************
 
 classGraphOutput <- function(id, rate_codes){
   ns <- NS(id)
@@ -104,20 +114,6 @@ classGraphOutput <- function(id, rate_codes){
                          em("Outdoor = ET_Factor * ET * LA  * (0.62/748)")
                 )
               )
-                    
-#                     
-#            )
-#            
-#            )#end tabsetPanel
-           
-           #                conditionalPanel(
-           #                  condition = "input.rateType == 'Tiered' || input.rateType == 'Budget'",
-           #                  fluidRow(
-           #                    column(12,
-           #                           actionButton("updateTiers", "Update Tiers")
-           #                    )
-           #                  )#end row
-           #                )
            
          )#end wellPanel
       ),# end column
@@ -153,7 +149,7 @@ classGraphOutput <- function(id, rate_codes){
 
 
 classGraph <- function(input, output, session, cust_class, df_original, df_total_bill, 
-                       df_baseline_bill, active_class, rate_list){
+                       df_baseline_bill, active_class, rate_list, has_planning=FALSE){
   ns <- session$ns
   
   input_list <- list()
@@ -217,14 +213,19 @@ classGraph <- function(input, output, session, cust_class, df_original, df_total
                                               rate_part=rate_list()$rate_structure[[active_class()]][["tier_starts"]]
   )
   
-  #TODO: add other tier boxes, and link the boxes up with the hypothetical_rate_list
+  observe({
+    updateSliderInput(session, "timeSlider", label = "Time Range", 
+                      min = min(df_original()$usage_date), 
+                      max = max(df_original()$usage_date), 
+                      value = c(min(df_original()$usage_date), max(df_original()$usage_date)))
+  })
   
   df_plots <- reactive({
-    
+
     combined <- dplyr::bind_cols(df_original(), df_total_bill(), df_baseline_bill()) %>%
-      # filter(usage_date >= input$timeSlider[1],
-         # usage_date <= input$timeSlider[2])
-      filter(rate_code %in% input$RateCode)
+      filter(usage_date >= input$timeSlider[1],
+             usage_date <= input$timeSlider[2],
+             rate_code %in% input$RateCode)
    
     combined
   })
@@ -234,9 +235,14 @@ classGraph <- function(input, output, session, cust_class, df_original, df_total
   #******************************************************************
   output$revenue_time_series <- renderPlotly({
     # print(glimpse(df_plots()[1,]))
-    p <- plot_revenue_over_time( df_plots(), input$displayType )
-    # ggplotly(p)
-    p
+    if(has_planning == TRUE){
+      p <- plot_revenue_over_time( df_plots(), input$displayType ) + 
+           geom_vline(xintercept=as.numeric(max(df$usage_date)),color='red3',linetype=2) +
+           geom_text(data=data.table(date=max(df$usage_date),extracol=0),aes(date,extracol),label="forecast",color='red3',angle=45,vjust=-0.5,hjust=-0.5)  
+    }else{
+      p <- plot_revenue_over_time( df_plots(), input$displayType )  
+    }
+    ggplotly(p) %>% config(displayModeBar = FALSE)
   })
   
   #******************************************************************
@@ -326,19 +332,3 @@ get_rate_part_depends_col <- function(class_rate, rate_part_name){
   }
   return(NULL)
 }
-
-# extract_depends_values()
-
-# rate_part_is_map <- function(class_rate, rate_part_name){
-#   for(i in 1:length(class_rate)){
-#     rate_part <- class_rate[[i]]
-#     name <- names(rate_part)
-#     
-#     if(name==rate_part_name){
-#       if(is_map(rate_part[[name]])){
-#         return(TRUE)
-#       }
-#     }
-#   }
-#   return(FALSE)
-# }

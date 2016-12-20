@@ -59,7 +59,6 @@ read_data <- function(filename, cust_col, usage_col, month_col, year_col, et_col
 
 generated_inputs <- list()
 baseline_rate_list <- RateParser::read_owrs_file("../open-water-rate-specification/examples/mnwd.owrs")
-# hypothetical_rate_list <- baseline_rate_list
 
 is_budget <- switch(utility_code,
                     "IRWD"=,
@@ -81,58 +80,6 @@ test_file <- switch(utility_code,
                     "LVMWD"="data/lvmwd_test.csv",
                     "SMWD"="data/smwd_test.csv",
                     "SMC"="data/smc_test.csv")
-
-#---------------------Utility Specific UI Defaults --------------------------
-default_fixed_charge <- switch(utility_code,
-                               "IRWD"=10.30,
-                               "MNWD"=11.39,
-                               "LVMWD"=18.30,
-                               "SMWD"=8.72,
-                               "SMC"=0)
-
-default_gpcd <- switch(utility_code,
-                       "IRWD"=50,
-                       "MNWD"=60,
-                       "LVMWD"=55,
-                       "SMWD"=55,
-                       "SMC"=0)
-
-default_et_factor <- switch(utility_code,
-                            "IRWD"=0.8,
-                            "MNWD"=0.7,
-                            "LVMWD"=0.8,
-                            "SMWD"=0.8,
-                            "SMC"=0.0)
-
-#******* TIERED RATES ******
-default_tiered_tiers_html <- switch(utility_code,
-                                    "IRWD"=,
-                                    "MNWD"=,
-                                    "LVMWD"='<textarea id="tieredTiers" rows="6" cols="15" style="resize: none;">0\n16\n67\n200</textarea>',
-                                    "SMWD"='<textarea id="tieredTiers" rows="6" cols="15" style="resize: none;">0\n7\n21\n36\n71</textarea>',
-                                    "SMC"='<textarea id="tieredTiers" rows="6" cols="15" style="resize: none;">0\n15\n41\n149</textarea>')
-
-default_tiered_prices_html <- switch(utility_code,
-                                     "IRWD"=,
-                                     "MNWD"=,
-                                     "LVMWD"='<textarea id="tieredPrice" rows="6" cols="15" style="resize: none;">2.31\n2.80\n3.81\n5.34</textarea>',
-                                     "SMWD"='<textarea id="tieredPrice" rows="6" cols="15" style="resize: none;">2.04\n2.29\n2.77\n3.28\n4.50</textarea>',
-                                     "SMC"='<textarea id="tieredPrice" rows="6" cols="15" style="resize: none;">2.87\n4.29\n6.44\n10.07</textarea>')
-
-#******* BUDGET RATES ******
-default_budget_tiers_html <- switch(utility_code,
-                                    "IRWD"='<textarea id="budgetTiers" rows="6" cols="15" style="resize: none;">0\n40%\n101%\n131%</textarea>',
-                                    "MNWD"='<textarea id="budgetTiers" rows="6" cols="15" style="resize: none;">0\nIndoor\n101%\n126%\n151%</textarea>',
-                                    "LVMWD"='<textarea id="budgetTiers" rows="6" cols="15" style="resize: none;">0\nIndoor\n101%\n151%</textarea>',
-                                    "SMWD"='<textarea id="budgetTiers" rows="6" cols="15" style="resize: none;">0\nIndoor\n101%\n151%\n201%</textarea>',
-                                    "SMC"='<textarea id="budgetTiers" rows="6" cols="15" style="resize: none;">0\nIndoor\n101%\n151%\n201%</textarea>') 
-
-default_budget_prices <- switch(utility_code,
-                                     "IRWD"='1.11\n1.62\n3.92\n14.53',
-                                     "MNWD"='1.49\n1.70\n2.62\n4.38\n9.17',
-                                     "LVMWD"='2.36\n3.18\n3.96\n4.98',
-                                     "SMWD"='1.86\n2.11\n2.61\n3.21\n4.67',
-                                     "SMC"='0\n0\n0\n0\n0') 
 
 
 
@@ -162,10 +109,14 @@ min_date <- min(df$usage_date)
 max_date <- max(df$usage_date)
 print(min_date, max_date)
 
-
+# list of unique customer classes in the data
 cust_class_list <- df %>%group_by(cust_class) %>% summarise(count=length(cust_class) ) %>% arrange(desc(count))
 cust_class_list <- cust_class_list$cust_class
 
+
+# Generate the defaults that will populate tier boxes for which a utility
+# has no value. For example, a budget-based utility still needs default values
+# when they switch to try our a Tiered rate.
 tier_boxes <- list()
 for(c in cust_class_list){
   tier_boxes[[c]] <- list("Tiered"=list(), "Budget"=list())
@@ -189,6 +140,7 @@ for(c in cust_class_list){
 rate_code_counts <- df %>% group_by(cust_class, rate_code) %>% 
                       summarise(count=length(unique(cust_id))) %>% arrange(desc(count))
 
+# create a list of the rate code counts within each customer class
 rate_code_dict <- list()
 for(c in cust_class_list){
   rate_code_dict[[c]] <- filter(rate_code_counts, cust_class == c)$rate_code

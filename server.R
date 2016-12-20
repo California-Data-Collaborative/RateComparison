@@ -11,8 +11,10 @@ shinyServer(function(input, output, clientData, session) {
   
 
  planneddf <- reactive({
-     
+
     if(input$Planning == TRUE){
+      
+      set.seed(10000)
       
       #for mean usage_ccf
       monthlyusagebyaccount <- df %>% 
@@ -48,6 +50,7 @@ shinyServer(function(input, output, clientData, session) {
           avg_et_df <-  df%>%  group_by(usage_month) %>% summarise(et_amount = mean(et_amount,na.rm=TRUE))
         }
         
+
         if("hhsize" %in% colnames(df)){
           #average hhsize by customer class
           mean_hhsize <- df %>% 
@@ -59,12 +62,12 @@ shinyServer(function(input, output, clientData, session) {
           #irrarea <- mean(df$irr_area[!df$irr_area %in% boxplot.stats(df$irr_area)$out]) #removing outliers
           #average irr_area by customer class
           mean_irr_area <- df %>% 
-                         group_by(cust_class) %>% 
-                         summarise(irr_area = round(mean(irr_area,na.rm=TRUE)))
+              group_by(cust_class) %>% 
+              summarise(irr_area = round(mean(irr_area,na.rm=TRUE)))
         }
         
-         #Begin generating data if budget type
-         for(i in month_Vec){
+        #Begin generating data if budget type
+        for(i in month_Vec){
           
           new_recent_month_data <- recent_month_data
           
@@ -113,15 +116,17 @@ shinyServer(function(input, output, clientData, session) {
           
           #fill in meter size for new accounts
           if("meter_size" %in% colnames(df)){
-            new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]),"meter_size"] <- rep(getmode(df$cust_loc_meter_size),
-                                                                                                       length.out = increment_Vec[i])
+            new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]),"meter_size"] <- rep(getmode(df$meter_size),
+                                                                                                                            length.out = increment_Vec[i])
           }
           
           #fill in water type for new accounts
           if("water_type" %in% colnames(df)){
-            new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]),"water_type"] <- rep(getmode(df$cust_loc_water_type),
-                                                                                                       length.out = increment_Vec[i])
+            new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]),"water_type"] <- rep(getmode(df$water_type),
+                                                                                                                            length.out = increment_Vec[i])
           }
+
+          
           
           #fill in rate code for new accounts
           tmp <- new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]),]
@@ -134,6 +139,7 @@ shinyServer(function(input, output, clientData, session) {
           planneddflist[[i]] <- new_recent_month_data
           
         }#End generating data for budget type
+        
         
 
        }else{
@@ -197,6 +203,7 @@ shinyServer(function(input, output, clientData, session) {
   }
 
 })  
+ 
  
  
  hypothetical_tier_boxes <- reactive({
@@ -338,7 +345,8 @@ shinyServer(function(input, output, clientData, session) {
   # callModule to connect server code with each of the customer class panels
   for(c in cust_class_list){
     # class_rate <- baseline_rate_list$rate_structure[[c]]
-    generated_inputs[[c]] <- callModule(classGraph, paste0("panel_",c), c, DF, total_bill_info, baseline_bill_info, active_tab, hypothetical_rate_list)
+    generated_inputs[[c]] <- callModule(classGraph, paste0("panel_",c), c, DF, total_bill_info, baseline_bill_info, 
+                                        active_tab, hypothetical_rate_list, has_planning=input$Planning)
   }
   
   
