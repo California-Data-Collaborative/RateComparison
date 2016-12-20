@@ -5,13 +5,12 @@ options(shiny.error=NULL, shiny.minified=TRUE)
 shinyServer(function(input, output, clientData, session) {
   
 
-  inputList <- reactive({
-    ls <- list("rate_structure" = list())
-  })
-  
-
- planneddf <- reactive({
-
+  #******************************************************************
+  # Generate a planning dataframe either adding or deleting accounts
+  # and forecasting usage into the future
+  #******************************************************************
+  planneddf <- reactive({
+   
     if(input$Planning == TRUE){
       
       set.seed(10000)
@@ -205,40 +204,44 @@ shinyServer(function(input, output, clientData, session) {
 })  
  
  
- 
- hypothetical_tier_boxes <- reactive({
+  #******************************************************************
+  # Map tier boxes to either tierBox inputs or default values
+  #******************************************************************
+  hypothetical_tier_boxes <- reactive({
    
-   boxes <- tier_boxes
-
-   for(cust_class in cust_class_list){
-     class_input <- generated_inputs[[cust_class]]
-     
-     the_input <- class_input[["tiered_prices"]]$tier_box
-     if(!is.null(the_input)){
-       boxes[[cust_class]][["Tiered"]][["tier_prices"]] <- parse_numerics(strsplit(the_input, "\n")[[1]])
+     boxes <- tier_boxes
+  
+     for(cust_class in cust_class_list){
+       class_input <- generated_inputs[[cust_class]]
+       
+       the_input <- class_input[["tiered_prices"]]$tier_box
+       if(!is.null(the_input)){
+         boxes[[cust_class]][["Tiered"]][["tier_prices"]] <- parse_numerics(strsplit(the_input, "\n")[[1]])
+       }
+       
+       the_input <- class_input[["tiered_starts"]]$tier_box
+       if(!is.null(the_input)){
+         boxes[[cust_class]][["Tiered"]][["tier_starts"]] <- parse_numerics(strsplit(the_input, "\n")[[1]])
+       }
+       
+       the_input <- class_input[["budget_prices"]]$tier_box
+       if(!is.null(the_input)){
+         boxes[[cust_class]][["Budget"]][["tier_prices"]] <- parse_numerics(strsplit(the_input, "\n")[[1]])
+       }
+       
+       the_input <- class_input[["budget_starts"]]$tier_box
+       if(!is.null(the_input)){
+         boxes[[cust_class]][["Budget"]][["tier_starts"]] <- parse_strings(strsplit(the_input, "\n")[[1]])
+       }
      }
      
-     the_input <- class_input[["tiered_starts"]]$tier_box
-     if(!is.null(the_input)){
-       boxes[[cust_class]][["Tiered"]][["tier_starts"]] <- parse_numerics(strsplit(the_input, "\n")[[1]])
-     }
-     
-     the_input <- class_input[["budget_prices"]]$tier_box
-     if(!is.null(the_input)){
-       boxes[[cust_class]][["Budget"]][["tier_prices"]] <- parse_numerics(strsplit(the_input, "\n")[[1]])
-     }
-     
-     the_input <- class_input[["budget_starts"]]$tier_box
-     if(!is.null(the_input)){
-       boxes[[cust_class]][["Budget"]][["tier_starts"]] <- parse_strings(strsplit(the_input, "\n")[[1]])
-     }
-   }
-   
-   boxes
- })
+     boxes
+  })
   
 
- 
+  #******************************************************************
+  # Map inputs to nested list structure needed by RateParser
+  #******************************************************************
   hypothetical_rate_list <- reactive({
     ls <- baseline_rate_list
     
@@ -317,6 +320,7 @@ shinyServer(function(input, output, clientData, session) {
     return(bill_info)
   })
   
+  # Return the proper dataframe given planning status
   DF <- reactive({
     if(input$Planning){
       planneddf()
@@ -339,7 +343,7 @@ shinyServer(function(input, output, clientData, session) {
   
   active_tab <- reactive({
     input$classTabs
-    })
+  })
   
   # generated_inputs <- list()
   # callModule to connect server code with each of the customer class panels
@@ -351,8 +355,7 @@ shinyServer(function(input, output, clientData, session) {
   
   
   
-  
-  
+
   
   #******************************************************************
   # Calculate bills and tiers for the MNWD residential baseline rate
@@ -360,7 +363,7 @@ shinyServer(function(input, output, clientData, session) {
   baseline_bill_info <- reactive({
     switch(utility_code,
          "IRWD"=irwd_baseline(basedata=DF()),
-         "MNWD"=mnwd_baseline(basedata=DF()),
+         "MNWD"=baseline(basedata=DF()),
          "LVMWD"=lvmwd_baseline(basedata=DF()),
          "SMWD"=smwd_baseline(basedata=DF()),
          "SMC"=smc_baseline(basedata=DF())
@@ -371,11 +374,7 @@ shinyServer(function(input, output, clientData, session) {
 
 
 
-
-
-
-
-mnwd_baseline <- function(basedata){
+baseline <- function(basedata){
   
   bill_info <- RateParser::calculate_bill(basedata, baseline_rate_list)
   bill_info <- bill_info %>% ungroup %>% dplyr::arrange(sort_index)
@@ -401,6 +400,9 @@ mnwd_baseline <- function(basedata){
   
   return(bill_info)
 }
+
+
+
 
 lvmwd_baseline <- function(basedata){
   

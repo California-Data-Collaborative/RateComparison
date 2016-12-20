@@ -1,4 +1,22 @@
+#****************************************************************************************** 
+#rate_inputs.R
+#
+# This file defines two modules (tierBox and ratePart) corresponding to two different types of inputs found on the
+# input panel of the classGraph module.
+#
+# tierBox is a module that defines a text input box for displaying tier starts and prices.
+# 
+# ratePart is a module that defines a more complex, multi-input for specifying either 
+# simple values like landscape factors and flat rate charges, or more complex values that
+# depend on other columns in the source data. For example it is possible to define a fixed
+# service charge that is dependent on the meter size of a customer.
+#
+#******************************************************************************************
 
+
+#********************************************
+# tierBox
+#********************************************
 tierBoxInput <- function(id){
   ns <- NS(id)
   tagList(uiOutput(ns("tierInfoBox")))
@@ -29,8 +47,9 @@ tierBox <- function(input, output, session, part_name, part_name_long,
 
 
 
-
-
+#********************************************
+# ratePart
+#********************************************
 ratePartInput <- function(id){
   ns <- NS(id)
   
