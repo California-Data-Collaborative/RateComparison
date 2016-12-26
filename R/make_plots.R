@@ -1,4 +1,4 @@
- library(dplyr)
+library(dplyr)
 library(zoo)
 library(ggplot2)
 library(scales)
@@ -41,7 +41,7 @@ plot_revenue_over_time <- function(data, display_type){
          xlab("") + ylab("Revenue (Million $)") + 
          # theme(axis.text.x = element_text(angle = 30, hjust = 1)) +
          # scale_x_date(labels = date_format("%m-%y"), date_breaks="1 months") +
-         scale_y_continuous(labels = comma) 
+         scale_y_continuous(labels = comma)
          #geom_text(data=data.table(date=max(df$usage_date),extracol=0),aes(date,extracol),label="forecast",color='red3',angle=45,vjust=-0.5,hjust=-0.5)
   
     end.time <- Sys.time()
@@ -73,7 +73,7 @@ plot_revenue_over_time <- function(data, display_type){
          xlab("") + ylab("Usage (Million ccf)") + 
          # theme(axis.text.x = element_text(angle = 30, hjust = 1)) +
          # scale_x_date(labels = date_format("%m-%y"), date_breaks="1 months") +
-         scale_y_continuous(labels = comma) 
+         scale_y_continuous(labels = comma)
          #geom_text(data=data.table(date=max(df$usage_date),extracol=0),aes(date,extracol),label="forecast",color='red3',angle=45,vjust=-0.5,hjust=-0.5)
     
     end.time <- Sys.time()
@@ -253,8 +253,7 @@ plot_fixed_revenue <- function(data, bar_type){
   d <- melt(d, id.vars="id" ) 
   lab_str <- "Percent Fixed Revenue"
 
-  
-  if(sum(d$value) < 0.1){
+  if( (sum(d$value) < 0.1) || is.nan(d$value) ){
     p <- ggplot() + 
       geom_hline(yintercept = 0, color="#CC0000") +
       xlab("") + ylab(lab_str)

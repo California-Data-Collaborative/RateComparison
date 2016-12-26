@@ -1,53 +1,55 @@
-options(shiny.error = NULL)
+options(shiny.error=NULL, shiny.minified=TRUE)
 # Load functions
-source("R/helper_fns.R", local=TRUE)
-source("R/make_plots.R", local=TRUE)
 
 
 shinyServer(function(input, output, clientData, session) {
   
- planneddf <- reactive({
+
+  #******************************************************************
+  # Generate a planning dataframe either adding or deleting accounts
+  # and forecasting usage into the future
+  #******************************************************************
+  planneddf <- reactive({
    
-  if(input$Planning == TRUE){
-    set.seed(10000)
-    getmode <- function(v) {
-      #fn to get mode of a vector
-      uniqv <- unique(v)
-      uniqv[which.max(tabulate(match(v, uniqv)))]
-    }
-    
-    #for mean usage_ccf
-    monthlyusagebyaccount <- df %>% 
-                             group_by(cust_id,usage_month) %>% 
-                             summarise(usage_ccf = mean(usage_ccf,na.rm=TRUE))
-    
- 
-    month_Vec <- 1:input$Months
-    
-    increment_Vec <- (1:input$Months)*input$Growth
-    
-    recent_date <- max(df$usage_date)
-    
-    recent_month_data <- df %>% filter(usage_date == recent_date)
-    
-    recent_date_Vec <- c(recent_date %m+% months(1:input$Months))
-    
-    #for rate code filling
-    ratecode_filler <- data.table(r2)
-    ratecode_filler <- ratecode_filler[,head(.SD, 1), by=cust_class]
-    
-    #for generating customer class
-    class_proportions <- as.data.frame(prop.table(table(df$cust_class)), stringsAsFactors = FALSE)
- 
-    planneddflist <- list()
-    
-     
+    if(input$Planning == TRUE){
+      
+      set.seed(10000)
+      
+      #for mean usage_ccf
+      monthlyusagebyaccount <- df %>% 
+        group_by(cust_id,usage_month) %>% 
+        summarise(usage_ccf = mean(usage_ccf,na.rm=TRUE))
+      
+      
+      month_Vec <- 1:input$Months
+      
+      increment_Vec <- (1:input$Months)*input$Growth
+      
+      recent_date <- max(df$usage_date)
+      
+      recent_month_data <- df %>% filter(usage_date == recent_date)
+      
+      recent_date_Vec <- c(recent_date %m+% months(1:input$Months))
+      
+      #for rate code filling
+      ratecode_filler <- df %>% group_by(cust_class, rate_code) %>% 
+        summarise(count=length(unique(cust_id))) %>% 
+        arrange(desc(count))
+      ratecode_filler <- data.table(ratecode_filler)
+      ratecode_filler <- ratecode_filler[,head(.SD, 1), by=cust_class]
+      
+      #for generating customer class
+      class_proportions <- as.data.frame(prop.table(table(df$cust_class)), stringsAsFactors = FALSE)
+      
+      planneddflist <- list()
+      
       if(is_budget){
         if("et_amount" %in% colnames(df)){
           #average et by month
           avg_et_df <-  df%>%  group_by(usage_month) %>% summarise(et_amount = mean(et_amount,na.rm=TRUE))
         }
         
+
         if("hhsize" %in% colnames(df)){
           #average hhsize by customer class
           mean_hhsize <- df %>% 
@@ -59,12 +61,12 @@ shinyServer(function(input, output, clientData, session) {
           #irrarea <- mean(df$irr_area[!df$irr_area %in% boxplot.stats(df$irr_area)$out]) #removing outliers
           #average irr_area by customer class
           mean_irr_area <- df %>% 
-                         group_by(cust_class) %>% 
-                         summarise(irr_area = round(mean(irr_area,na.rm=TRUE)))
+              group_by(cust_class) %>% 
+              summarise(irr_area = round(mean(irr_area,na.rm=TRUE)))
         }
         
-         #Begin generating data if budget type
-         for(i in month_Vec){
+        #Begin generating data if budget type
+        for(i in month_Vec){
           
           new_recent_month_data <- recent_month_data
           
@@ -75,7 +77,7 @@ shinyServer(function(input, output, clientData, session) {
           new_recent_month_data[, "usage_month"] <- rep(month(recent_date_Vec[i]), nrow(recent_month_data)+increment_Vec[i])
           
           new_recent_month_data[, "usage_year"] <- rep(year(recent_date_Vec[i]), nrow(recent_month_data)+increment_Vec[i])
-        
+          
           new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]), "cust_class"] <- sample(class_proportions$Var1, replace = TRUE, 
                                                                                                                                 prob = class_proportions$Freq,
                                                                                                                                 size = increment_Vec[i])
@@ -96,32 +98,34 @@ shinyServer(function(input, output, clientData, session) {
           
           new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]), "irr_area"] <- tmp$irr_area.y
           
-         
+          
           #fill in average et by month
           tmp <- left_join(new_recent_month_data, avg_et_df, by = 'usage_month')
           
           new_recent_month_data$et_amount <- tmp$et_amount.y
           
           #fill in average usage by account and month
-          tmp <- left_join(new_recent_month_data, monthlyusagebyaccount, by = c('cust_id','usage_month'))
+          tmp <- left_join(new_recent_month_data[1:nrow(recent_month_data),], monthlyusagebyaccount, by = c('cust_id','usage_month'))
           
           new_recent_month_data$usage_ccf[1:nrow(recent_month_data)] <- tmp$usage_ccf.y
           
           #fill in the usage for new accounts with the estimated usage input
           new_recent_month_data[(nrow(new_recent_month_data)-increment_Vec[i]+1):nrow(new_recent_month_data), "usage_ccf"] <- input$EstUsagePerAccount
           
-         
+          
           #fill in meter size for new accounts
-          if("cust_loc_meter_size" %in% colnames(df)){
-            new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]),"cust_loc_meter_size"] <- rep(getmode(df$cust_loc_meter_size),
-                                                                                                       length.out = increment_Vec[i])
+          if("meter_size" %in% colnames(df)){
+            new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]),"meter_size"] <- rep(getmode(df$meter_size),
+                                                                                                                            length.out = increment_Vec[i])
           }
           
           #fill in water type for new accounts
-          if("cust_loc_water_type" %in% colnames(df)){
-            new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]),"cust_loc_water_type"] <- rep(getmode(df$cust_loc_water_type),
-                                                                                                       length.out = increment_Vec[i])
+          if("water_type" %in% colnames(df)){
+            new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]),"water_type"] <- rep(getmode(df$water_type),
+                                                                                                                            length.out = increment_Vec[i])
           }
+
+          
           
           #fill in rate code for new accounts
           tmp <- new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]),]
@@ -130,7 +134,7 @@ shinyServer(function(input, output, clientData, session) {
           
           new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]), "rate_code"] <- tmp$rate_code.y
           
-         
+          
           planneddflist[[i]] <- new_recent_month_data
           
         }#End generating data for budget type
@@ -155,9 +159,9 @@ shinyServer(function(input, output, clientData, session) {
                                                                                                                                  prob = class_proportions$Freq,
                                                                                                                                  size = increment_Vec[i])
       
-           
+
            #fill in average usage by account and month
-           tmp <- left_join(new_recent_month_data, monthlyusagebyaccount, by = c('cust_id','usage_month'))
+           tmp <- left_join(new_recent_month_data[1:nrow(recent_month_data)], monthlyusagebyaccount, by = c('cust_id','usage_month'))
            
            new_recent_month_data$usage_ccf[1:nrow(recent_month_data)] <- tmp$usage_ccf.y
            
@@ -166,12 +170,12 @@ shinyServer(function(input, output, clientData, session) {
            
            if("cust_loc_meter_size" %in% colnames(df)){
            #fill in meter size for new accounts
-           new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]),"cust_loc_meter_size"] <- rep(getmode(df$cust_loc_meter_size),
+           new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]),"meter_size"] <- rep(getmode(df$meter_size),
                                                                                                                                       length.out = increment_Vec[i])
            }
            if("cust_loc_water_type" %in% colnames(df)){
            #fill in water type for new accounts
-           new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]),"cust_loc_water_type"] <- rep(getmode(df$cust_loc_water_type),
+           new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]),"water_type"] <- rep(getmode(df$water_type),
                                                                                                                                       length.out = increment_Vec[i])
            
            }
@@ -192,595 +196,213 @@ shinyServer(function(input, output, clientData, session) {
   
   planneddf = do.call(rbind, planneddflist)
   planneddf <- rbind(df, planneddf)
-
+  planneddf$sort_index <- 1:nrow(planneddf)
+  
+  planneddf
   }
 
 })  
  
-
-  
- observe({
-   if(input$Planning == TRUE){
-    updateSliderInput(session, "timeSlider", label = "Time Range", min = min(planneddf()$usage_date), 
-    max = max(planneddf()$usage_date), value = c(min(planneddf()$usage_date), max(planneddf()$usage_date)))
-  
-  }else{
-    updateSliderInput(session, "timeSlider", label = "Time Range", min = min(df$usage_date), 
-    max = max(df$usage_date), value = c(min(df$usage_date), max(df$usage_date)))
-  } 
- })
  
-  # Get the indoor tier cutoffs
-  indoor <- reactive({
-    if(input$Planning == TRUE){
-    get_indoor_tier(planneddf(), input$galPerCapitaSlider)
-    }
-    else{
-    get_indoor_tier(df, input$galPerCapitaSlider)
-    }
-  })
-  # Get the outdoor tier cutoffs
-  outdoor <- reactive({
-    if(input$Planning == TRUE){
-      get_indoor_tier(planneddf(), input$galPerCapitaSlider)
-    }
-    else{
-    get_outdoor_tier(df, input$ETFactorSlider)
-    }
+  #******************************************************************
+  # Map tier boxes to either tierBox inputs or default values
+  #******************************************************************
+  hypothetical_tier_boxes <- reactive({
+   
+     boxes <- tier_boxes
+  
+     for(cust_class in cust_class_list){
+       class_input <- generated_inputs[[cust_class]]
+       
+       the_input <- class_input[["tiered_prices"]]$tier_box
+       if(!is.null(the_input)){
+         boxes[[cust_class]][["Tiered"]][["tier_prices"]] <- parse_numerics(strsplit(the_input, "\n")[[1]])
+       }
+       
+       the_input <- class_input[["tiered_starts"]]$tier_box
+       if(!is.null(the_input)){
+         boxes[[cust_class]][["Tiered"]][["tier_starts"]] <- parse_numerics(strsplit(the_input, "\n")[[1]])
+       }
+       
+       the_input <- class_input[["budget_prices"]]$tier_box
+       if(!is.null(the_input)){
+         boxes[[cust_class]][["Budget"]][["tier_prices"]] <- parse_numerics(strsplit(the_input, "\n")[[1]])
+       }
+       
+       the_input <- class_input[["budget_starts"]]$tier_box
+       if(!is.null(the_input)){
+         boxes[[cust_class]][["Budget"]][["tier_starts"]] <- parse_strings(strsplit(the_input, "\n")[[1]])
+       }
+     }
+     
+     boxes
   })
   
+
   #******************************************************************
-  # Calculate variable potion of the bill, dependent on rate type
+  # Map inputs to nested list structure needed by RateParser
   #******************************************************************
-  variable_charge <- reactive({
-    if(input$Planning == TRUE){
-    bill_info <- calculate_variable_bill(data=planneddf(), rate_type=input$rateType, 
-                                         tier_starts=tier_info()$starts,
-                                         tier_prices=tier_info()$prices )
-    }
-    else{
-      bill_info <- calculate_variable_bill(data=df, rate_type=input$rateType, 
-                                           tier_starts=tier_info()$starts,
-                                           tier_prices=tier_info()$prices )
+  hypothetical_rate_list <- reactive({
+    ls <- baseline_rate_list
+    
+    
+    rate_parts <- c("service_charge", "flat_rate", "gpcd", "landscape_factor")
+    
+    for(cust_class in cust_class_list){
+      
+      class_input <- generated_inputs[[cust_class]]
+      
+      for(rate_part_name in rate_parts){
+        
+        the_input <- class_input[[rate_part_name]]
+        is_expanded <- the_input$expanded
+        if(!is.null(is_expanded)){
+          
+          #box is expanded?
+          if(is_expanded && nchar(the_input$depend_values) > 0 && nchar(the_input$depend_charges)){
+            ls$rate_structure[[cust_class]][[rate_part_name]]$depends_on <- the_input$depend_cols
+            
+            #convert the strings to a list
+            values <- parse_strings(the_input$depend_values)
+            charges <- parse_numerics(the_input$depend_charges)
+            names(charges) <- values
+            value_list <- as.list(charges)
+            
+            ls$rate_structure[[cust_class]][[rate_part_name]]$values <- value_list
+            
+           #box not expanded
+          }else if(!is_expanded && !is.null(the_input$simpleValue)){
+            ls$rate_structure[[cust_class]][[rate_part_name]] <- the_input$simpleValue
+          }
+          
+        }
+      }
+      
+      
+      # link commodity_charge to hypothetical_rate_list
+      if(!is.null(class_input$other_inputs$rateType)){
+        if(class_input$other_inputs$rateType == "Flat" && !is.null(ls$rate_structure[[cust_class]][["flat_rate"]])){
+          ls$rate_structure[[cust_class]][["commodity_charge"]] <- "flat_rate*usage_ccf"
+        }else if(class_input$other_inputs$rateType %in% c("Tiered", "Budget")){
+          rate_type <- class_input$other_inputs$rateType
+          ls$rate_structure[[cust_class]][["commodity_charge"]] <- rate_type
+          ls$rate_structure[[cust_class]][["tier_starts"]] <- hypothetical_tier_boxes()[[cust_class]][[rate_type]]$tier_starts
+          ls$rate_structure[[cust_class]][["tier_prices"]] <- hypothetical_tier_boxes()[[cust_class]][[rate_type]]$tier_prices
+        }
+      }
+      
     }
     
-    print( paste("Variable Revenue:",sum(bill_info$variable_bill, na.rm=TRUE)) )
-    bill_info
-  })
-  
-  tier_info <- reactive({
-    tier_info <- list()
-    if(input$rateType == "Flat"){
-      tier_info$starts <- NULL
-      tier_info$prices <- parse_numerics(as.character(input$flatRate))
-    }
-    else if(input$rateType == "Tiered"){
-      tier_info$starts <- parse_numerics(input$tieredTiers)
-      tier_info$prices <- parse_numerics(input$tieredPrice)
-    }
-    else if(input$rateType == "Budget"){
-      tier_info$starts <- budget_tier_starts()
-      tier_info$prices <- parse_numerics(input$budgetPrice)
-    }
-    tier_info
-  })
-  
-  budget_tier_starts <- reactive({
-    if(input$Planning == TRUE){
-      get_budget_tiers(planneddf(), parse_strings(input$budgetTiers), indoor(), outdoor())
-    }
-    else{
-      get_budget_tiers(df, parse_strings(input$budgetTiers), indoor(), outdoor())
-    }
+    ls
   })
   
   #******************************************************************
   # Calculate total bill
   #******************************************************************
   total_bill_info <- reactive({
-    bill_info <- variable_charge() 
-    bill_info$total_bill <- bill_info$variable_bill + input$fixedCharge
     
-    bill_info$hypothetical_usage <- bill_info %>% select(matches("[X][0-9]")) %>% rowSums() #adding hypothetical usage
+    bill_info <- RateParser::calculate_bill(DF(), hypothetical_rate_list())
+    bill_info <- bill_info %>% ungroup %>% dplyr::arrange(sort_index)
+    
+    bill_info <- bill_info %>% dplyr::rename(variable_bill=commodity_charge,
+                                             total_bill=bill)
+    
+    #adding baseline usage
+    bill_info$hypothetical_usage <- bill_info$usage_ccf
+    
+    # select and return only relevent columns
+    mask <- grepl("XR?[0-9]|variable.*|total.*|hypothetical.*", names(bill_info))
+    bill_info <- bill_info[mask]
+    
+    # This should work but weird bug causes "cust_class" to get matched also
+    #bill_info <- bill_info %>% select(matches("BR?[0-9]|baseline.*"))
     
     return(bill_info)
-    
   })
   
-  
-  #******************************************************************
-  # Get the filtered dataframe with all billing and tier information
-  #******************************************************************
-  df_plots <- reactive({
-    if(input$Planning == TRUE){
-      combined <- dplyr::bind_cols(planneddf(), total_bill_info(), baseline_bill_info())%>%
-        filter(usage_date >= input$timeSlider[1],
-              usage_date <= input$timeSlider[2],
-              rate_code %in% input$RateCode)
-         
+  # Return the proper dataframe given planning status
+  DF <- reactive({
+    if(input$Planning){
+      planneddf()
     }
     else{
-      combined <- dplyr::bind_cols(df, total_bill_info(), baseline_bill_info()) %>%
-        filter(usage_date >= input$timeSlider[1],
-                usage_date <= input$timeSlider[2],
-                rate_code %in% input$RateCode)
+      df
     }
-    
-    combined
   })
   
-  df_plots1 <- reactive({
-    if(input$Planning == TRUE){
-      combined <- dplyr::bind_cols(planneddf(), total_bill_info(), baseline_bill_info()) %>%
-        filter(usage_date >= input$timeSlider[1],
-               usage_date <= input$timeSlider[2],
-               rate_code %in% input$RateCode1)
-      
-    }
-    else{
-      combined <- dplyr::bind_cols(df, total_bill_info(), baseline_bill_info()) %>%
-        filter(usage_date >= input$timeSlider[1],
-               usage_date <= input$timeSlider[2],
-               rate_code %in% input$RateCode1)
-    }
-    combined
+  # Generate output panels for each customer class in the data
+  output$classTabs <- renderUI({
+    myTabs = lapply(1:length(cust_class_list), function(i){
+      tabPanel(cust_class_list[i],
+               classGraphOutput(paste0("panel_",cust_class_list[i]), rate_code_dict[[cust_class_list[i]]]),
+               value=cust_class_list[i]
+      )
+    })
+    do.call(tabsetPanel, c(myTabs, list(id="classTabs")) )
   })
   
-  df_plots2 <- reactive({
-    if(input$Planning == TRUE){
-      combined <- dplyr::bind_cols(planneddf(), total_bill_info(), baseline_bill_info()) %>%
-        filter(usage_date >= input$timeSlider[1],
-               usage_date <= input$timeSlider[2],
-               rate_code %in% input$RateCode2)
-      
-    }
-    else{
-      combined <- dplyr::bind_cols(df, total_bill_info(), baseline_bill_info()) %>%
-        filter(usage_date >= input$timeSlider[1],
-               usage_date <= input$timeSlider[2],
-               rate_code %in% input$RateCode2)
-    }
-    combined
+  active_tab <- reactive({
+    input$classTabs
   })
   
-  df_plots3 <- reactive({
-    if(input$Planning == TRUE){
-      combined <- dplyr::bind_cols(planneddf(), total_bill_info(), baseline_bill_info()) %>%
-        filter(usage_date >= input$timeSlider[1],
-               usage_date <= input$timeSlider[2],
-               rate_code %in% input$RateCode3)
-      
-    }
-    else{
-      combined <- dplyr::bind_cols(df, total_bill_info(), baseline_bill_info()) %>%
-        filter(usage_date >= input$timeSlider[1],
-               usage_date <= input$timeSlider[2],
-               rate_code %in% input$RateCode3)
-    }
-    combined
-  })
-  
-  df_plots4 <- reactive({
-    if(input$Planning == TRUE){
-      combined <- dplyr::bind_cols(planneddf(), total_bill_info(), baseline_bill_info()) %>%
-        filter(usage_date >= input$timeSlider[1],
-               usage_date <= input$timeSlider[2],
-               rate_code %in% input$RateCode4)
-      
-    }
-    else{
-      combined <- dplyr::bind_cols(df, total_bill_info(), baseline_bill_info()) %>%
-        filter(usage_date >= input$timeSlider[1],
-               usage_date <= input$timeSlider[2],
-               rate_code %in% input$RateCode4)
-    }
-    combined
-  })
-  
-  df_plots5 <- reactive({
-    if(input$Planning == TRUE){
-      combined <- dplyr::bind_cols(planneddf(), total_bill_info(), baseline_bill_info()) %>%
-         filter(usage_date >= input$timeSlider[1],
-                usage_date <= input$timeSlider[2],
-                rate_code %in% input$RateCode5)
-      
-    }
-    else{
-      combined <- dplyr::bind_cols(df, total_bill_info(), baseline_bill_info()) %>%
-        filter(usage_date >= input$timeSlider[1],
-               usage_date <= input$timeSlider[2],
-               rate_code %in% input$RateCode5)
-    }
-    combined
-  })
+  # generated_inputs <- list()
+  # callModule to connect server code with each of the customer class panels
+  for(c in cust_class_list){
+    # class_rate <- baseline_rate_list$rate_structure[[c]]
+    generated_inputs[[c]] <- callModule(classGraph, paste0("panel_",c), c, DF, total_bill_info, baseline_bill_info, 
+                                        active_tab, hypothetical_rate_list, has_planning=input$Planning)
+  }
   
   
+  
+
   
   #******************************************************************
   # Calculate bills and tiers for the MNWD residential baseline rate
   #******************************************************************
   baseline_bill_info <- reactive({
-    if(input$Planning == TRUE){
     switch(utility_code,
-           "IRWD"=irwd_baseline(basedata=planneddf()),
-           "MNWD"=mnwd_baseline(basedata=planneddf()),
-           "LVMWD"=lvmwd_baseline(basedata=planneddf()),
-           "SMWD"=smwd_baseline(basedata=planneddf()),
-           "SMC"=smc_baseline(basedata=planneddf())
-      )
-    }
-    else{
-      switch(utility_code,
-             "IRWD"=irwd_baseline(basedata=df),
-             "MNWD"=mnwd_baseline(basedata=df),
-             "LVMWD"=lvmwd_baseline(basedata=df),
-             "SMWD"=smwd_baseline(basedata=df),
-             "SMC"=smc_baseline(basedata=df)
-      )
-    }
-  })
-  
-  #******************************************************************
-  # Line plot of revenue over time
-  #******************************************************************
-  
-  output$revenue_time_series <- renderPlotly({
-    # print(glimpse(df_plots()[1,]))
-    if(input$Planning == TRUE){
-      p <- plot_revenue_over_time( df_plots(), input$displayType ) + 
-           geom_vline(xintercept=as.numeric(max(df$usage_date)),color='red3',linetype=2) +
-           geom_text(data=data.table(date=max(df$usage_date),extracol=0),aes(date,extracol),label="forecast",color='red3',angle=45,vjust=-0.5,hjust=-0.5)  
-    }else{
-      p <- plot_revenue_over_time( df_plots(), input$displayType )  
-    }
-     ggplotly(p) %>% config(displayModeBar = FALSE)
-    
-  }) 
-  
-  output$revenue_time_series1 <- renderPlotly({
-    # print(glimpse(df_plots()[1,]))
-    if(input$Planning == TRUE){
-      p <- plot_revenue_over_time( df_plots(), input$displayType ) + 
-        geom_vline(xintercept=as.numeric(max(df$usage_date)),color='red3',linetype=2) +
-        geom_text(data=data.table(date=max(df$usage_date),extracol=0),aes(date,extracol),label="forecast",color='red3',angle=45,vjust=-0.5,hjust=-0.5)  
-    }else{
-      p <- plot_revenue_over_time( df_plots(), input$displayType )  
-    }
-    ggplotly(p) %>% config(displayModeBar = FALSE)
-  }) 
-  output$revenue_time_series2 <- renderPlotly({
-    # print(glimpse(df_plots()[1,]))
-    if(input$Planning == TRUE){
-      p <- plot_revenue_over_time( df_plots(), input$displayType ) + 
-        geom_vline(xintercept=as.numeric(max(df$usage_date)),color='red3',linetype=2) +
-        geom_text(data=data.table(date=max(df$usage_date),extracol=0),aes(date,extracol),label="forecast",color='red3',angle=45,vjust=-0.5,hjust=-0.5)  
-    }else{
-      p <- plot_revenue_over_time( df_plots(), input$displayType )  
-    }
-    ggplotly(p) %>% config(displayModeBar = FALSE)
-  }) 
-  output$revenue_time_series3 <- renderPlotly({
-    if(input$Planning == TRUE){
-      p <- plot_revenue_over_time( df_plots(), input$displayType ) + 
-        geom_vline(xintercept=as.numeric(max(df$usage_date)),color='red3',linetype=2) +
-        geom_text(data=data.table(date=max(df$usage_date),extracol=0),aes(date,extracol),label="forecast",color='red3',angle=45,vjust=-0.5,hjust=-0.5)  
-    }else{
-      p <- plot_revenue_over_time( df_plots(), input$displayType )  
-    }
-    ggplotly(p) %>% config(displayModeBar = FALSE)
-  }) 
-  output$revenue_time_series4 <- renderPlotly({
-    # print(glimpse(df_plots()[1,]))
-    if(input$Planning == TRUE){
-      p <- plot_revenue_over_time( df_plots(), input$displayType ) + 
-        geom_vline(xintercept=as.numeric(max(df$usage_date)),color='red3',linetype=2) +
-        geom_text(data=data.table(date=max(df$usage_date),extracol=0),aes(date,extracol),label="forecast",color='red3',angle=45,vjust=-0.5,hjust=-0.5)  
-    }else{
-      p <- plot_revenue_over_time( df_plots(), input$displayType )  
-    }
-    ggplotly(p) %>% config(displayModeBar = FALSE)
-  }) 
-  output$revenue_time_series5 <- renderPlotly({
-    # print(glimpse(df_plots()[1,]))
-    if(input$Planning == TRUE){
-      p <- plot_revenue_over_time( df_plots(), input$displayType ) + 
-        geom_vline(xintercept=as.numeric(max(df$usage_date)),color='red3',linetype=2) +
-        geom_text(data=data.table(date=max(df$usage_date),extracol=0),aes(date,extracol),label="forecast",color='red3',angle=45,vjust=-0.5,hjust=-0.5)  
-    }else{
-      p <- plot_revenue_over_time( df_plots(), input$displayType )  
-    }
-    ggplotly(p) %>% config(displayModeBar = FALSE)
-  })
-  
-  
-  #******************************************************************
-  # Bar chart of revenue/usage by tier
-  #******************************************************************
-  output$barchart_by_tiers <- renderPlotly({
-    plot_barchart_by_tiers( df_plots(), input$displayType, input$barType )
-  })
-  output$barchart_by_tiers1 <- renderPlotly({
-    plot_barchart_by_tiers( df_plots1(), input$displayType, input$barType )
-  })
-  output$barchart_by_tiers2 <- renderPlotly({
-    plot_barchart_by_tiers( df_plots2(), input$displayType, input$barType )
-  })
-  output$barchart_by_tiers3 <- renderPlotly({
-    plot_barchart_by_tiers( df_plots3(), input$displayType, input$barType )
-  })
-  output$barchart_by_tiers4 <- renderPlotly({
-    plot_barchart_by_tiers( df_plots4(), input$displayType, input$barType )
-  })
-  output$barchart_by_tiers5 <- renderPlotly({
-    plot_barchart_by_tiers( df_plots5(), input$displayType, input$barType )
-  })
-  
-  #******************************************************************
-  # Reactive dataframe of changes to amount paid
-  #******************************************************************
-  df_change <- reactive({
-    start.time <- Sys.time()
-      df_change <- df_plots() %>% group_by(cust_id) %>% 
-      summarise(total_bill=sum(total_bill, na.rm=TRUE), 
-                baseline_bill=sum(baseline_bill, na.rm=TRUE),
-                hypothetical_usage=sum(hypothetical_usage, na.rm=TRUE), #calculating hypothetical and baseline usages
-                baseline_usage=sum(baseline_usage, na.rm=TRUE)) %>%
-      dplyr::select(total_bill, baseline_bill, hypothetical_usage, baseline_usage) %>% 
-                                                                #calucating differences in usage
-      mutate(changes=total_bill-baseline_bill, changes_in_usage=hypothetical_usage-baseline_usage, change_group=1)
-    
-      if (input$displayType == "Revenue"){
-        
-        df_change <- df_change %>% filter(abs(changes) < mean(changes, na.rm=TRUE) + 2.5*sd(changes, na.rm=TRUE))
-      }
-      
-      else{
-        df_change <- df_change %>% filter(abs(changes_in_usage) < mean(changes_in_usage, na.rm=TRUE) + 
-                               2.5*sd(changes_in_usage, na.rm=TRUE))
-      }
-    
-    end.time <- Sys.time()
-    time.taken <- end.time - start.time
-    print("Calcing df_change")
-    print(time.taken)
-    
-    df_change
-  })
-  
-  df_change1 <- reactive({
-    start.time <- Sys.time()
-    
-    df_change1 <- df_plots1() %>% group_by(cust_id) %>% 
-      summarise(total_bill=sum(total_bill, na.rm=TRUE), 
-                baseline_bill=sum(baseline_bill, na.rm=TRUE),
-                hypothetical_usage=sum(hypothetical_usage, na.rm=TRUE), #calculating hypothetical and baseline usages
-                baseline_usage=sum(baseline_usage, na.rm=TRUE)) %>%
-      dplyr::select(total_bill, baseline_bill, hypothetical_usage, baseline_usage) %>% 
-                                                                #calucating differences in usage                                                        
-      mutate(changes=total_bill-baseline_bill, changes_in_usage=hypothetical_usage-baseline_usage, change_group=1)
-    
-      if (input$displayType == "Revenue"){
-        
-        df_change1 <- df_change1 %>% filter(abs(changes) < mean(changes, na.rm=TRUE) + 2.5*sd(changes, na.rm=TRUE))
-      }
-    
-      else{
-        df_change1 <- df_change1 %>% filter(abs(changes_in_usage) < mean(changes_in_usage, na.rm=TRUE) + 
-                                          2.5*sd(changes_in_usage, na.rm=TRUE))
-    }
-    
-    end.time <- Sys.time()
-    time.taken <- end.time - start.time
-    print("Calcing df_change1")
-    print(time.taken)
-    
-    df_change1
-  })
-  
-  df_change2 <- reactive({
-    start.time <- Sys.time()
-    
-    df_change2 <- df_plots2() %>% group_by(cust_id) %>% 
-      summarise(total_bill=sum(total_bill, na.rm=TRUE), 
-                baseline_bill=sum(baseline_bill, na.rm=TRUE),
-                hypothetical_usage=sum(hypothetical_usage, na.rm=TRUE), #calculating hypothetical and baseline usages
-                baseline_usage=sum(baseline_usage, na.rm=TRUE)) %>%
-      dplyr::select(total_bill, baseline_bill, hypothetical_usage, baseline_usage) %>%
-                                                                #calucating differences in usage
-      mutate(changes=total_bill-baseline_bill, changes_in_usage=hypothetical_usage-baseline_usage, change_group=1)
-    
-    if (input$displayType == "Revenue"){
-      
-      df_change2 <- df_change2 %>% filter(abs(changes) < mean(changes, na.rm=TRUE) + 2.5*sd(changes, na.rm=TRUE))
-    }
-    
-    else{
-      df_change2 <- df_change2 %>% filter(abs(changes_in_usage) < mean(changes_in_usage, na.rm=TRUE) + 
-                                            2.5*sd(changes_in_usage, na.rm=TRUE))
-    }
-    
-    end.time <- Sys.time()
-    time.taken <- end.time - start.time
-    print("Calcing df_change")
-    print(time.taken)
-    
-    df_change2
-  })
-  
-  df_change3 <- reactive({
-    start.time <- Sys.time()
-    
-    df_change3 <- df_plots3() %>% group_by(cust_id) %>% 
-      summarise(total_bill=sum(total_bill, na.rm=TRUE), 
-                baseline_bill=sum(baseline_bill, na.rm=TRUE),
-                hypothetical_usage=sum(hypothetical_usage, na.rm=TRUE), #calculating hypothetical and baseline usages
-                baseline_usage=sum(baseline_usage, na.rm=TRUE)) %>%
-      dplyr::select(total_bill, baseline_bill, hypothetical_usage, baseline_usage) %>% 
-                                                                #calucating differences in usage
-      mutate(changes=total_bill-baseline_bill, changes_in_usage=hypothetical_usage-baseline_usage, change_group=1)
-    
-    if (input$displayType == "Revenue"){
-      
-      df_change3 <- df_change3 %>% filter(abs(changes) < mean(changes, na.rm=TRUE) + 2.5*sd(changes, na.rm=TRUE))
-    }
-    
-    else{
-      df_change3 <- df_change3 %>% filter(abs(changes_in_usage) < mean(changes_in_usage, na.rm=TRUE) + 
-                                            2.5*sd(changes_in_usage, na.rm=TRUE))
-    }
-    
-    end.time <- Sys.time()
-    time.taken <- end.time - start.time
-    print("Calcing df_change")
-    print(time.taken)
-    
-    df_change3
-  })
-  
-  
-  df_change4 <- reactive({
-    start.time <- Sys.time()
-    
-    df_change4 <- df_plots4() %>% group_by(cust_id) %>% 
-      summarise(total_bill=sum(total_bill, na.rm=TRUE), 
-                baseline_bill=sum(baseline_bill, na.rm=TRUE),
-                hypothetical_usage=sum(hypothetical_usage, na.rm=TRUE), #calculating hypothetical and baseline usages
-                baseline_usage=sum(baseline_usage, na.rm=TRUE)) %>%
-      dplyr::select(total_bill, baseline_bill, hypothetical_usage, baseline_usage) %>%
-                                                                #calucating differences in usage
-      mutate(changes=total_bill-baseline_bill, changes_in_usage=hypothetical_usage-baseline_usage, change_group=1)
-    
-    if (input$displayType == "Revenue"){
-      
-      df_change4 <- df_change4 %>% filter(abs(changes) < mean(changes, na.rm=TRUE) + 2.5*sd(changes, na.rm=TRUE))
-    }
-    
-    else{
-      df_change4 <- df_change4 %>% filter(abs(changes_in_usage) < mean(changes_in_usage, na.rm=TRUE) + 
-                                            2.5*sd(changes_in_usage, na.rm=TRUE))
-    }
-    
-    end.time <- Sys.time()
-    time.taken <- end.time - start.time
-    print("Calcing df_change")
-    print(time.taken)
-    
-    df_change4
-  })
-  
-  df_change5 <- reactive({
-    start.time <- Sys.time()
-    
-    df_change5 <- df_plots5() %>% group_by(cust_id) %>% 
-      summarise(total_bill=sum(total_bill, na.rm=TRUE), 
-                baseline_bill=sum(baseline_bill, na.rm=TRUE),
-                hypothetical_usage=sum(hypothetical_usage, na.rm=TRUE), #calculating hypothetical and baseline usages
-                baseline_usage=sum(baseline_usage, na.rm=TRUE)) %>%
-      dplyr::select(total_bill, baseline_bill, hypothetical_usage, baseline_usage) %>%
-                                                                #calucating differences in usage
-      mutate(changes=total_bill-baseline_bill, changes_in_usage=hypothetical_usage-baseline_usage, change_group=1)
-    
-    if (input$displayType == "Revenue"){
-      
-      df_change5 <- df_change5 %>% filter(abs(changes) < mean(changes, na.rm=TRUE) + 2.5*sd(changes, na.rm=TRUE))
-    }
-    
-    else{
-      df_change5 <- df_change5 %>% filter(abs(changes_in_usage) < mean(changes_in_usage, na.rm=TRUE) + 
-                                            2.5*sd(changes_in_usage, na.rm=TRUE))
-    }
-    
-    end.time <- Sys.time()
-    time.taken <- end.time - start.time
-    print("Calcing df_change")
-    print(time.taken)
-    
-    df_change5
-  })
-  
-  # Plot histogram
-  output$bill_change_histogram <- renderPlotly({
-    plot_bill_change_histogram( df_change(), input$displayType )
-  })
-  output$bill_change_histogram1 <- renderPlotly({
-    plot_bill_change_histogram( df_change1(), input$displayType )
-  })
-  output$bill_change_histogram2 <- renderPlotly({
-    plot_bill_change_histogram( df_change2(), input$displayType )
-  })
-  output$bill_change_histogram3 <- renderPlotly({
-    plot_bill_change_histogram( df_change3(), input$displayType )
-  })
-  output$bill_change_histogram4 <- renderPlotly({
-    plot_bill_change_histogram( df_change4(), input$displayType )
-  })
-  output$bill_change_histogram5 <- renderPlotly({
-    plot_bill_change_histogram( df_change5(), input$displayType )
-  })
-  
-  # Plot boxplot
-  output$bill_change_boxplot <- renderPlotly({
-    plot_bill_change_boxplot( df_change(), input$displayType )
-  })
-  output$bill_change_boxplot1 <- renderPlotly({
-    plot_bill_change_boxplot( df_change1(), input$displayType )
-  })
-  output$bill_change_boxplot2 <- renderPlotly({
-    plot_bill_change_boxplot( df_change2(), input$displayType )
-  })
-  output$bill_change_boxplot3 <- renderPlotly({
-    plot_bill_change_boxplot( df_change3(), input$displayType )
-  })
-  output$bill_change_boxplot4 <- renderPlotly({
-    plot_bill_change_boxplot( df_change4(), input$displayType )
-  })
-  output$bill_change_boxplot5 <- renderPlotly({
-    plot_bill_change_boxplot( df_change5(), input$displayType )
-  })
-  
-  output$fixed_revenue_barchart <- renderPlotly({
-    plot_fixed_revenue(df_plots(), input$barType)
-  })
-  output$fixed_revenue_barchart1 <- renderPlotly({
-    plot_fixed_revenue(df_plots1(), input$barType)
-  })
-  output$fixed_revenue_barchart2 <- renderPlotly({
-    plot_fixed_revenue(df_plots2(), input$barType)
-  })
-  output$fixed_revenue_barchart3 <- renderPlotly({
-    plot_fixed_revenue(df_plots3(), input$barType)
-  })
-  output$fixed_revenue_barchart4 <- renderPlotly({
-    plot_fixed_revenue(df_plots4(), input$barType)
-  })
-  output$fixed_revenue_barchart5 <- renderPlotly({
-    plot_fixed_revenue(df_plots5(), input$barType)
+         "IRWD"=irwd_baseline(basedata=DF()),
+         "MNWD"=baseline(basedata=DF()),
+         "LVMWD"=lvmwd_baseline(basedata=DF()),
+         "SMWD"=smwd_baseline(basedata=DF()),
+         "SMC"=smc_baseline(basedata=DF())
+    )
   })
   
 })
 
 
 
-mnwd_baseline <- function(basedata){
+baseline <- function(basedata){
   
+  bill_info <- RateParser::calculate_bill(basedata, baseline_rate_list)
+  bill_info <- bill_info %>% ungroup %>% dplyr::arrange(sort_index)
   
-    tier_starts <- get_budget_tiers(basedata, parse_strings("0\nIndoor\n101%\n126%\n151%"), 
-                                  get_indoor_tier(basedata, 60), get_outdoor_tier(basedata, 0.7))
-    bill_info <- calculate_variable_bill(basedata, rate_type="Budget", 
-                                       tier_starts=tier_starts,
-                                       tier_prices=parse_numerics("1.49\n1.70\n2.62\n4.38\n9.17"))
+  #mask for columns representing tier usage
+  usage_col_mask <- grepl("X[0-9]", names(bill_info))
+  revenue_col_mask <- grepl("XR[0-9]", names(bill_info))
+  num_tiers <- sum(usage_col_mask)
+  colnames(bill_info)[usage_col_mask] <- c( paste("B", 1:num_tiers, sep=""))
+  colnames(bill_info)[revenue_col_mask] <- c( paste("BR", 1:num_tiers, sep=""))
   
-  
-  num_tiers <- length(parse_strings("1.49\n1.70\n2.62\n4.38\n9.17"))
-  colnames(bill_info) <- c( paste("B", 1:num_tiers, sep=""),
-                            paste("BR", 1:num_tiers, sep=""),
-                            "baseline_variable_bill")
-  bill_info$baseline_bill <- bill_info$baseline_variable_bill + 11.39
+  bill_info <- bill_info %>% dplyr::rename(baseline_variable_bill=commodity_charge,
+                                           baseline_bill=bill)
   #adding baseline usage
-  bill_info$baseline_usage <- bill_info %>% select(matches("[B][0-9]")) %>% rowSums()
+  bill_info$baseline_usage <- bill_info$usage_ccf
+  
+  # select and return only relevent baseline columns
+  baseline_mask <- grepl("BR?[0-9]|baseline.*", names(bill_info))
+  bill_info <- bill_info[baseline_mask]
+  
+  # This should work but weird bug causes "cust_class" to get matched also
+  #bill_info <- bill_info %>% select(matches("BR?[0-9]|baseline.*"))
   
   return(bill_info)
 }
+
+
+
 
 lvmwd_baseline <- function(basedata){
   

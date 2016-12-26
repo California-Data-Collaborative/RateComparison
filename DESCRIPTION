@@ -13,9 +13,18 @@ Imports:
     scales,
     shiny,
     stringi,
-    zoo
-Suggests: testthat
-Authors@R: person("Christopher", "Tull", email = "chris@argolabs.org", role = c("aut", "cre"))
+    zoo,
+    RateParser
+Suggests: 
+    testthat
+Remotes: 
+    California-Data-Collaborative/RateParser
+Authors@R: c(
+    person("Christopher", "Tull",       email = "chris@argolabs.org", role = c("aut", "cre"),
+    person("Monobina",    "Mukherjee",                                role = c("aut"),
+    person("Anudeep",     "Vanjavakam",                               role = c("aut")),
+    person("Drew",        "Atwater",                                  role = c("sad")),
+    person("Johnathan",   "Cruz",                                     role = c("sad")))
 URL: https://github.com/California-Data-Collaborative/rate-comparison
 BugReports: https://github.com/California-Data-Collaborative/rate-comparison/issues
 License: AGPL-3.0
