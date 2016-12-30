@@ -3,17 +3,30 @@ options(shiny.error=NULL, shiny.minified=TRUE)
 
 
 shinyServer(function(input, output, clientData, session) {
-  
+
 
   #******************************************************************
   # Generate a planning dataframe either adding or deleting accounts
   # and forecasting usage into the future
   #******************************************************************
+  
+ # observe({
+ #    # if input months for forecast is zero, no scenario planning
+ #    if(input$Months == 0){
+ #    
+ #      updateCheckboxInput(session, "Planning", value = FALSE)
+ #    }
+ #   req(input$Months)
+ #   req(input$Growth)
+ # })
+  
+  
   planneddf <- reactive({
-   
+
+    
     if(input$Planning == TRUE){
-      
-      set.seed(10000)
+     
+      #set.seed(10000)
       
       #for mean usage_ccf
       monthlyusagebyaccount <- df %>% 
@@ -40,31 +53,36 @@ shinyServer(function(input, output, clientData, session) {
       
       #for generating customer class
       class_proportions <- as.data.frame(prop.table(table(df$cust_class)), stringsAsFactors = FALSE)
+      class_proportions$Var1 <- cust_class_list
+      class_proportions$Freq <- c(input$ResidentialSingle,input$ResidentialMulti,input$Irrigation,input$Commercial,
+                                  input$Other, input$Institutional)*input$Growth
       
       planneddflist <- list()
       
+      if("et_amount" %in% colnames(df)){
+        #average et by month
+        avg_et_df <-  df%>%  group_by(usage_month) %>% summarise(et_amount = mean(et_amount,na.rm=TRUE))
+      }
+      
+      
+      if("hhsize" %in% colnames(df)){
+        #average hhsize by customer class
+        mean_hhsize <- df %>% 
+          group_by(cust_class) %>% 
+          summarise(hhsize = round(mean(hhsize,na.rm=TRUE)))
+      }
+      
+      if("irr_area" %in% colnames(df)){
+        #irrarea <- mean(df$irr_area[!df$irr_area %in% boxplot.stats(df$irr_area)$out]) #removing outliers
+        #average irr_area by customer class
+        mean_irr_area <- df %>% 
+          group_by(cust_class) %>% 
+          summarise(irr_area = round(mean(irr_area,na.rm=TRUE)))
+      }
+     if(input$Growth>0){
+      
       if(is_budget){
-        if("et_amount" %in% colnames(df)){
-          #average et by month
-          avg_et_df <-  df%>%  group_by(usage_month) %>% summarise(et_amount = mean(et_amount,na.rm=TRUE))
-        }
-        
-
-        if("hhsize" %in% colnames(df)){
-          #average hhsize by customer class
-          mean_hhsize <- df %>% 
-                       group_by(cust_class) %>% 
-                       summarise(hhsize = round(mean(hhsize,na.rm=TRUE)))
-        }
-        
-        if("irr_area" %in% colnames(df)){
-          #irrarea <- mean(df$irr_area[!df$irr_area %in% boxplot.stats(df$irr_area)$out]) #removing outliers
-          #average irr_area by customer class
-          mean_irr_area <- df %>% 
-              group_by(cust_class) %>% 
-              summarise(irr_area = round(mean(irr_area,na.rm=TRUE)))
-        }
-        
+      
         #Begin generating data if budget type
         for(i in month_Vec){
           
@@ -78,9 +96,8 @@ shinyServer(function(input, output, clientData, session) {
           
           new_recent_month_data[, "usage_year"] <- rep(year(recent_date_Vec[i]), nrow(recent_month_data)+increment_Vec[i])
           
-          new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]), "cust_class"] <- sample(class_proportions$Var1, replace = TRUE, 
-                                                                                                                                prob = class_proportions$Freq,
-                                                                                                                                size = increment_Vec[i])
+          new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]), "cust_class"] <- rep(class_proportions$Var1,
+                                                                                                                             times = class_proportions$Freq)
           
           #for filling hhsize to new accounts
           tmp <- new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]),]
@@ -193,7 +210,116 @@ shinyServer(function(input, output, clientData, session) {
          
          
        }#End generating data if any other type
-  
+     }
+     else if(input$Growth == 0){
+       
+       
+       if(is_budget){
+         
+         #Begin generating data if budget type
+         for(i in month_Vec){
+           
+           new_recent_month_data <- recent_month_data
+           
+           #new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]), "cust_id"] <- 1:increment_Vec[i]
+           
+           new_recent_month_data[, "usage_date"] <- recent_date_Vec[i]
+           
+           new_recent_month_data[, "usage_month"] <- month(recent_date_Vec[i])
+           
+           new_recent_month_data[, "usage_year"] <- year(recent_date_Vec[i])
+           
+           #fill in average et by month
+           tmp <- left_join(new_recent_month_data, avg_et_df, by = 'usage_month')
+           
+           new_recent_month_data$et_amount <- tmp$et_amount.y
+           
+           #fill in average usage by account and month
+           tmp <- left_join(new_recent_month_data, monthlyusagebyaccount, by = c('cust_id','usage_month'))
+           
+           new_recent_month_data$usage_ccf <- tmp$usage_ccf.y
+           
+           planneddflist[[i]] <- new_recent_month_data
+           
+         }#End generating data for budget type
+       
+         
+         
+       }else{
+         #Begin generating data if any other type
+         for(i in month_Vec){
+           
+           new_recent_month_data <- recent_month_data
+           
+           new_recent_month_data[, "usage_date"] <- recent_date_Vec[i]
+           
+           new_recent_month_data[, "usage_month"] <- month(recent_date_Vec[i])
+           
+           new_recent_month_data[, "usage_year"] <- year(recent_date_Vec[i])
+           
+           #fill in average usage by account and month
+           tmp <- left_join(new_recent_month_data, monthlyusagebyaccount, by = c('cust_id','usage_month'))
+           
+           new_recent_month_data$usage_ccf <- tmp$usage_ccf.y
+           
+           planneddflist[[i]] <- new_recent_month_data
+           
+         }
+       
+         
+       }#End generating data if any other type
+     
+         
+     }else{#If decline in estimated accounts i.e growth < 0
+      
+      
+      #Begin degenerating data
+      for(i in month_Vec){
+        
+        decrement_Vec <- (1:input$Months)*input$Growth
+        
+        new_recent_month_data <- recent_month_data
+        
+        #randomly removing accounts
+        #will have to use for loop here to avoid repetitions
+        new_recent_month_data <- new_recent_month_data[-sample(1:nrow(filter(new_recent_month_data,cust_class == class_proportions$Var1[1])), 
+                                                               (abs(class_proportions$Freq[1])*abs(decrement_Vec[i]))),]
+        
+        new_recent_month_data <- new_recent_month_data[-sample(1:nrow(filter(new_recent_month_data,cust_class == class_proportions$Var1[2])), 
+                                                               abs(class_proportions$Freq[2])*abs(decrement_Vec[i])),]
+        new_recent_month_data <- new_recent_month_data[-sample(1:nrow(filter(new_recent_month_data,cust_class == class_proportions$Var1[3])), 
+                                                               abs(class_proportions$Freq[3])*abs(decrement_Vec[i])),]
+        new_recent_month_data <- new_recent_month_data[-sample(1:nrow(filter(new_recent_month_data,cust_class == class_proportions$Var1[4])), 
+                                                               abs(class_proportions$Freq[4])*abs(decrement_Vec[i])),]
+        new_recent_month_data <- new_recent_month_data[-sample(1:nrow(filter(new_recent_month_data,cust_class == class_proportions$Var1[5])), 
+                                                               abs(class_proportions$Freq[5])*abs(decrement_Vec[i])),]
+        new_recent_month_data <- new_recent_month_data[-sample(1:nrow(filter(new_recent_month_data,cust_class == class_proportions$Var1[6])), 
+                                                               abs(class_proportions$Freq[6])*abs(decrement_Vec[i])),]
+        
+        new_recent_month_data[, "usage_date"] <- recent_date_Vec[i]
+        
+        new_recent_month_data[, "usage_month"] <- month(recent_date_Vec[i])
+        
+        new_recent_month_data[, "usage_year"] <- year(recent_date_Vec[i])
+        
+        #if budget type, then et must be filled
+        if(is_budget){
+          #fill in average et by month
+          tmp <- left_join(new_recent_month_data, avg_et_df, by = 'usage_month')
+          
+          new_recent_month_data$et_amount <- tmp$et_amount.y
+        }
+        
+        #fill in average usage by account and month
+        tmp <- left_join(new_recent_month_data, monthlyusagebyaccount, by = c('cust_id','usage_month'))
+        
+        new_recent_month_data$usage_ccf <- tmp$usage_ccf.y
+        
+        
+        planneddflist[[i]] <- new_recent_month_data
+        
+      }#End degenerating data
+    }
   planneddf = do.call(rbind, planneddflist)
   planneddf <- rbind(df, planneddf)
   planneddf$sort_index <- 1:nrow(planneddf)
@@ -324,6 +450,9 @@ shinyServer(function(input, output, clientData, session) {
   DF <- reactive({
     if(input$Planning){
       planneddf()
+    }
+    else if(input$Planning & input$Months == 0){
+      df
     }
     else{
       df

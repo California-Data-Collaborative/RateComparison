@@ -220,6 +220,7 @@ classGraph <- function(input, output, session, cust_class, df_original, df_total
                       value = c(min(df_original()$usage_date), max(df_original()$usage_date)))
   })
   
+
   df_plots <- reactive({
 
     combined <- dplyr::bind_cols(df_original(), df_total_bill(), df_baseline_bill()) %>%
