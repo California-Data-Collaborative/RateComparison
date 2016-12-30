@@ -282,6 +282,7 @@ shinyServer(function(input, output, clientData, session) {
         
         #randomly removing accounts
         #will have to use for loop here to avoid repetitions
+        #no of rows must be reduced for each of the step here to avoid error
         new_recent_month_data <- new_recent_month_data[-sample(1:nrow(filter(new_recent_month_data,cust_class == class_proportions$Var1[1])), 
                                                                (abs(class_proportions$Freq[1])*abs(decrement_Vec[i]))),]
         
