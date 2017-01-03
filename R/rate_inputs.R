@@ -38,7 +38,7 @@ tierBox <- function(input, output, session, part_name, part_name_long,
     
     tagList(
       textAreaInput(ns("tier_box"), label=part_name_long, value=box_info,
-                    height=50)#text_height(input$depend_cols))
+                    height=150)#text_height(input$depend_cols))
     )
   })
   
@@ -122,11 +122,11 @@ ratePart <- function(input, output, session, part_name, part_name_long="", depen
       conditionalPanel(condition = sprintf("input['%s'] == true", ns("expanded")),
          fluidRow(
            column(7, textAreaInput(ns("depend_values"), label="Values", 
-                                   value=unique_values(input$depend_cols),
-                                   height=text_height(input$depend_cols) )),
+                                   value=unique_values(input$depend_cols, value_map),
+                                   height=text_height(input$depend_cols, value_map) )),
            column(5, textAreaInput(ns("depend_charges"), label="Charges ($)", 
                                    value=eval_uniques(input$depend_cols, value_map),
-                                   height=text_height(input$depend_cols)))
+                                   height=text_height(input$depend_cols, value_map)))
          )
       )
     )
@@ -148,8 +148,9 @@ simple_value <- function(simple_value_provided, part_name){
   value
 }
 
-
-unique_value_list <- function(colList){
+# Generate a vector of the unique values that will populate the dropdown
+# when a charge "depends on" a df column
+unique_value_list <- function(colList, value_map){
   
 #   uniqueList <- list()
 #   
@@ -159,8 +160,14 @@ unique_value_list <- function(colList){
 #   
 #   expand.grid(unique(df$meter_size), unique(df$meter_size), stringsAsFactors=FALSE)
   
+  
   if(is.null(colList)){
     retVal <- ""
+  }else if(!is.null(value_map)){
+    keys <- names(value_map)
+    all_uniques <- unique(df[[colList[1]]])
+    keys_not_in_map <- all_uniques[!(all_uniques %in% keys)]
+    retVal <- c(keys, keys_not_in_map)
   }else{
     sorted <- df %>%group_by_(colList[1]) %>% summarise_(count=sprintf("length(%s)", colList[1]) ) %>% 
                 arrange(desc(count))
@@ -170,18 +177,20 @@ unique_value_list <- function(colList){
   return(retVal)
 }
 
-unique_values <- function(colList){
-  ls <- unique_value_list(colList)
+unique_values <- function(colList, value_map){
+  ls <- unique_value_list(colList, value_map)
   return(paste0(ls, collapse="\n"))
 }
 
-num_uniques <- function(colList){
-  ls <- unique_value_list(colList)
+num_uniques <- function(colList, value_map){
+  ls <- unique_value_list(colList, value_map)
   return(length(ls))
 }
 
+# Evaluate the unique values given by unique_value_list to get the
+# charges associated with each value
 eval_uniques <- function(colList, value_map){
-  ls <- unique_value_list(colList)
+  ls <- unique_value_list(colList, value_map)
   retVal <- c()
   
   for(v in ls){
@@ -202,9 +211,10 @@ eval_uniques <- function(colList, value_map){
   return( paste0(retVal, collapse="\n") )
 }
 
-
-text_height <- function(colList){
-  return(26+21*num_uniques(colList))
+# return height (in pixels?) as a function 
+# of number of elements to display
+text_height <- function(colList, value_map){
+  return(26+21*num_uniques(colList, value_map))
 }
 
 
