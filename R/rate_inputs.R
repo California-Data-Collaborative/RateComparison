@@ -148,7 +148,8 @@ simple_value <- function(simple_value_provided, part_name){
   value
 }
 
-
+# Generate a vector of the unique values that will populate the dropdown
+# when a charge "depends on" a df column
 unique_value_list <- function(colList, value_map){
   
 #   uniqueList <- list()
@@ -158,7 +159,6 @@ unique_value_list <- function(colList, value_map){
 #   }
 #   
 #   expand.grid(unique(df$meter_size), unique(df$meter_size), stringsAsFactors=FALSE)
-  
   
   
   if(is.null(colList)){
@@ -187,6 +187,8 @@ num_uniques <- function(colList, value_map){
   return(length(ls))
 }
 
+# Evaluate the unique values given by unique_value_list to get the
+# charges associated with each value
 eval_uniques <- function(colList, value_map){
   ls <- unique_value_list(colList, value_map)
   retVal <- c()
@@ -209,10 +211,9 @@ eval_uniques <- function(colList, value_map){
   return( paste0(retVal, collapse="\n") )
 }
 
-
+# return height (in pixels?) as a function 
+# of number of elements to display
 text_height <- function(colList, value_map){
-  # return height (in pixels?) as a function 
-  # of number of elements to display
   return(26+21*num_uniques(colList, value_map))
 }
 
