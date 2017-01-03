@@ -38,7 +38,7 @@ tierBox <- function(input, output, session, part_name, part_name_long,
     
     tagList(
       textAreaInput(ns("tier_box"), label=part_name_long, value=box_info,
-                    height=50)#text_height(input$depend_cols))
+                    height=150)#text_height(input$depend_cols))
     )
   })
   
