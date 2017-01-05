@@ -24,7 +24,7 @@ shinyServer(function(input, output, clientData, session) {
   planneddf <- reactive({
 
     
-    if(input$Planning == TRUE){
+    if(input$Planning == TRUE & input$Months != 0){
      
       #set.seed(10000)
       
@@ -284,18 +284,18 @@ shinyServer(function(input, output, clientData, session) {
         #will have to use for loop here to avoid repetitions
         #no of rows must be reduced for each of the step here to avoid error
         new_recent_month_data <- new_recent_month_data[-sample(1:nrow(filter(new_recent_month_data,cust_class == class_proportions$Var1[1])), 
-                                                               (abs(class_proportions$Freq[1])*abs(decrement_Vec[i]))),]
+                                                        abs(class_proportions$Freq[1])), ]
         
         new_recent_month_data <- new_recent_month_data[-sample(1:nrow(filter(new_recent_month_data,cust_class == class_proportions$Var1[2])), 
-                                                               abs(class_proportions$Freq[2])*abs(decrement_Vec[i])),]
+                                                        abs(class_proportions$Freq[2])), ]
         new_recent_month_data <- new_recent_month_data[-sample(1:nrow(filter(new_recent_month_data,cust_class == class_proportions$Var1[3])), 
-                                                               abs(class_proportions$Freq[3])*abs(decrement_Vec[i])),]
+                                                        abs(class_proportions$Freq[3])), ]
         new_recent_month_data <- new_recent_month_data[-sample(1:nrow(filter(new_recent_month_data,cust_class == class_proportions$Var1[4])), 
-                                                               abs(class_proportions$Freq[4])*abs(decrement_Vec[i])),]
+                                                        abs(class_proportions$Freq[4])), ]
         new_recent_month_data <- new_recent_month_data[-sample(1:nrow(filter(new_recent_month_data,cust_class == class_proportions$Var1[5])), 
-                                                               abs(class_proportions$Freq[5])*abs(decrement_Vec[i])),]
+                                                        abs(class_proportions$Freq[5])), ]
         new_recent_month_data <- new_recent_month_data[-sample(1:nrow(filter(new_recent_month_data,cust_class == class_proportions$Var1[6])), 
-                                                               abs(class_proportions$Freq[6])*abs(decrement_Vec[i])),]
+                                                        abs(class_proportions$Freq[6])), ]
         
         new_recent_month_data[, "usage_date"] <- recent_date_Vec[i]
         
@@ -449,7 +449,7 @@ shinyServer(function(input, output, clientData, session) {
   
   # Return the proper dataframe given planning status
   DF <- reactive({
-    if(input$Planning){
+    if(input$Planning & input$Months != 0){
       planneddf()
     }
     else if(input$Planning & input$Months == 0){

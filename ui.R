@@ -25,7 +25,7 @@ shinyUI(navbarPage(
                    width = NULL),
      
      numericInput("Months", "Number of months to Forecast", 
-                  3, min = 1, max = 24, step = 1,
+                  0, min = 1, max = 24, step = 1,
                   width = NULL),
      numericInput("Growth", "Expected Monthly Growth/Decline of number of accounts (Enter Negative value for reduction in accounts)",
                   -10, min = -1000, max = 1000, step = 1,
