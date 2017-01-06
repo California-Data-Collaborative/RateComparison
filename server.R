@@ -1,4 +1,4 @@
-options(shiny.error= browser, shiny.minified=TRUE)
+options(shiny.error= NULL, shiny.minified=TRUE)
 # Load functions
 
 
@@ -53,6 +53,8 @@ shinyServer(function(input, output, clientData, session) {
       
       #for generating customer class
       class_proportions <- as.data.frame(prop.table(table(df$cust_class)), stringsAsFactors = FALSE)
+      
+      class_proportions$Freq <- class_proportions$Freq*input$Growth
       
       if(input$ResidentialSingle + input$ResidentialMulti + input$Irrigation + input$Commercial + input$Other == 1){
         
