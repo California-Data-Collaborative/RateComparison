@@ -214,6 +214,7 @@ classGraph <- function(input, output, session, cust_class, df_original, df_total
   )
   
   observe({
+    
     updateSliderInput(session, "timeSlider", label = "Time Range", 
                       min = min(df_original()$usage_date), 
                       max = max(df_original()$usage_date), 

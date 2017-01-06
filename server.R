@@ -1,4 +1,4 @@
-options(shiny.error=NULL, shiny.minified=TRUE)
+options(shiny.error= browser, shiny.minified=TRUE)
 # Load functions
 
 
@@ -23,7 +23,7 @@ shinyServer(function(input, output, clientData, session) {
   
   planneddf <- reactive({
 
-    
+    req(input$Growth)
     if(input$Planning == TRUE & input$Months != 0){
      
       #set.seed(10000)
@@ -53,10 +53,15 @@ shinyServer(function(input, output, clientData, session) {
       
       #for generating customer class
       class_proportions <- as.data.frame(prop.table(table(df$cust_class)), stringsAsFactors = FALSE)
-      class_proportions$Var1 <- cust_class_list
-      class_proportions$Freq <- c(input$ResidentialSingle,input$ResidentialMulti,input$Irrigation,input$Commercial,
-                                  input$Other, input$Institutional)*input$Growth
       
+      if(input$ResidentialSingle + input$ResidentialMulti + input$Irrigation + input$Commercial + input$Other == 1){
+        
+        class_proportions$Freq <- c(input$Commercial,input$Institutional, input$Irrigation,input$Other,input$ResidentialMulti,
+                                    input$ResidentialSingle)*input$Growth
+          
+      }
+      
+      #initialize a list for accommodating artificial data frames generated in loops at a later stage
       planneddflist <- list()
       
       if("et_amount" %in% colnames(df)){
@@ -282,18 +287,22 @@ shinyServer(function(input, output, clientData, session) {
         
         #randomly removing accounts
         #will have to use for loop here to avoid repetitions
-        #no of rows must be reduced for each of the step here to avoid error
+        
         new_recent_month_data <- new_recent_month_data[-sample(1:nrow(filter(new_recent_month_data,cust_class == class_proportions$Var1[1])), 
                                                         abs(class_proportions$Freq[1])), ]
         
         new_recent_month_data <- new_recent_month_data[-sample(1:nrow(filter(new_recent_month_data,cust_class == class_proportions$Var1[2])), 
                                                         abs(class_proportions$Freq[2])), ]
+        
         new_recent_month_data <- new_recent_month_data[-sample(1:nrow(filter(new_recent_month_data,cust_class == class_proportions$Var1[3])), 
                                                         abs(class_proportions$Freq[3])), ]
+        
         new_recent_month_data <- new_recent_month_data[-sample(1:nrow(filter(new_recent_month_data,cust_class == class_proportions$Var1[4])), 
                                                         abs(class_proportions$Freq[4])), ]
+        
         new_recent_month_data <- new_recent_month_data[-sample(1:nrow(filter(new_recent_month_data,cust_class == class_proportions$Var1[5])), 
                                                         abs(class_proportions$Freq[5])), ]
+        
         new_recent_month_data <- new_recent_month_data[-sample(1:nrow(filter(new_recent_month_data,cust_class == class_proportions$Var1[6])), 
                                                         abs(class_proportions$Freq[6])), ]
         
@@ -449,6 +458,7 @@ shinyServer(function(input, output, clientData, session) {
   
   # Return the proper dataframe given planning status
   DF <- reactive({
+    
     if(input$Planning & input$Months != 0){
       planneddf()
     }
