@@ -55,7 +55,7 @@ shinyServer(function(input, output, clientData, session) {
       class_proportions <- as.data.frame(prop.table(table(df$cust_class)), stringsAsFactors = FALSE)
       
       class_proportions$Freq <- class_proportions$Freq*input$Growth
-      
+      browser()
       if(input$ResidentialSingle + input$ResidentialMulti + input$Irrigation + input$Commercial + input$Other == 1){
         
         class_proportions$Freq <- c(input$Commercial,input$Institutional, input$Irrigation,input$Other,input$ResidentialMulti,
@@ -290,23 +290,23 @@ shinyServer(function(input, output, clientData, session) {
         #randomly removing accounts
         #will have to use for loop here to avoid repetitions
         
-        new_recent_month_data <- new_recent_month_data[-sample(1:nrow(filter(new_recent_month_data,cust_class == class_proportions$Var1[1])), 
-                                                        abs(class_proportions$Freq[1])), ]
+        new_recent_month_data <- new_recent_month_data[-(sample(1:nrow(filter(new_recent_month_data,cust_class == class_proportions$Var1[1])), 
+                                                        abs(class_proportions$Freq[1]))), ]
         
-        new_recent_month_data <- new_recent_month_data[-sample(1:nrow(filter(new_recent_month_data,cust_class == class_proportions$Var1[2])), 
-                                                        abs(class_proportions$Freq[2])), ]
+        new_recent_month_data <- new_recent_month_data[-(sample(1:nrow(filter(new_recent_month_data,cust_class == class_proportions$Var1[2])), 
+                                                        abs(class_proportions$Freq[2]))), ]
         
-        new_recent_month_data <- new_recent_month_data[-sample(1:nrow(filter(new_recent_month_data,cust_class == class_proportions$Var1[3])), 
-                                                        abs(class_proportions$Freq[3])), ]
+        new_recent_month_data <- new_recent_month_data[-(sample(1:nrow(filter(new_recent_month_data,cust_class == class_proportions$Var1[3])), 
+                                                        abs(class_proportions$Freq[3]))), ]
         
-        new_recent_month_data <- new_recent_month_data[-sample(1:nrow(filter(new_recent_month_data,cust_class == class_proportions$Var1[4])), 
-                                                        abs(class_proportions$Freq[4])), ]
+        new_recent_month_data <- new_recent_month_data[-(sample(1:nrow(filter(new_recent_month_data,cust_class == class_proportions$Var1[4])), 
+                                                        abs(class_proportions$Freq[4]))), ]
         
-        new_recent_month_data <- new_recent_month_data[-sample(1:nrow(filter(new_recent_month_data,cust_class == class_proportions$Var1[5])), 
-                                                        abs(class_proportions$Freq[5])), ]
+        new_recent_month_data <- new_recent_month_data[-(sample(1:nrow(filter(new_recent_month_data,cust_class == class_proportions$Var1[5])), 
+                                                        abs(class_proportions$Freq[5]))), ]
         
-        new_recent_month_data <- new_recent_month_data[-sample(1:nrow(filter(new_recent_month_data,cust_class == class_proportions$Var1[6])), 
-                                                        abs(class_proportions$Freq[6])), ]
+        new_recent_month_data <- new_recent_month_data[-(sample(1:nrow(filter(new_recent_month_data,cust_class == class_proportions$Var1[6])), 
+                                                        abs(class_proportions$Freq[6]))), ]
         
         new_recent_month_data[, "usage_date"] <- recent_date_Vec[i]
         
