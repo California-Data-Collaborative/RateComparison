@@ -1,4 +1,4 @@
-options(shiny.error= NULL, shiny.minified=TRUE)
+options(shiny.error= browser, shiny.minified=TRUE)
 # Load functions
 
 
@@ -24,6 +24,7 @@ shinyServer(function(input, output, clientData, session) {
   planneddf <- reactive({
 
     req(input$Growth)
+    
     if(input$Planning == TRUE & input$Months != 0){
      
       #set.seed(10000)
@@ -36,7 +37,7 @@ shinyServer(function(input, output, clientData, session) {
       
       month_Vec <- 1:input$Months
       
-      increment_Vec <- (1:input$Months)*input$Growth
+      increment_Vec <- (1:input$Months)*abs(input$Growth)
       
       recent_date <- max(df$usage_date)
       
@@ -54,14 +55,14 @@ shinyServer(function(input, output, clientData, session) {
       #for generating customer class
       class_proportions <- as.data.frame(prop.table(table(df$cust_class)), stringsAsFactors = FALSE)
       
-      class_proportions$Freq <- class_proportions$Freq*input$Growth
-      browser()
-      if(input$ResidentialSingle + input$ResidentialMulti + input$Irrigation + input$Commercial + input$Other == 1){
-        
-        class_proportions$Freq <- c(input$Commercial,input$Institutional, input$Irrigation,input$Other,input$ResidentialMulti,
-                                    input$ResidentialSingle)*input$Growth
+      validate(
+        need(input$ResidentialSingle + input$ResidentialMulti + input$Irrigation + input$Commercial + input$Other != abs(input$Growth), "For this graph to display, Please enter the number of customer classes so that they sum upto the monthly account growth/decline above")
+      )
+      
+      class_proportions$Freq <- c(input$Commercial,input$Institutional, input$Irrigation,input$Other,input$ResidentialMulti,
+                                    input$ResidentialSingle)
           
-      }
+      
       
       #initialize a list for accommodating artificial data frames generated in loops at a later stage
       planneddflist <- list()
@@ -104,7 +105,9 @@ shinyServer(function(input, output, clientData, session) {
           new_recent_month_data[, "usage_year"] <- rep(year(recent_date_Vec[i]), nrow(recent_month_data)+increment_Vec[i])
           
           new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]), "cust_class"] <- rep(class_proportions$Var1,
-                                                                                                                             times = class_proportions$Freq)
+                                                                                                                             times = class_proportions$Freq,
+                                                                                                                             length.out = increment_Vec[i])
+          
           
           #for filling hhsize to new accounts
           tmp <- new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]),]
@@ -179,9 +182,9 @@ shinyServer(function(input, output, clientData, session) {
            
            new_recent_month_data[, "usage_year"] <- rep(year(recent_date_Vec[i]), nrow(recent_month_data)+increment_Vec[i])
            
-           new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]), "cust_class"] <- sample(class_proportions$Var1, replace = TRUE, 
-                                                                                                                                 prob = class_proportions$Freq,
-                                                                                                                                 size = increment_Vec[i])
+           new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]), "cust_class"] <- rep(class_proportions$Var1,
+                                                                                                                              times = class_proportions$Freq,
+                                                                                                                              length.out = increment_Vec[i])
       
 
            #fill in average usage by account and month
@@ -283,7 +286,7 @@ shinyServer(function(input, output, clientData, session) {
       #Begin degenerating data
       for(i in month_Vec){
         
-        decrement_Vec <- (1:input$Months)*input$Growth
+        #decrement_Vec <- (1:input$Months)*abs(input$Growth)
         
         new_recent_month_data <- recent_month_data
         
@@ -291,22 +294,22 @@ shinyServer(function(input, output, clientData, session) {
         #will have to use for loop here to avoid repetitions
         
         new_recent_month_data <- new_recent_month_data[-(sample(1:nrow(filter(new_recent_month_data,cust_class == class_proportions$Var1[1])), 
-                                                        abs(class_proportions$Freq[1]))), ]
+                                                                size = class_proportions$Freq[1])), ]
         
         new_recent_month_data <- new_recent_month_data[-(sample(1:nrow(filter(new_recent_month_data,cust_class == class_proportions$Var1[2])), 
-                                                        abs(class_proportions$Freq[2]))), ]
+                                                                size = class_proportions$Freq[2])), ]
         
         new_recent_month_data <- new_recent_month_data[-(sample(1:nrow(filter(new_recent_month_data,cust_class == class_proportions$Var1[3])), 
-                                                        abs(class_proportions$Freq[3]))), ]
+                                                                size = class_proportions$Freq[3])), ]
         
         new_recent_month_data <- new_recent_month_data[-(sample(1:nrow(filter(new_recent_month_data,cust_class == class_proportions$Var1[4])), 
-                                                        abs(class_proportions$Freq[4]))), ]
+                                                                size = class_proportions$Freq[4])), ]
         
         new_recent_month_data <- new_recent_month_data[-(sample(1:nrow(filter(new_recent_month_data,cust_class == class_proportions$Var1[5])), 
-                                                        abs(class_proportions$Freq[5]))), ]
+                                                                size = class_proportions$Freq[5])), ]
         
         new_recent_month_data <- new_recent_month_data[-(sample(1:nrow(filter(new_recent_month_data,cust_class == class_proportions$Var1[6])), 
-                                                        abs(class_proportions$Freq[6]))), ]
+                                                                size = class_proportions$Freq[6])), ]
         
         new_recent_month_data[, "usage_date"] <- recent_date_Vec[i]
         
@@ -460,7 +463,7 @@ shinyServer(function(input, output, clientData, session) {
   
   # Return the proper dataframe given planning status
   DF <- reactive({
-    
+    req(input$Months)
     if(input$Planning & input$Months != 0){
       planneddf()
     }

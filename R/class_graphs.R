@@ -137,11 +137,11 @@ classGraphOutput <- function(id, rate_codes){
                       plotlyOutput(ns("bill_change_boxplot"), height=100),
                       plotlyOutput(ns("bill_change_histogram"), height=250) )
                
-             ),
+             )#,
              
-             tags$style(type="text/css",
-                        ".shiny-output-error { visibility: hidden; }",
-                        ".shiny-output-error:before { visibility: hidden; }" )
+             #tags$style(type="text/css",
+                       # ".shiny-output-error { visibility: hidden; }",
+                       # ".shiny-output-error:before { visibility: hidden; }" )
       ) # end column
     )# end row
   )#end tagList
