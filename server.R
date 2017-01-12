@@ -10,21 +10,19 @@ shinyServer(function(input, output, clientData, session) {
   # and forecasting usage into the future
   #******************************************************************
   
- # observe({
- #    # if input months for forecast is zero, no scenario planning
- #    if(input$Months == 0){
- #    
- #      updateCheckboxInput(session, "Planning", value = FALSE)
- #    }
- #   req(input$Months)
- #   req(input$Growth)
- # })
-  
+
   
   planneddf <- reactive({
-
-    req(input$Growth)
     
+    #Make sure they are not blank
+    req(input$ResidentialSingle)
+    req(input$Institutional)
+    req(input$Other)
+    req(input$Commercial)
+    req(input$Irrigation)
+    req(input$ResidentialMulti)
+    
+    Growth <- input$ResidentialSingle + input$ResidentialMulti + input$Irrigation + input$Commercial + input$Other + input$Institutional
     if(input$Planning == TRUE & input$Months != 0){
      
       #set.seed(10000)
@@ -37,7 +35,7 @@ shinyServer(function(input, output, clientData, session) {
       
       month_Vec <- 1:input$Months
       
-      increment_Vec <- (1:input$Months)*abs(input$Growth)
+      increment_Vec <- (1:input$Months)*abs(Growth)
       
       recent_date <- max(df$usage_date)
       
@@ -55,17 +53,10 @@ shinyServer(function(input, output, clientData, session) {
       #for generating customer class
       class_proportions <- as.data.frame(prop.table(table(df$cust_class)), stringsAsFactors = FALSE)
       
+      class_proportions$Freq <- c(input$Commercial,input$Institutional, input$Irrigation,input$Other,input$ResidentialMulti,
+                                  input$ResidentialSingle)
 
-      if(input$ResidentialSingle + input$ResidentialMulti + input$Irrigation + input$Commercial + input$Other == abs(input$Growth)){
-          class_proportions$Freq <- c(input$Commercial,input$Institutional, input$Irrigation,input$Other,input$ResidentialMulti,
-                                      input$ResidentialSingle)
-      }else{
-        
-        validate(
-          need(input$ResidentialSingle + input$ResidentialMulti + input$Irrigation + input$Commercial + input$Other != abs(input$Growth),
-          "For this graph to display, Please enter the number of customer classes so that they sum upto the monthly account growth/decline above"))
-      
-      }
+
       
       #initialize a list for accommodating artificial data frames generated in loops at a later stage
       planneddflist <- list()
@@ -90,7 +81,7 @@ shinyServer(function(input, output, clientData, session) {
           group_by(cust_class) %>% 
           summarise(irr_area = round(mean(irr_area,na.rm=TRUE)))
       }
-     if(input$Growth>0){
+     if(Growth>0){
       
        
       if(is_budget){
@@ -225,7 +216,7 @@ shinyServer(function(input, output, clientData, session) {
          
        }#End generating data if any other type
      }
-     else if(input$Growth == 0){
+     else if(Growth == 0){
        
        
        if(is_budget){
