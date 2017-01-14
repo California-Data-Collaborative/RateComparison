@@ -1,4 +1,4 @@
-options(shiny.error= browser, shiny.minified=TRUE)
+options(shiny.error= NULL, shiny.minified=TRUE)
 # Load functions
 
 
@@ -103,7 +103,7 @@ shinyServer(function(input, output, clientData, session) {
           new_recent_month_data <- recent_month_data
           
           for(j in 1:nrow(class_proportions)){
-            if(class_proportions$Freq[j] >0){
+            if(class_proportions$Freq[j] >= 0){
               new_recent_month_data[(nrow(new_recent_month_data)+1):(nrow(new_recent_month_data)+(class_proportions$Freq[j]*i)), "cust_class"] <- class_proportions$Var1[j]
            
             }else{
@@ -187,7 +187,7 @@ shinyServer(function(input, output, clientData, session) {
            new_recent_month_data <- recent_month_data
            
            for(j in 1:nrow(class_proportions)){
-             if(class_proportions$Freq[j] >0){
+             if(class_proportions$Freq[j] >= 0){
                new_recent_month_data[(nrow(new_recent_month_data)+1):(nrow(new_recent_month_data)+(class_proportions$Freq[j]*i)), "cust_class"] <- class_proportions$Var1[j]
                
              }else{
@@ -401,7 +401,7 @@ shinyServer(function(input, output, clientData, session) {
         #randomly removing accounts
         
         for(j in 1:nrow(class_proportions)){
-          if(class_proportions$Freq[j] >0){
+          if(class_proportions$Freq[j] >= 0){
             new_recent_month_data[(nrow(new_recent_month_data)+1):(nrow(new_recent_month_data)+(class_proportions$Freq[j]*i)), "cust_class"] <- class_proportions$Var1[j]
             
           }else{

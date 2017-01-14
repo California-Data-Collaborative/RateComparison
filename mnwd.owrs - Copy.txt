@@ -99,10 +99,18 @@ rate_structure:
       - 125%
       - 150%
     tier_prices:
-      - 1.70
-      - 2.62
-      - 4.38
-      - 9.17
+      depends_on: water_type
+      values:
+        POTABLE:
+          - 1.70
+          - 2.62
+          - 4.38
+          - 9.17
+        RECYCLED:
+          - 1.24
+          - 1.74
+          - 3.50
+          - 8.29
     commodity_charge: Budget
     bill: "commodity_charge+service_charge"
   COMMERCIAL:
