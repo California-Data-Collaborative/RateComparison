@@ -61,10 +61,15 @@ shinyServer(function(input, output, clientData, session) {
       
       class_proportions$Freq <- c(input$Commercial,input$Institutional, input$Irrigation,input$Other,input$ResidentialMulti,
                                   input$ResidentialSingle)
+      
       negative_classes_df <- class_proportions[class_proportions$Freq < 0, ]
+      
       total_negative_classes <- sum(negative_classes_df$Freq)
+      
       positive_classes_df <- class_proportions[class_proportions$Freq > 0, ]
+      
       total_positive_classes <- sum(positive_classes_df$Freq)
+      
       extra_rows <- sum(total_positive_classes+total_negative_classes)
       
       
@@ -243,94 +248,7 @@ shinyServer(function(input, output, clientData, session) {
          
          
        }#End generating data if any other type
-     # }else if(Growth == 0){
-     #   
-     #   if(is_budget){
-     #     
-     #     #Begin generating data if budget type
-     #     for(i in month_Vec){
-     #       
-     #       new_recent_month_data <- recent_month_data
-     #       
-     #       for(j in 1:nrow(class_proportions)){
-     #         if(class_proportions$Freq[j] >0){
-     #           new_recent_month_data[(nrow(new_recent_month_data)+1):(nrow(new_recent_month_data)+(class_proportions$Freq[j]*i)), "cust_class"] <- class_proportions$Var1[j]
-     #           
-     #         }else{
-     #           class_proportions$Freq[j] <- abs(class_proportions$Freq[j])
-     #           new_recent_month_data <- new_recent_month_data[-(sample(1:nrow(filter(new_recent_month_data,cust_class == class_proportions$Var1[j])), 
-     #                                                                   size = class_proportions$Freq[j])), ]
-     #           
-     #           
-     #         }
-     #       }
-     #       
-     #       #new_recent_month_data[(nrow(recent_month_data)+1):(nrow(recent_month_data)+increment_Vec[i]), "cust_id"] <- 1:increment_Vec[i]
-     #       
-     #       new_recent_month_data[, "usage_date"] <- recent_date_Vec[i]
-     #       
-     #       new_recent_month_data[, "usage_month"] <- month(recent_date_Vec[i])
-     #       
-     #       new_recent_month_data[, "usage_year"] <- year(recent_date_Vec[i])
-     #       
-     #       #fill in average et by month
-     #       tmp <- left_join(new_recent_month_data, avg_et_df, by = 'usage_month')
-     #       
-     #       new_recent_month_data$et_amount <- tmp$et_amount.y
-     #       
-     #       #fill in average usage by account and month
-     #       tmp <- left_join(new_recent_month_data, monthlyusagebyaccount, by = c('cust_id','usage_month'))
-     #       
-     #       new_recent_month_data$usage_ccf <- tmp$usage_ccf.y
-     #       
-     #       #fill in the usage for new accounts with the estimated usage input
-     #       new_recent_month_data[(nrow(new_recent_month_data)-(total_positive_classes*i)+1):nrow(new_recent_month_data), "usage_ccf"] <- input$EstUsagePerAccount
-     #       browser()
-     #       planneddflist[[i]] <- new_recent_month_data
-     #       
-     #     }#End generating data for budget type
-     #     
-     #     
-     #     
-     #   }else{
-     #     #Begin generating data if any other type
-     #     for(i in month_Vec){
-     #       
-     #       new_recent_month_data <- recent_month_data
-     #       
-     #       for(j in 1:nrow(class_proportions)){
-     #         if(class_proportions$Freq[j] >0){
-     #           new_recent_month_data[(nrow(new_recent_month_data)+1):(nrow(new_recent_month_data)+(class_proportions$Freq[j]*i)), "cust_class"] <- class_proportions$Var1[j]
-     #           
-     #         }else{
-     #           class_proportions$Freq[j] <- abs(class_proportions$Freq[j])
-     #           new_recent_month_data <- new_recent_month_data[-(sample(1:nrow(filter(new_recent_month_data,cust_class == class_proportions$Var1[j])), 
-     #                                                                   size = class_proportions$Freq[j])), ]
-     #           
-     #           
-     #         }
-     #       }
-     #       
-     #       new_recent_month_data[, "usage_date"] <- recent_date_Vec[i]
-     #       
-     #       new_recent_month_data[, "usage_month"] <- month(recent_date_Vec[i])
-     #       
-     #       new_recent_month_data[, "usage_year"] <- year(recent_date_Vec[i])
-     #       
-     #       #fill in average usage by account and month
-     #       tmp <- left_join(new_recent_month_data, monthlyusagebyaccount, by = c('cust_id','usage_month'))
-     #       
-     #       new_recent_month_data$usage_ccf <- tmp$usage_ccf.y
-     #       
-     #       #fill in the usage for new accounts with the estimated usage input
-     #       new_recent_month_data[(nrow(new_recent_month_data)-(total_positive_classes*i)+1):nrow(new_recent_month_data), "usage_ccf"] <- input$EstUsagePerAccount
-     #       
-     #       planneddflist[[i]] <- new_recent_month_data
-     #       
-     #     }
-     #     
-     #     
-     #   }#End generating data if any other type
+ 
      }else if(constant_Growth == TRUE){
        
        
