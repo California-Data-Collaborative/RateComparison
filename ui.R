@@ -63,7 +63,7 @@ shinyUI(navbarPage(
      fluidRow(
        column(2, strong("Commercial")),
        column(2, numericInput("Commercial", NULL, 
-                              -1, min = -1000, max = 1000, step = 1,
+                              1, min = -1000, max = 1000, step = 1,
                               width = NULL)),
        column(2, numericInput("EstUsagePerAccount_commercial", NULL,
                               10, min = 0, max = 1000, step = NA,

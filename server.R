@@ -155,7 +155,13 @@ shinyServer(function(input, output, clientData, session) {
           new_recent_month_data$usage_ccf[1:nrow(recent_month_data)] <- tmp$usage_ccf.y
           
           #fill in the usage for new accounts with the estimated usage input
-          new_recent_month_data[(nrow(new_recent_month_data)-(total_positive_classes*i)+1):nrow(new_recent_month_data), "usage_ccf"] <- input$EstUsagePerAccount
+          new_recent_month_data[is.na(new_recent_month_data$sort_index) & new_recent_month_data$cust_class == "RESIDENTIAL_SINGLE", "usage_ccf"] <- input$EstUsagePerAccount
+          new_recent_month_data[is.na(new_recent_month_data$sort_index) & new_recent_month_data$cust_class == "RESIDENTIAL_MULTI", "usage_ccf"] <- input$EstUsagePerAccount_multi
+          new_recent_month_data[is.na(new_recent_month_data$sort_index) & new_recent_month_data$cust_class == "IRRIGATION", "usage_ccf"] <- input$EstUsagePerAccount_irrigation
+          new_recent_month_data[is.na(new_recent_month_data$sort_index) & new_recent_month_data$cust_class == "COMMERCIAL", "usage_ccf"] <- input$EstUsagePerAccount_commercial
+          new_recent_month_data[is.na(new_recent_month_data$sort_index) & new_recent_month_data$cust_class == "INSTITUTIONAL", "usage_ccf"] <- input$EstUsagePerAccount_institutional
+          new_recent_month_data[is.na(new_recent_month_data$sort_index) & new_recent_month_data$cust_class == "OTHER", "usage_ccf"] <- input$EstUsagePerAccount_other
+          #new_recent_month_data[(nrow(new_recent_month_data)-(total_positive_classes*i)+1):nrow(new_recent_month_data), "usage_ccf"] <- input$EstUsagePerAccount
           
           
           #fill in meter size for new accounts
@@ -223,7 +229,12 @@ shinyServer(function(input, output, clientData, session) {
            new_recent_month_data$usage_ccf[1:nrow(recent_month_data)] <- tmp$usage_ccf.y
            
            #fill in the usage for new accounts with the estimated usage input
-           new_recent_month_data[(nrow(new_recent_month_data)-(total_positive_classes*i)+1):nrow(new_recent_month_data), "usage_ccf"] <- input$EstUsagePerAccount
+           new_recent_month_data[is.na(new_recent_month_data$sort_index) & new_recent_month_data$cust_class == "RESIDENTIAL_SINGLE", "usage_ccf"] <- input$EstUsagePerAccount
+           new_recent_month_data[is.na(new_recent_month_data$sort_index) & new_recent_month_data$cust_class == "RESIDENTIAL_MULTI", "usage_ccf"] <- input$EstUsagePerAccount_multi
+           new_recent_month_data[is.na(new_recent_month_data$sort_index) & new_recent_month_data$cust_class == "IRRIGATION", "usage_ccf"] <- input$EstUsagePerAccount_irrigation
+           new_recent_month_data[is.na(new_recent_month_data$sort_index) & new_recent_month_data$cust_class == "COMMERCIAL", "usage_ccf"] <- input$EstUsagePerAccount_commercial
+           new_recent_month_data[is.na(new_recent_month_data$sort_index) & new_recent_month_data$cust_class == "INSTITUTIONAL", "usage_ccf"] <- input$EstUsagePerAccount_institutional
+           new_recent_month_data[is.na(new_recent_month_data$sort_index) & new_recent_month_data$cust_class == "OTHER", "usage_ccf"] <- input$EstUsagePerAccount_other
            
            if("cust_loc_meter_size" %in% colnames(df)){
            #fill in meter size for new accounts
