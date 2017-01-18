@@ -140,8 +140,8 @@ classGraphOutput <- function(id, rate_codes){
              ),
              
              tags$style(type="text/css",
-                        ".shiny-output-error { visibility: hidden; }",
-                        ".shiny-output-error:before { visibility: hidden; }" )
+             ".shiny-output-error { visibility: hidden; }",
+             ".shiny-output-error:before { visibility: hidden; }" )
       ) # end column
     )# end row
   )#end tagList
@@ -214,12 +214,14 @@ classGraph <- function(input, output, session, cust_class, df_original, df_total
   )
   
   observe({
+    
     updateSliderInput(session, "timeSlider", label = "Time Range", 
                       min = min(df_original()$usage_date), 
                       max = max(df_original()$usage_date), 
                       value = c(min(df_original()$usage_date), max(df_original()$usage_date)))
   })
   
+
   df_plots <- reactive({
 
     combined <- dplyr::bind_cols(df_original(), df_total_bill(), df_baseline_bill()) %>%
@@ -297,7 +299,7 @@ classGraph <- function(input, output, session, cust_class, df_original, df_total
   })
   
   return(input_list)
-}
+}#End of classGraph Function
 
 
 
