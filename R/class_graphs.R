@@ -259,15 +259,25 @@ classGraph <- function(input, output, session, cust_class, df_original, df_total
   #******************************************************************
   df_change <- reactive({
     start.time <- Sys.time()
-    df_change <- df_plots() %>% group_by(cust_id) %>% 
-      summarise(total_bill=sum(total_bill, na.rm=TRUE), 
-                baseline_bill=sum(baseline_bill, na.rm=TRUE),
-                hypothetical_usage=sum(hypothetical_usage, na.rm=TRUE), #calculating hypothetical and baseline usages
-                baseline_usage=sum(baseline_usage, na.rm=TRUE)) %>%
-      dplyr::select(total_bill, baseline_bill, hypothetical_usage, baseline_usage) %>% 
-      #calucating differences in usage
-      mutate(changes=total_bill-baseline_bill, changes_in_usage=hypothetical_usage-baseline_usage, change_group=1)
-    
+    if(input$barType == "Absolute"){
+      df_change <- df_plots() %>% group_by(cust_id) %>% 
+        summarise(total_bill=sum(total_bill, na.rm=TRUE), 
+                  baseline_bill=sum(baseline_bill, na.rm=TRUE),
+                  hypothetical_usage=sum(hypothetical_usage, na.rm=TRUE), #calculating hypothetical and baseline usages
+                  baseline_usage=sum(baseline_usage, na.rm=TRUE)) %>%
+        dplyr::select(total_bill, baseline_bill, hypothetical_usage, baseline_usage) %>% 
+        #calucating differences in usage
+        mutate(changes=total_bill-baseline_bill, changes_in_usage=hypothetical_usage-baseline_usage, change_group=1)
+    }else{
+      df_change <- df_plots() %>% group_by(cust_id) %>% 
+        summarise(total_bill=sum(total_bill, na.rm=TRUE), 
+                  baseline_bill=sum(baseline_bill, na.rm=TRUE),
+                  hypothetical_usage=sum(hypothetical_usage, na.rm=TRUE), #calculating hypothetical and baseline usages
+                  baseline_usage=sum(baseline_usage, na.rm=TRUE)) %>%
+        dplyr::select(total_bill, baseline_bill, hypothetical_usage, baseline_usage) %>% 
+        #calucating differences in usage
+        mutate(changes=((total_bill-baseline_bill)/baseline_bill)*100, changes_in_usage=((hypothetical_usage-baseline_usage)/baseline_usage)*100, change_group=1)
+    }
     if (input$displayType == "Revenue"){
       df_change <- df_change %>% filter(abs(changes) < mean(changes, na.rm=TRUE) + 2.5*sd(changes, na.rm=TRUE))
     }
@@ -286,12 +296,12 @@ classGraph <- function(input, output, session, cust_class, df_original, df_total
   
   # Plot histogram
   output$bill_change_histogram <- renderPlotly({
-    plot_bill_change_histogram( df_change(), input$displayType )
+    plot_bill_change_histogram( df_change(), input$displayType, input$barType )
   })
   
   # Plot boxplot
   output$bill_change_boxplot <- renderPlotly({
-    plot_bill_change_boxplot( df_change(), input$displayType )
+    plot_bill_change_boxplot( df_change(), input$displayType, input$barType )
   })
   
   output$fixed_revenue_barchart <- renderPlotly({
