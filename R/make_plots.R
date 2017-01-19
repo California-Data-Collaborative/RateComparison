@@ -101,38 +101,54 @@ plot_bill_change_histogram <- function(data, display_type, bar_type){
   if(display_type=="Revenue"){
     if(sum(abs(data$changes)) < 1){
       p <- ggplot() + 
-           geom_vline(xintercept = 0, color="#CC0000") +
-           xlab("Change in total amount paid ($)")
+        geom_vline(xintercept = 0, color="#CC0000")
+      if(bar_type == "Absolute"){
+        p <- p + xlab("Change in total amount paid ($)")
+      }else{
+        p <- p + xlab("% Change in total amount paid")   
+      }
     }
     else{
       p <- ggplot(data, aes(x=changes)) + geom_histogram() + 
-           geom_vline(xintercept = mean(data$changes, na.rm=TRUE), color="#CC0000") +
-           xlab("Change in total amount paid ($)") + ylab("") +
-           theme(axis.ticks = element_blank(), axis.text.y = element_blank())
+        geom_vline(xintercept = mean(data$changes, na.rm=TRUE), color="#CC0000") +
+        theme(axis.ticks = element_blank(), axis.text.y = element_blank())
+      if(bar_type == "Absolute"){
+        p <- p + xlab("Change in total amount paid ($)") + ylab("")
+      }else{
+        p <- p + xlab("% Change in total amount paid") + ylab("")   
+      }
     }
-  
-  end.time <- Sys.time()
-  time.taken <- end.time - start.time
-  print("Making Revenue histogram") 
-  print(time.taken)
+    
+    end.time <- Sys.time()
+    time.taken <- end.time - start.time
+    print("Making Revenue histogram") 
+    print(time.taken)
   }
   else{ #if usage is selected, plot changes in usage
     if(sum(abs(data$changes_in_usage)) < 1){  
       p <- ggplot() + 
-           geom_vline(xintercept = 0, color="#CC0000") +
-           xlab("Change in total amount used (ccf)")
+        geom_vline(xintercept = 0, color="#CC0000")
+      if(bar_type == "Absolute"){
+        p <- p + xlab("Change in total amount used (ccf)")
+      }else{
+        p <- p + xlab("% Change in total amount used")   
+      }
     }
     else{
       p <- ggplot(data, aes(x=changes_in_usage)) + geom_histogram() + 
-           geom_vline(xintercept = mean(data$changes_in_usage, na.rm=TRUE), color="#CC0000") +
-           xlab("Change in total amount used (ccf)") + ylab("") +
-           theme(axis.ticks = element_blank(), axis.text.y = element_blank())
+        geom_vline(xintercept = mean(data$changes_in_usage, na.rm=TRUE), color="#CC0000") +
+        theme(axis.ticks = element_blank(), axis.text.y = element_blank())
+      if(bar_type == "Absolute"){
+        p <- p + xlab("Change in total amount used (ccf)") + ylab("")
+      }else{
+        p <- p + xlab("% Change in total amount used") + ylab("")   
+      }
     }
     
-  end.time <- Sys.time()
-  time.taken <- end.time - start.time
-  print("Making Usage histogram") 
-  print(time.taken)
+    end.time <- Sys.time()
+    time.taken <- end.time - start.time
+    print("Making Usage histogram") 
+    print(time.taken)
     
   }
   ggplotly(p) %>% config(displayModeBar = FALSE)
@@ -226,7 +242,7 @@ plot_barchart_by_tiers <- function(data, display_type, bar_type){
     baseline_perc_df <- d %>% filter(type == 'Baseline') %>% mutate(value = value/sum(value)*100)
     perc_df <- rbind(hypothetical_perc_df, baseline_perc_df)
     p <- ggplot(perc_df, aes(type, value, fill=Tier)) + geom_bar(stat="identity") +
-      xlab("") + ylab(lab_str)
+      xlab("") + ylab(paste("%",lab_str))
     
   }
   ggplotly(p) %>% config(displayModeBar = FALSE)
