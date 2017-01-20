@@ -82,7 +82,7 @@ ratePart <- function(input, output, session, part_name, part_name_long="", depen
       fluidRow(
          column(1, checkboxInput(ns("expanded"), label=NULL, value = is_expanded)),
          conditionalPanel(condition = sprintf("input['%s'] == false", ns("expanded")),
-           column(5, strong( paste0(part_name_long, " ($):" ) )),
+           column(5, strong( paste0(part_name_long, ":" ) )),
            column(5, numericInput(ns("simpleValue"), label=NULL, value=simple_value(simple_value_provided, part_name)) )
          ),
          conditionalPanel(condition = sprintf("input['%s'] == true", ns("expanded")),
