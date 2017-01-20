@@ -238,11 +238,18 @@ plot_barchart_by_tiers <- function(data, display_type, bar_type){
       xlab("") + ylab(lab_str)
   }
   else{
+    
+    if(display_type=="Revenue"){
+      lab_str <- "Percent of Revenue in Each Tier"
+    }else{
+      lab_str <- "Percent of Usage in Each Tier"
+    }
+    
     hypothetical_perc_df <- d %>% filter(type == 'Hypothetical') %>% mutate(value = value/sum(value)*100)
     baseline_perc_df <- d %>% filter(type == 'Baseline') %>% mutate(value = value/sum(value)*100)
     perc_df <- rbind(hypothetical_perc_df, baseline_perc_df)
     p <- ggplot(perc_df, aes(type, value, fill=Tier)) + geom_bar(stat="identity") +
-      xlab("") + ylab(paste("%",lab_str))
+      xlab("") + ylab(paste(lab_str))
     
   }
   ggplotly(p) %>% config(displayModeBar = FALSE)
