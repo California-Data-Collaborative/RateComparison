@@ -212,7 +212,7 @@ plot_barchart_by_tiers <- function(data, display_type, bar_type){
 
   if(display_type=="Revenue"){
     # flat rates leave XR1 as null so need to populate it 
-    if(sum(data$XR1, na.rm=TRUE) == 0 && sum(data$variable_bill, na.rm=TRUE) > 0){
+    if(!("XR1" %in% names(data)) || (sum(data$XR1, na.rm=TRUE) == 0 && sum(data$variable_bill, na.rm=TRUE) > 0)){
       data$XR1 <- data$variable_bill
     }
     # Select revenue in each tier
@@ -227,7 +227,7 @@ plot_barchart_by_tiers <- function(data, display_type, bar_type){
   }
   else{
     # flat rates leave XR1 as null so need to populate it 
-    if(sum(data$X1, na.rm=TRUE) == 0 && sum(data$variable_bill, na.rm=TRUE) > 0){
+    if(!("X1" %in% names(data)) || (sum(data$X1, na.rm=TRUE) == 0 && sum(data$variable_bill, na.rm=TRUE) > 0)){
       data$X1 <- data$usage_ccf
     }
     # Select usage in each tier
