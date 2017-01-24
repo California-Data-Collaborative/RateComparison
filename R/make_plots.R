@@ -211,6 +211,10 @@ plot_bill_change_boxplot <- function(data, display_type, bar_type){
 plot_barchart_by_tiers <- function(data, display_type, bar_type){
 
   if(display_type=="Revenue"){
+    # flat rates leave XR1 as null so need to populate it 
+    if(!("XR1" %in% names(data)) || (sum(data$XR1, na.rm=TRUE) == 0 && sum(data$variable_bill, na.rm=TRUE) > 0)){
+      data$XR1 <- data$variable_bill
+    }
     # Select revenue in each tier
     d <- colSums(data %>% select(matches("[B|X]R[0-9]")), na.rm=TRUE)
     d <- tbl_df(data.frame(lapply(d, function(x) t(data.frame(x))))) %>%
@@ -222,6 +226,10 @@ plot_barchart_by_tiers <- function(data, display_type, bar_type){
     lab_str <- "Variable Rev. During Time Period (Mill. $)"
   }
   else{
+    # flat rates leave XR1 as null so need to populate it 
+    if(!("X1" %in% names(data)) || (sum(data$X1, na.rm=TRUE) == 0 && sum(data$variable_bill, na.rm=TRUE) > 0)){
+      data$X1 <- data$usage_ccf
+    }
     # Select usage in each tier
     d <- colSums(data %>% select(matches("[B|X][0-9]")), na.rm=TRUE)
     d <- tbl_df(data.frame(lapply(d, function(x) t(data.frame(x))))) %>%
