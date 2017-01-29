@@ -863,5 +863,5 @@ irwd_baseline <- function(basedata){
   bill_2016$baseline_usage <- bill_2016 %>% select(matches("[B][0-9]")) %>% rowSums()
   return( bind_rows(bill_2014, bill_2015, bill_2016) )
 }
-
+test_dir(".../RateComparison/tests/testthat", reporter="summary")
 

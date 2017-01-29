@@ -14,6 +14,7 @@ source("R/class_graphs.R")
 source("R/rate_inputs.R")
 
 
+
 #******************************************************************
 # Read in the data and map the columns to application columns
 #******************************************************************
