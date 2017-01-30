@@ -1,4 +1,4 @@
-options(shiny.error= NULL, shiny.minified=TRUE)
+options(shiny.error= browser, shiny.minified=TRUE)
 # Load functions
 
 
@@ -469,7 +469,7 @@ shinyServer(function(input, output, clientData, session) {
       }
       
     }
-    
+    browser()
     ls
   })
   
@@ -479,6 +479,7 @@ shinyServer(function(input, output, clientData, session) {
   total_bill_info <- reactive({
     
     bill_info <- RateParser::calculate_bill(DF(), hypothetical_rate_list())
+    
     bill_info <- bill_info %>% ungroup %>% dplyr::arrange(sort_index)
    
     bill_info <- bill_info %>% dplyr::rename(variable_bill=commodity_charge,
@@ -863,5 +864,5 @@ irwd_baseline <- function(basedata){
   bill_2016$baseline_usage <- bill_2016 %>% select(matches("[B][0-9]")) %>% rowSums()
   return( bind_rows(bill_2014, bill_2015, bill_2016) )
 }
-test_dir(".../RateComparison/tests/testthat", reporter="summary")
+#test_dir("C:/Users/anude/Documents/GitHub/RateComparison/tests/testthat", reporter="summary")
 
