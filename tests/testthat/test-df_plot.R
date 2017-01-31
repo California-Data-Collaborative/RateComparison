@@ -1,23 +1,22 @@
 context("Df_for_plots")
 
 
-#Have to make all reactive functions normal functions for testing
-test_that("df_original is OK", {
-  #sample test to check all columns are present
-  all_fields <- c('cust_id', 'usage_month','usage_year','usage_date','usage_ccf','et_amount','hhsize','irr_area',
-                  'cust_class','rate_code','meter_size','water_type','sort_index','variable_bill','total_bill',
-                  'X1','X2','X3','X4','XR1','XR2','XR3','XR4','XR5','hypothetical_usage','baseline_variable_bill',
-                  'baseline_bill','B1','B2','B3','B4','BR1','BR2','BR3','BR4','BR5','baseline_usage')
-  expect_equal(colnames(df_plots, all_fields))
-})
+
 
 #total_bill_info is ok
 test_that("df plot hypothetical values are OK", {
-  total_bill_info <- data.frame(variable_bill = double(), total_bill = double(), X1 = double(), X2 = double(), 
-                                X3 = double(), X4 = double(), XR1 = double(), XR2 = double(), XR3 = double(), XR4 = double(),
-                                X5 = double(), XR5 = double(), hypothetical_usage = double())
+  total_bill_info <- data.frame(variable_bill = numeric(), total_bill = numeric(), X1 = numeric(), X2 = numeric(), 
+                                X3 = numeric(), X4 = numeric(), XR1 = numeric(), XR2 = numeric(), XR3 = numeric(), XR4 = numeric(),
+                                X5 = numeric(), XR5 = numeric(), hypothetical_usage = numeric())
   
-  #have to simulate hypothetical_rate_list
+  #####calculate bills manually in the above data frame for first 500 rows######
+  
+  
+  ############################################################
+  
+  #change rates in mnwd owrs txt
+  hypothetical_rate_list <- RateParser::read_owrs_file("mnwd.owrs.txt")
+  
   bill_info <- RateParser::calculate_bill(df[1:500, ],hypothetical_rate_list) 
   
   bill_info <- bill_info %>% ungroup %>% dplyr::arrange(sort_index)
@@ -25,14 +24,51 @@ test_that("df plot hypothetical values are OK", {
   bill_info <- bill_info %>% dplyr::rename(variable_bill=commodity_charge,
                                            total_bill=bill)
   
-  #adding baseline usage
+  
   bill_info$hypothetical_usage <- bill_info$usage_ccf
   
-  # select and return only relevent columns
-  mask <- grepl("XR?[0-9]|variable.*|total.*|hypothetical.*", names(bill_info))
-  bill_info <- bill_info[mask]
-  expect_equal(colnames(bill_info), colnames(total_bill_info))
+  
+  expect_equal(bill_info$total_bill, total_bill_info$total_bill)
+  expect_equal(bill_info$variable_bill, total_bill_info$variable_bill)
   
   
 })
+
+
+#
+test_that("df plot baseline values are OK", {
+  
+  baseline_bill_info <- data.frame(baseline_variable_bill = numeric(), baseline_bill = numeric(), B1 = numeric(), B2 = numeric(), 
+                                B3 = numeric(), B4 = numeric(), BR1 = numeric(), BR2 = numeric(), BR3 = numeric(), BR4 = numeric(),
+                                B5 = numeric(), BR5 = numeric(), baseline_usage = numeric())
+  
+  #####calculate bills manually in the above data frame for first 500 rows######
+  
+  
+  ############################################################
+
+ base_rate_list <- RateParser::read_owrs_file("mnwd.owrs.txt")
+  
+ bill_info <- RateParser::calculate_bill(df[1:500, ], baseline_rate_list)
+ 
+ bill_info <- bill_info %>% ungroup %>% dplyr::arrange(sort_index)
+
+ #mask for columns representing tier usage
+ usage_col_mask <- grepl("X[0-9]", names(bill_info))
+ revenue_col_mask <- grepl("XR[0-9]", names(bill_info))
+ num_tiers <- sum(usage_col_mask)
+ colnames(bill_info)[usage_col_mask] <- c( paste("B", 1:num_tiers, sep=""))
+ colnames(bill_info)[revenue_col_mask] <- c( paste("BR", 1:num_tiers, sep=""))
+
+ bill_info <- bill_info %>% dplyr::rename(baseline_variable_bill=commodity_charge,
+                                         baseline_bill=bill)
+ #adding baseline usage
+ bill_info$baseline_usage <- bill_info$usage_ccf
+
+ expect_equal(bill_info$total_bill, total_bill_info$total_bill)
+ expect_equal(bill_info$variable_bill, total_bill_info$variable_bill)
+
+
+})
+
 

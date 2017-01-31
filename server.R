@@ -469,7 +469,7 @@ shinyServer(function(input, output, clientData, session) {
       }
       
     }
-    browser()
+  
     ls
   })
   
