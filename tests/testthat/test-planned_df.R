@@ -21,16 +21,15 @@ test_that("customer class generation is OK", {
         new_recent_month_data[(nrow(new_recent_month_data)+1):(nrow(new_recent_month_data)+(class_proportions$Freq[j])), "cust_class"] <- class_proportions$Var1[j]
         
       }else{
-        #class_proportions$Freq[j] <- abs(class_proportions$Freq[j])
+        
         to_del_accounts <- sample_n(filter(new_recent_month_data,cust_class == class_proportions$Var1[j]), size = abs(class_proportions$Freq[j]))
         new_recent_month_data <- new_recent_month_data %>% filter(!sort_index %in% to_del_accounts$sort_index)
-        #sum(new_recent_month_data$cust_class == 'INSTITUTIONAL')
-        #sum(new_recent_month_data$cust_class == 'COMMERCIAL')
+      
         
       }
     }
   
-  class_proportions$Freq <- c(-1, -1, 1, 1, 1, 5)
+  #class_proportions$Freq <- c(-1, -1, 1, 1, 1, 5)
   #new_recent_month_data <- recent_month_data
   
   expect_equal(sum(new_recent_month_data$cust_class == 'RESIDENTIAL_SINGLE'), sum(recent_month_data$cust_class == 'RESIDENTIAL_SINGLE')

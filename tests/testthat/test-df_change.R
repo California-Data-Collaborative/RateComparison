@@ -1,38 +1,51 @@
 context("Df_change_for_plots")
 
+#read 1. sample_df_plots1.csv for changes in total and variable bills
+#     2. sample_df_plots2.csv for no changes in bills   
 
+sample_df_plots <- read.csv("sample_df_plots1.csv", stringsAsFactors = FALSE)
 
-test_that("df plot baseline values are OK", {
+df_change_test_func <- function(df = sample_df_plots, barType = "Absolute", displayType = "Revenue"){
+
+  df_change <- df %>% group_by(cust_id) %>%
+    summarise(total_bill=sum(total_bill, na.rm=TRUE),
+              baseline_bill=sum(baseline_bill, na.rm=TRUE),
+              hypothetical_usage=sum(hypothetical_usage, na.rm=TRUE), #calculating hypothetical and baseline usages
+              baseline_usage=sum(baseline_usage, na.rm=TRUE)) %>%
+    dplyr::select(total_bill, baseline_bill, hypothetical_usage, baseline_usage)
+
+  if(barType == "Absolute"){
+    #calucating differences in usage
+    df_change <- df_change %>%
+      mutate(changes=total_bill-baseline_bill, changes_in_usage=hypothetical_usage-baseline_usage, change_group=1)
+  }else{
+    #calucating percent differences in usage
+    df_change <- df_change %>%
+      mutate(changes=((total_bill-baseline_bill)/baseline_bill)*100, changes_in_usage=((hypothetical_usage-baseline_usage)/baseline_usage)*100, change_group=1)
+  }
+
+  if (displayType == "Revenue"){
+    df_change <- df_change %>% filter(abs(changes) < mean(changes, na.rm=TRUE) + 2.5*sd(changes, na.rm=TRUE))
+  }
+  else{
+    df_change <- df_change %>% filter(abs(changes_in_usage) < mean(changes_in_usage, na.rm=TRUE) +
+                                        2.5*sd(changes_in_usage, na.rm=TRUE))
+  }
+
+}
+
+test_that("df change is OK", {
   
-  baseline_bill_info <- data.frame(baseline_variable_bill = numeric(), baseline_bill = numeric(), B1 = numeric(), B2 = numeric(), 
-                                   B3 = numeric(), B4 = numeric(), BR1 = numeric(), BR2 = numeric(), BR3 = numeric(), BR4 = numeric(),
-                                   B5 = numeric(), BR5 = numeric(), baseline_usage = numeric())
+  df_output <- df_change_test_func()
   
-  #####calculate bills manually in the above data frame for first 500 rows######
-  
-  
-  ############################################################
-  
-  base_rate_list <- RateParser::read_owrs_file("mnwd.owrs.txt")
-  
-  bill_info <- RateParser::calculate_bill(df[1:500, ], baseline_rate_list)
-  
-  bill_info <- bill_info %>% ungroup %>% dplyr::arrange(sort_index)
-  
-  #mask for columns representing tier usage
-  usage_col_mask <- grepl("X[0-9]", names(bill_info))
-  revenue_col_mask <- grepl("XR[0-9]", names(bill_info))
-  num_tiers <- sum(usage_col_mask)
-  colnames(bill_info)[usage_col_mask] <- c( paste("B", 1:num_tiers, sep=""))
-  colnames(bill_info)[revenue_col_mask] <- c( paste("BR", 1:num_tiers, sep=""))
-  
-  bill_info <- bill_info %>% dplyr::rename(baseline_variable_bill=commodity_charge,
-                                           baseline_bill=bill)
-  #adding baseline usage
-  bill_info$baseline_usage <- bill_info$usage_ccf
-  
-  expect_equal(bill_info$total_bill, total_bill_info$total_bill)
-  expect_equal(bill_info$variable_bill, total_bill_info$variable_bill)
-  
+  expect_equal(nrow(df_change1), 493)
+  expect_equal(colnames(df_change1), df_change_fields)
   
 })
+
+
+
+
+
+
+#test_dir("C:/Users/avanjavakam/RateComparison/tests/testthat")

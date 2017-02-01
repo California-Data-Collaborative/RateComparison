@@ -1,4 +1,4 @@
-options(shiny.error= browser, shiny.minified=TRUE)
+options(shiny.error= NULL, shiny.minified=TRUE)
 # Load functions
 
 
@@ -113,9 +113,8 @@ shinyServer(function(input, output, clientData, session) {
               new_recent_month_data[(nrow(new_recent_month_data)+1):(nrow(new_recent_month_data)+(class_proportions$Freq[j]*i)), "cust_class"] <- class_proportions$Var1[j]
            
             }else{
-              class_proportions$Freq[j] <- abs(class_proportions$Freq[j])
-              new_recent_month_data <- new_recent_month_data[-(sample(1:nrow(filter(new_recent_month_data,cust_class == class_proportions$Var1[j])), 
-                                                                      size = class_proportions$Freq[j])), ]
+              to_del_accounts <- sample_n(filter(new_recent_month_data,cust_class == class_proportions$Var1[j]), size = abs(class_proportions$Freq[j]))
+              new_recent_month_data <- new_recent_month_data %>% filter(!sort_index %in% to_del_accounts$sort_index)
               
               
             }
@@ -204,9 +203,8 @@ shinyServer(function(input, output, clientData, session) {
                new_recent_month_data[(nrow(new_recent_month_data)+1):(nrow(new_recent_month_data)+(class_proportions$Freq[j]*i)), "cust_class"] <- class_proportions$Var1[j]
                
              }else{
-               class_proportions$Freq[j] <- abs(class_proportions$Freq[j])
-               new_recent_month_data <- new_recent_month_data[-(sample(1:nrow(filter(new_recent_month_data,cust_class == class_proportions$Var1[j])), 
-                                                                       size = class_proportions$Freq[j])), ]
+               to_del_accounts <- sample_n(filter(new_recent_month_data,cust_class == class_proportions$Var1[j]), size = abs(class_proportions$Freq[j]))
+               new_recent_month_data <- new_recent_month_data %>% filter(!sort_index %in% to_del_accounts$sort_index)
                
                
              }
@@ -337,9 +335,8 @@ shinyServer(function(input, output, clientData, session) {
             new_recent_month_data[(nrow(new_recent_month_data)+1):(nrow(new_recent_month_data)+(class_proportions$Freq[j]*i)), "cust_class"] <- class_proportions$Var1[j]
             
           }else{
-            class_proportions$Freq[j] <- abs(class_proportions$Freq[j])
-            new_recent_month_data <- new_recent_month_data[-(sample(1:nrow(filter(new_recent_month_data,cust_class == class_proportions$Var1[j])), 
-                                                                    size = class_proportions$Freq[j])), ]
+            to_del_accounts <- sample_n(filter(new_recent_month_data,cust_class == class_proportions$Var1[j]), size = abs(class_proportions$Freq[j]))
+            new_recent_month_data <- new_recent_month_data %>% filter(!sort_index %in% to_del_accounts$sort_index)
             
             
           }
