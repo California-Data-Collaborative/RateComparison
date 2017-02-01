@@ -494,6 +494,30 @@ shinyServer(function(input, output, clientData, session) {
     return(bill_info)
   })
   
+  forecast_bill_info <- reactive({
+    
+    bill_info <- RateParser::calculate_bill(df_forecast(), hypothetical_rate_list())
+    bill_info <- bill_info %>% ungroup %>% dplyr::arrange(sort_index)
+    
+    bill_info <- bill_info %>% dplyr::rename(commodity_bill =commodity_charge,
+                                             actual_bill=bill,priceE_usage=usage_ped)
+    
+    #adding baseline usage
+    
+    bill_info$estimated_usage <- bill_info$usage_ccf - bill_info$Forecast
+    
+    
+    # select and return only relevent columns
+    mask <- grepl("XR?[0-9].*|commodity.*|actual.*|estimated.*|Forecast.*|priceE.*", names(bill_info))
+    bill_info <- bill_info[mask]
+    
+    # This should work but weird bug causes "cust_class" to get matched also
+    #bill_info <- bill_info %>% select(matches("BR?[0-9]|baseline.*"))
+    
+    return(bill_info)
+  })
+  
+  
   # Return the proper dataframe given planning status
   DF <- reactive({
     req(input$Months)
@@ -508,6 +532,27 @@ shinyServer(function(input, output, clientData, session) {
     }
   })
   
+  df_download <- reactive({
+    combined <- dplyr::bind_cols(DF(), total_bill_info(),baseline_bill_info()) 
+    
+    combined
+  })
+  
+  df_forecast <- reactive({
+    combined <- dplyr::bind_cols(DF(), total_bill_info(),baseline_bill_info()) 
+    combined <- combined  %>%
+      mutate(Forecast = ((variable_bill-baseline_variable_bill)*forecast_usage)/baseline_variable_bill)
+    combined$usage_ccf <- combined$usage_ccf - combined$Forecast
+    combined
+  })
+  
+  
+  output$downloadData <- downloadHandler(
+    filename = function() { paste("TierUse_BillReport", '.csv', sep='') },
+    content = function(file) {
+      write.csv(df_download(),file)
+    }
+  )
   # Generate output panels for each customer class in the data
   output$classTabs <- renderUI({
     myTabs = lapply(1:length(cust_class_list), function(i){
