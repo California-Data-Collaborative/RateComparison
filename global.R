@@ -87,12 +87,12 @@ test_file <- switch(utility_code,
 if(is_budget){
   df <- read_data(test_file, cust_col="cust_loc_id", usage_col="usage_ccf", month_col="usage_month", 
                   year_col="usage_year", et_col="usage_et_amount", hhsize_col="cust_loc_hhsize", 
-                  irr_area_col="cust_loc_irr_area_sf", cust_class_col= "cust_loc_class", 
+                  irr_area_col="cust_loc_irr_area_sf", cust_class_col= "cust_loc_rate_class", 
                   rate_code_col = "cust_loc_class_from_utility", water_type_col="cust_loc_water_type",
                   meter_size_col="cust_loc_meter_size", less_than_date=less_than_date)
 } else{
   df <- read_data(test_file, cust_col="cust_loc_id", usage_col="usage_ccf", month_col="usage_month", 
-                  year_col="usage_year", cust_class_col= "cust_loc_class", 
+                  year_col="usage_year", cust_class_col= "cust_loc_rate_class", 
                   rate_code_col = "cust_loc_class_from_utility", water_type_col="cust_loc_water_type",
                   meter_size_col="cust_loc_meter_size", less_than_date=less_than_date)
 }
