@@ -51,7 +51,7 @@ plot_revenue_over_time <- function(data, display_type){
   }
   else{ #if usage is selected, plot monthly usage
     monthly_usage <- data %>%  group_by(usage_date) %>%  
-                     summarise(hypothetical_usage=sum(hypothetical_usage, na.rm=TRUE),
+                     summarise(hypothetical_usage=sum(hypothetical_usage-Forecast, na.rm=TRUE),
                                baseline_usage=sum(baseline_usage, na.rm=TRUE)) %>% 
                      mutate(Baseline = baseline_usage/1000000) %>%
                      mutate(Hypothetical = hypothetical_usage/1000000) %>%
