@@ -16,7 +16,10 @@ shinyUI(navbarPage(
 
       column( 12, #"main panel",
               uiOutput('classTabs')
-      ) #end column
+      ),#end column
+      column( 8, #
+              downloadButton('downloadData', 'Download Full Data')
+      )
     )#end row
   ),#end tabpanel for navar
   tabPanel("Scenario Planning",
@@ -57,6 +60,15 @@ shinyUI(navbarPage(
                               1, min = -1000, max = 1000, step = 1,
                               width = NULL)),
        column(2, numericInput("EstUsagePerAccount_irrigation", NULL,
+                              75, min = 0, max = 1000, step = NA,
+                              width = NULL))
+     ),
+     fluidRow(
+       column(2, strong("Recycled")),
+       column(2, numericInput("Recycled", NULL, 
+                              1, min = -1000, max = 1000, step = 1,
+                              width = NULL)),
+       column(2, numericInput("EstUsagePerAccount_recycled", NULL,
                               75, min = 0, max = 1000, step = NA,
                               width = NULL))
      ),
