@@ -26,7 +26,7 @@ classGraphOutput <- function(id, rate_codes){
                 column(8, 
                        radioButtons(ns("rateType"), label = "Rate Type", inline=TRUE,
                                     choices = list("Flat" = "Flat", "Tiered" = "Tiered", "Budget" = "Budget"), 
-                                    selected = "Flat")
+                                    selected = "Budget")
                 ),
                 column(4, 
                        radioButtons(ns("displayType"), label = "Display", selected = "Revenue", inline=FALSE,
