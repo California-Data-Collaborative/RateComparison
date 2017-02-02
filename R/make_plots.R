@@ -19,7 +19,7 @@ plot_revenue_over_time <- function(data, display_type){
   start.time <- Sys.time()
   if(display_type=="Revenue"){
     monthly_revenue <- data %>%  group_by(usage_date) %>% 
-                      summarise(revenue=sum(total_bill, na.rm=TRUE),
+                      summarise(revenue=sum(actual_bill, na.rm=TRUE),
                                 baseline_revenue=sum(baseline_bill, na.rm=TRUE)) %>% 
                       mutate(Baseline = baseline_revenue/1000000) %>%
                       mutate(Hypothetical = revenue/1000000) %>%
