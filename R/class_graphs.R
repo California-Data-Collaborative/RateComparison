@@ -90,6 +90,9 @@ classGraphOutput <- function(id, rate_codes){
                 fluidRow(
                   column(12,
                          ratePartInput(ns("landscape_factor"))
+                  ),
+                  column(12,
+                         ratePartInput(ns("PED"))
                   )
                 ),
                 fluidRow(
@@ -113,6 +116,10 @@ classGraphOutput <- function(id, rate_codes){
                          br(),
                          em("Outdoor = ET_Factor * ET * LA  * (0.62/748)")
                 )
+              ),
+              fluidRow(
+                downloadButton(ns("downloadData"), label = "Download Customer Class Data")
+                
               )
            
          )#end wellPanel
@@ -149,7 +156,7 @@ classGraphOutput <- function(id, rate_codes){
 
 
 classGraph <- function(input, output, session, cust_class, df_original, df_total_bill, 
-                       df_baseline_bill, active_class, rate_list, has_planning=FALSE){
+                       df_forecast_bill, df_baseline_bill, active_class, rate_list, has_planning=FALSE){
   ns <- session$ns
   
   input_list <- list()
@@ -212,6 +219,12 @@ classGraph <- function(input, output, session, cust_class, df_original, df_total
                                               rate_type_provided="Budget", 
                                               rate_part=rate_list()$rate_structure[[active_class()]][["tier_starts"]]
   )
+  rate_part_name9 <- "PED"
+  input_list[[rate_part_name9]] <- callModule(ratePart, rate_part_name9, 
+                                              part_name=rate_part_name9, part_name_long="Price Elasticity",
+                                              depends_col_list=dropdown_cols, 
+                                              rate_part = rate_list()$rate_structure[[active_class()]][[rate_part_name9]]
+  )
   
   observe({
     
@@ -224,7 +237,7 @@ classGraph <- function(input, output, session, cust_class, df_original, df_total
 
   df_plots <- reactive({
 
-    combined <- dplyr::bind_cols(df_original(), df_total_bill(), df_baseline_bill()) %>%
+    combined <- dplyr::bind_cols(df_original(), df_total_bill(), df_baseline_bill(),df_forecast_bill()) %>%
       filter(usage_date >= input$timeSlider[1],
              usage_date <= input$timeSlider[2],
              rate_code %in% input$RateCode)
@@ -254,6 +267,12 @@ classGraph <- function(input, output, session, cust_class, df_original, df_total
     plot_barchart_by_tiers( df_plots(), input$displayType, input$barType )
   })
   
+  output$downloadData <- downloadHandler(
+    filename = function() { paste("TierUse_BillReport", '.csv', sep='') },
+    content = function(file) {
+      write.csv(df_plots(), file)
+    }
+  )
   #******************************************************************
   # Reactive dataframe of changes to amount paid
   #******************************************************************
