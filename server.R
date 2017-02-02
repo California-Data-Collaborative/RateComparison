@@ -486,9 +486,9 @@ shinyServer(function(input, output, clientData, session) {
     
     #adding baseline usage
     bill_info$hypothetical_usage <- bill_info$usage_ccf
-    
+    bill_info$forecast_usage <- bill_info$usage_ped
     # select and return only relevent columns
-    mask <- grepl("XR?[0-9]|variable.*|total.*|hypothetical.*", names(bill_info))
+    mask <- grepl("variable.*|total.*|hypothetical.*|forecast.*", names(bill_info))
     bill_info <- bill_info[mask]
     
     # This should work but weird bug causes "cust_class" to get matched also
