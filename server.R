@@ -576,7 +576,7 @@ shinyServer(function(input, output, clientData, session) {
   for(c in cust_class_list){
     # class_rate <- baseline_rate_list$rate_structure[[c]]
     generated_inputs[[c]] <- callModule(classGraph, paste0("panel_",c), c, DF, total_bill_info, baseline_bill_info, 
-                                        active_tab, hypothetical_rate_list, has_planning=input$Planning)
+                                        forecast_bill_info,active_tab, hypothetical_rate_list, has_planning=input$Planning)
   }
   
   
