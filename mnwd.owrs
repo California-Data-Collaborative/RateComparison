@@ -21,6 +21,7 @@ rate_structure:
     gpcd: 60
     landscape_factor: 0.7
     days_in_period: 30.4
+    PED: 1
     indoor: "gpcd*hhsize*days_in_period*(1/748)"
     outdoor: "landscape_factor*et_amount*irr_area*0.62*(1/748)"
     budget: "indoor+outdoor"
@@ -37,6 +38,7 @@ rate_structure:
       - 4.38
       - 9.17
     commodity_charge: Budget
+    usage_ped: "usage_ccf*PED"
     bill: "commodity_charge+service_charge"
   RESIDENTIAL_MULTI:
     service_charge:
@@ -55,6 +57,7 @@ rate_structure:
     gpcd: 60
     landscape_factor: 0.7
     days_in_period: 30.4
+    PED: 1
     indoor: "gpcd*hhsize*days_in_period*(1/748)"
     outdoor: "usage_outdoor_budget_ccf"
     budget: "indoor+outdoor"
@@ -71,6 +74,7 @@ rate_structure:
       - 4.38
       - 9.17
     commodity_charge: Budget
+    usage_ped: "usage_ccf*PED"
     bill: "commodity_charge+service_charge"
  
   COMMERCIAL:
@@ -88,6 +92,7 @@ rate_structure:
         8"     : 375.72
         10"    : 605.54
     budget: "usage_indoor_budget_ccf + usage_outdoor_budget_ccf"
+    PED: 1
     tier_starts:
       - 0
       - 101%
@@ -99,6 +104,7 @@ rate_structure:
       - 4.38
       - 9.17
     commodity_charge: Budget
+    usage_ped: "usage_ccf*PED"
     bill: commodity_charge+service_charge
   RECYCLED:
     service_charge:
@@ -122,6 +128,7 @@ rate_structure:
         PUBLIC  : 1.0
     outdoor: "landscape_factor*et_amount*irr_area*0.62*(1/748)"
     budget: "outdoor"
+    PED: 1
     tier_starts:
       - 0
       - 101%
@@ -133,6 +140,7 @@ rate_structure:
           - 3.50
           - 8.29
     commodity_charge: Budget
+    usage_ped: "usage_ccf*PED"
     bill: "commodity_charge+service_charge"
   IRRIGATION:
     service_charge:
@@ -156,6 +164,7 @@ rate_structure:
         PUBLIC  : 1.0
     outdoor: "landscape_factor*et_amount*irr_area*0.62*(1/748)"
     budget: "outdoor"
+    PED: 1
     tier_starts:
       - 0
       - 101%
@@ -167,6 +176,7 @@ rate_structure:
           - 4.38
           - 9.17
     commodity_charge: Budget
+    usage_ped: "usage_ccf*PED"
     bill: "commodity_charge+service_charge"
  
   INSTITUTIONAL:
@@ -184,6 +194,7 @@ rate_structure:
         8"     : 1069.52
         10"    : 1723.71
     budget: "usage_indoor_budget_ccf + usage_outdoor_budget_ccf"
+    PED: 1
     tier_starts:
       - 0
       - 101%
@@ -195,6 +206,7 @@ rate_structure:
       - 4.38
       - 9.17
     commodity_charge: Budget
+    usage_ped: "usage_ccf*PED"
     bill: commodity_charge+service_charge
  
   OTHER:
@@ -212,6 +224,7 @@ rate_structure:
         8"     : 1069.52
         10"    : 1723.71
     budget: "usage_indoor_budget_ccf + usage_outdoor_budget_ccf"
+    PED: 1
     tier_starts:
       - 0
       - 101%
@@ -223,4 +236,5 @@ rate_structure:
       - 4.38
       - 9.17
     commodity_charge: Budget
+    usage_ped: "usage_ccf*PED"
     bill: commodity_charge+service_charge
