@@ -58,7 +58,7 @@ read_data <- function(filename, cust_col, usage_col, month_col, year_col, et_col
 }
 
 generated_inputs <- list()
-baseline_rate_list <- RateParser::read_owrs_file("mnwd.owrs.txt")
+baseline_rate_list <- RateParser::read_owrs_file("mnwd.owrs")
 
 is_budget <- switch(utility_code,
                     "IRWD"=,
