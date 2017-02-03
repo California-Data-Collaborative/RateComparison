@@ -423,7 +423,7 @@ shinyServer(function(input, output, clientData, session) {
     ls <- baseline_rate_list
     
     
-    rate_parts <- c("service_charge", "flat_rate", "gpcd", "landscape_factor")
+    rate_parts <- c("service_charge", "flat_rate", "gpcd", "landscape_factor","PED")
     
     for(cust_class in cust_class_list){
       
