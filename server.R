@@ -1,4 +1,4 @@
-options(shiny.error= NULL, shiny.minified=TRUE)
+options(shiny.error= browser, shiny.minified=TRUE)
 # Load functions
 
 

@@ -45,70 +45,96 @@ shinyUI(navbarPage(
        column(2, h4("Monthly Growth/Decline\n(# of accounts)")),
        column(2, h4("Estimated Usage per\nNew Account (ccf)"))
      ),
-     fluidRow(
-       column(2, strong("Single-Family Residential")),
-       column(2, numericInput("ResidentialSingle", NULL, 
-                              5, min = -1000, max = 1000, step = 1,
-                              width = NULL)),
-       column(2, numericInput("EstUsagePerAccount", NULL,
-                              10, min = 0, max = 1000, step = NA,
-                              width = NULL))
-     ),
-     fluidRow(
-       column(2, strong("Multi-Family Residential")),
-       column(2, numericInput("ResidentialMulti", NULL, 
-                              1, min = -1000, max = 1000, step = 1,
-                              width = NULL)),
-       column(2, numericInput("EstUsagePerAccount_multi", NULL,
-                              6, min = 0, max = 1000, step = NA,
-                              width = NULL))
-     ),
-     fluidRow(
-       column(2, strong("Irrigation")),
-       column(2, numericInput("Irrigation", NULL, 
-                              1, min = -1000, max = 1000, step = 1,
-                              width = NULL)),
-       column(2, numericInput("EstUsagePerAccount_irrigation", NULL,
-                              75, min = 0, max = 1000, step = NA,
-                              width = NULL))
-     ),
-     fluidRow(
-       column(2, strong("Recycled")),
-       column(2, numericInput("Recycled", NULL, 
-                              1, min = -1000, max = 1000, step = 1,
-                              width = NULL)),
-       column(2, numericInput("EstUsagePerAccount_recycled", NULL,
-                              75, min = 0, max = 1000, step = NA,
-                              width = NULL))
-     ),
-     fluidRow(
-       column(2, strong("Commercial")),
-       column(2, numericInput("Commercial", NULL, 
-                              1, min = -1000, max = 1000, step = 1,
-                              width = NULL)),
-       column(2, numericInput("EstUsagePerAccount_commercial", NULL,
-                              24, min = 0, max = 1000, step = NA,
-                              width = NULL))
-     ),
-     fluidRow(
-       column(2, strong("Institutional")),
-       column(2, numericInput("Institutional", NULL, 
-                              1, min = -1000, max = 1000, step = 1,
-                              width = NULL)),
-       column(2, numericInput("EstUsagePerAccount_institutional", NULL,
-                              35, min = 0, max = 1000, step = NA,
-                              width = NULL))
-     ),
-     fluidRow(
-       column(2, strong("Other")),
-       column(2, numericInput("Other", NULL, 
+     
+
+     
+
+       column(2, lapply(1:length(cust_class_list_from_data), function(i) {
+         #need spacing here
+         strong(cust_class_list_from_data[i])
+         
+       })
+       ),
+       
+       column(2, lapply(1:length(cust_class_list_from_data), function(i) {
+         
+         numericInput(cust_class_list_from_data[i], NULL, 
                              1, min = -1000, max = 1000, step = 1,
-                             width = NULL)),
-       column(2, numericInput("EstUsagePerAccount_other", NULL,
-                              10, min = 0, max = 1000, step = NA,
-                              width = NULL))
-     )
+                             width = NULL)
+         
+       })
+       ),
+       
+       column(2, lapply(1:length(cust_class_list_from_data), function(i) {
+         
+         numericInput(paste0("EstUsagePerAccount_",cust_class_list_from_data[i]), NULL,
+                             10, min = 0, max = 1000, step = NA,
+                             width = NULL)
+       })
+       )
+       
+     
+
+     
+
+     # fluidRow(
+     #   column(2, strong("Single-Family Residential")),
+     #   column(2, numericInput("ResidentialSingle", NULL, 
+     #                          5, min = -1000, max = 1000, step = 1,
+     #                          width = NULL)),
+     #   column(2, numericInput("EstUsagePerAccount", NULL,
+     #                          10, min = 0, max = 1000, step = NA,
+     #                          width = NULL))
+     # ),
+     # fluidRow(
+     #   column(2, strong("Multi-Family Residential")),
+     #   column(2, numericInput("ResidentialMulti", NULL, 
+     #                          1, min = -1000, max = 1000, step = 1,
+     #                          width = NULL)),
+     #   column(2, numericInput("EstUsagePerAccount_multi", NULL,
+     #                          6, min = 0, max = 1000, step = NA,
+     #                          width = NULL))
+     # ),
+     # fluidRow(
+     #   column(2, strong("Irrigation")),
+     #   column(2, numericInput("Irrigation", NULL, 
+     #                          1, min = -1000, max = 1000, step = 1,
+     #                          width = NULL)),
+     #   column(2, numericInput("EstUsagePerAccount_irrigation", NULL,
+     #                          75, min = 0, max = 1000, step = NA,
+     #                          width = NULL))
+     # ),
+     # fluidRow(
+     #   column(2, strong("Commercial")),
+     #   column(2, numericInput("Commercial", NULL, 
+     #                          1, min = -1000, max = 1000, step = 1,
+     #                          width = NULL)),
+     #   column(2, numericInput("EstUsagePerAccount_commercial", NULL,
+     #                          24, min = 0, max = 1000, step = NA,
+     #                          width = NULL))
+     # ),
+     # fluidRow(
+     #   column(2, strong("Institutional")),
+     #   column(2, numericInput("Institutional", NULL, 
+     #                          1, min = -1000, max = 1000, step = 1,
+     #                          width = NULL)),
+     #   column(2, numericInput("EstUsagePerAccount_institutional", NULL,
+     #                          35, min = 0, max = 1000, step = NA,
+     #                          width = NULL))
+     # ),
+     # fluidRow(
+     #   column(2, strong("Other")),
+     #   column(2, numericInput("Other", NULL, 
+     #                         1, min = -1000, max = 1000, step = 1,
+     #                         width = NULL)),
+     #   column(2, numericInput("EstUsagePerAccount_other", NULL,
+     #                          10, min = 0, max = 1000, step = NA,
+     #                          width = NULL))
+     # )
      
   )
 
 ))
+
+
+
