@@ -45,33 +45,20 @@ shinyUI(navbarPage(
        column(2, h4("Monthly Growth/Decline\n(# of accounts)")),
        column(2, h4("Estimated Usage per\nNew Account (ccf)"))
      ),
-     
-
-     
-
-       column(2, lapply(1:length(cust_class_list_from_data), function(i) {
-         #need spacing here
-         strong(cust_class_list_from_data[i])
-         
-       })
-       ),
-       
-       column(2, lapply(1:length(cust_class_list_from_data), function(i) {
-         
-         numericInput(cust_class_list_from_data[i], NULL, 
-                             1, min = -1000, max = 1000, step = 1,
-                             width = NULL)
-         
-       })
-       ),
-       
-       column(2, lapply(1:length(cust_class_list_from_data), function(i) {
-         
-         numericInput(paste0("EstUsagePerAccount_",cust_class_list_from_data[i]), NULL,
-                             10, min = 0, max = 1000, step = NA,
-                             width = NULL)
-       })
+ 
+     lapply(1:length(cust_class_list_from_data), function(i) {
+       fluidRow(
+         column(2, strong(cust_class_list_from_data[i])),
+         column(2, numericInput(cust_class_list_from_data[i], NULL, 
+                                1, min = -1000, max = 1000, step = 1,
+                                width = NULL)
+         ),
+         column(2, numericInput(paste0("EstUsagePerAccount_",cust_class_list_from_data[i]), NULL,
+                                10, min = 0, max = 1000, step = NA,
+                                width = NULL)
+         )
        )
+     })
        
      
 

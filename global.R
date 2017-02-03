@@ -117,6 +117,7 @@ cust_class_list_from_data <- unique(df$cust_class)
 cust_class_list_from_data[(cust_class_list_from_data %in% cust_class_list)]
 classes_not_in_OWRS <- cust_class_list_from_data[!(cust_class_list_from_data %in% cust_class_list)]
 cust_class_list <- c(cust_class_list, classes_not_in_OWRS )
+cust_class_list <- cust_class_list[cust_class_list %in% cust_class_list_from_data]
 
 # Generate the defaults that will populate tier boxes for which a utility
 # has no value. For example, a budget-based utility still needs default values
