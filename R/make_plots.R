@@ -19,7 +19,7 @@ plot_revenue_over_time <- function(data, display_type){
   start.time <- Sys.time()
   if(display_type=="Revenue"){
     monthly_revenue <- data %>%  group_by(usage_date) %>% 
-                      summarise(revenue=sum(actual_bill, na.rm=TRUE),
+                      summarise(revenue=sum(total_bill, na.rm=TRUE),
                                 baseline_revenue=sum(baseline_bill, na.rm=TRUE)) %>% 
                       mutate(Baseline = baseline_revenue/1000000) %>%
                       mutate(Hypothetical = revenue/1000000) %>%
@@ -48,8 +48,39 @@ plot_revenue_over_time <- function(data, display_type){
     time.taken <- end.time - start.time
     print("Making line chart") 
     print(time.taken)
+  }else if(display_type=="PedRev"){
+    monthly_revenue <- data %>%  group_by(usage_date) %>% 
+      summarise(revenue=sum(actual_bill, na.rm=TRUE),
+                baseline_revenue=sum(baseline_bill, na.rm=TRUE)) %>% 
+      mutate(Baseline = baseline_revenue/1000000) %>%
+      mutate(Hypothetical = revenue/1000000) %>%
+      select(usage_date,Baseline,Hypothetical)
+    monthly_revenue <- melt(monthly_revenue, id="usage_date") %>% rename(Revenue=variable)
+    
+    end.time <- Sys.time()
+    time.taken <- end.time - start.time
+    print("Calcing monthly_revenue")
+    print(time.taken)
+    start.time <- Sys.time()
+    
+    p <- ggplot(monthly_revenue, aes(x=usage_date, y=value, color=Revenue)) + 
+      # geom_ribbon(aes(x=usage_date, ymax=rev_mill, ymin=base_rev_mill), fill="grey", alpha=.5) +
+      geom_line() + 
+      #geom_vline(xintercept=as.numeric(max(df$usage_date)),color='red3',linetype=2) +
+      scale_linetype_manual(values = c("Baseline"="dashed", "Hypothetical"="solid")) +
+      scale_color_manual(values=c("Baseline"="black", "Hypothetical"="steelblue")) +
+      xlab("") + ylab("Revenue (Million $)") + 
+      # theme(axis.text.x = element_text(angle = 30, hjust = 1)) +
+      # scale_x_date(labels = date_format("%m-%y"), date_breaks="1 months") +
+      scale_y_continuous(labels = comma)
+    #geom_text(data=data.table(date=max(df$usage_date),extracol=0),aes(date,extracol),label="forecast",color='red3',angle=45,vjust=-0.5,hjust=-0.5)
+    
+    end.time <- Sys.time()
+    time.taken <- end.time - start.time
+    print("Making line chart") 
+    print(time.taken)
   }
-  else{ #if usage is selected, plot monthly usage
+  else if(display_type=="PedUsage"){ #if usage is selected, plot monthly usage
     monthly_usage <- data %>%  group_by(usage_date) %>%  
                      summarise(hypothetical_usage=sum(hypothetical_usage-Forecast, na.rm=TRUE),
                                baseline_usage=sum(baseline_usage, na.rm=TRUE)) %>% 
@@ -81,6 +112,37 @@ plot_revenue_over_time <- function(data, display_type){
     print("Making line chart") 
     print(time.taken)
     
+  } else { monthly_usage <- data %>%  group_by(usage_date) %>%  
+    summarise(hypothetical_usage=sum(hypothetical_usage, na.rm=TRUE),
+              baseline_usage=sum(baseline_usage, na.rm=TRUE)) %>% 
+    mutate(Baseline = baseline_usage/1000000) %>%
+    mutate(Hypothetical = hypothetical_usage/1000000) %>%
+    select(usage_date,Baseline,Hypothetical)
+  monthly_usage <- melt(monthly_usage, id="usage_date") %>% rename(Usage=variable)
+  
+  end.time <- Sys.time()
+  time.taken <- end.time - start.time
+  print("Calcing monthly_usage")
+  print(time.taken)
+  start.time <- Sys.time()
+  
+  p <- ggplot(monthly_usage, aes(x=usage_date, y=value, color=Usage)) + 
+    # geom_ribbon(aes(x=usage_date, ymax=rev_mill, ymin=base_rev_mill), fill="grey", alpha=.5) +
+    geom_line() + 
+    #geom_vline(xintercept=as.numeric(max(df$usage_date)),color='red3',linetype=2) +
+    scale_linetype_manual(values = c("Baseline"="dashed", "Hypothetical"="solid")) +
+    scale_color_manual(values=c("Baseline"="black", "Hypothetical"="steelblue")) +
+    xlab("") + ylab("Usage (Million ccf)") + 
+    # theme(axis.text.x = element_text(angle = 30, hjust = 1)) +
+    # scale_x_date(labels = date_format("%m-%y"), date_breaks="1 months") +
+    scale_y_continuous(labels = comma)
+  #geom_text(data=data.table(date=max(df$usage_date),extracol=0),aes(date,extracol),label="forecast",color='red3',angle=45,vjust=-0.5,hjust=-0.5)
+  
+  end.time <- Sys.time()
+  time.taken <- end.time - start.time
+  print("Making line chart") 
+  print(time.taken)
+  
   }
 
 
@@ -123,36 +185,62 @@ plot_bill_change_histogram <- function(data, display_type, bar_type){
     time.taken <- end.time - start.time
     print("Making Revenue histogram") 
     print(time.taken)
-  }
-  else{ #if usage is selected, plot changes in usage
-    if(sum(abs(data$changes_in_usage)) < 1){  
+  }else if(display_type=="PedRev"){
+    if(sum(abs(data$changes)) < 1){
       p <- ggplot() + 
         geom_vline(xintercept = 0, color="#CC0000")
       if(bar_type == "Absolute"){
-        p <- p + xlab("Change in total amount used (ccf)")
+        p <- p + xlab("Change in total amount paid ($)")
       }else{
-        p <- p + xlab("% Change in total amount used")   
+        p <- p + xlab("% Change in total amount paid")   
       }
     }
     else{
-      p <- ggplot(data, aes(x=changes_in_usage)) + geom_histogram() + 
-        geom_vline(xintercept = mean(data$changes_in_usage, na.rm=TRUE), color="#CC0000") +
+      p <- ggplot(data, aes(x=changes)) + geom_histogram() + 
+        geom_vline(xintercept = mean(data$changes, na.rm=TRUE), color="#CC0000") +
         theme(axis.ticks = element_blank(), axis.text.y = element_blank())
       if(bar_type == "Absolute"){
-        p <- p + xlab("Change in total amount used (ccf)") + ylab("")
+        p <- p + xlab("Change in total amount paid ($)") + ylab("")
       }else{
-        p <- p + xlab("% Change in total amount used") + ylab("")   
+        p <- p + xlab("% Change in total amount paid") + ylab("")   
       }
     }
     
     end.time <- Sys.time()
     time.taken <- end.time - start.time
-    print("Making Usage histogram") 
+    print("Making Revenue histogram") 
     print(time.taken)
-    
   }
-  ggplotly(p) %>% config(displayModeBar = FALSE)
+  else{ #if usage is selected, plot changes in usage
+  if(sum(abs(data$changes_in_usage)) < 1){  
+    p <- ggplot() + 
+      geom_vline(xintercept = 0, color="#CC0000")
+    if(bar_type == "Absolute"){
+      p <- p + xlab("Change in total amount used (ccf)")
+    }else{
+      p <- p + xlab("% Change in total amount used")   
+    }
+  }
+  else{
+    p <- ggplot(data, aes(x=changes_in_usage)) + geom_histogram() + 
+      geom_vline(xintercept = mean(data$changes_in_usage, na.rm=TRUE), color="#CC0000") +
+      theme(axis.ticks = element_blank(), axis.text.y = element_blank())
+    if(bar_type == "Absolute"){
+      p <- p + xlab("Change in total amount used (ccf)") + ylab("")
+    }else{
+      p <- p + xlab("% Change in total amount used") + ylab("")   
+    }
+  }
+  
+  end.time <- Sys.time()
+  time.taken <- end.time - start.time
+  print("Making Usage histogram") 
+  print(time.taken)
+  
 }
+ggplotly(p) %>% config(displayModeBar = FALSE)
+}
+
 
 #' Boxplot of bill changes.
 #'
@@ -224,8 +312,23 @@ plot_barchart_by_tiers <- function(data, display_type, bar_type){
                 Tier = get_tier_name(variable),
                 value = value/1000000.0)
     lab_str <- "Variable Rev. During Time Period (Mill. $)"
-  }
-  else{
+ 
+ }  else if(display_type=="PedRev"){
+   # flat rates leave XR1 as null so need to populate it 
+   if(!("XR1" %in% names(data)) || (sum(data$XR1, na.rm=TRUE) == 0 && sum(data$commodity_bill, na.rm=TRUE) > 0)){
+     data$XR1 <- data$commodity_bill
+   }
+   # Select revenue in each tier
+   d <- colSums(data %>% select(matches("[B|X]R[0-9]")), na.rm=TRUE)
+   d <- tbl_df(data.frame(lapply(d, function(x) t(data.frame(x))))) %>%
+     mutate(id=1)
+   d <- melt(d, id.vars="id" ) %>% 
+     mutate(type=ifelse(grepl("B.*", variable), "Baseline", "Hypothetical"),
+            Tier = get_tier_name(variable),
+            value = value/1000000.0)
+   lab_str <- "Variable Rev. During Time Period (Mill. $)"
+   
+ }else{
     # flat rates leave XR1 as null so need to populate it 
     if(!("X1" %in% names(data)) || (sum(data$X1, na.rm=TRUE) == 0 && sum(data$variable_bill, na.rm=TRUE) > 0)){
       data$X1 <- data$usage_ccf
