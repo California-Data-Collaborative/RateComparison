@@ -487,6 +487,8 @@ shinyServer(function(input, output, clientData, session) {
     #adding baseline usage
     bill_info$hypothetical_usage <- bill_info$usage_ccf
     bill_info$forecast_usage <- bill_info$usage_ped
+  
+    
     # select and return only relevent columns
     mask <- grepl("variable.*|total.*|hypothetical.*|forecast.*", names(bill_info))
     bill_info <- bill_info[mask]
@@ -508,8 +510,6 @@ shinyServer(function(input, output, clientData, session) {
     #adding baseline usage
     
     bill_info$estimated_usage <- bill_info$usage_ccf - bill_info$Forecast
-    
-    
     # select and return only relevent columns
     mask <- grepl("XR?[0-9].*|commodity.*|actual.*|estimated.*|Forecast.*|priceE.*", names(bill_info))
     bill_info <- bill_info[mask]
@@ -542,11 +542,11 @@ shinyServer(function(input, output, clientData, session) {
   })
   
   df_forecast <- reactive({
-    combined <- dplyr::bind_cols(DF(), total_bill_info(),baseline_bill_info()) 
-    combined <- combined  %>%
+    forecasted <- dplyr::bind_cols(DF(), total_bill_info(),baseline_bill_info()) 
+    forecasted <- forecasted  %>%
       mutate(Forecast = ((variable_bill-baseline_variable_bill)*forecast_usage)/baseline_variable_bill)
-    combined$usage_ccf <- combined$usage_ccf - combined$Forecast
-    combined
+    forecasted$usage_ccf <- forecasted$usage_ccf - forecasted$Forecast
+    forecasted
   })
   
   
