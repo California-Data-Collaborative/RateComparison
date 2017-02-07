@@ -30,7 +30,7 @@ classGraphOutput <- function(id, rate_codes){
                 ),
                 column(4, 
                        radioButtons(ns("displayType"), label = "Display", selected = "Revenue", inline=FALSE,
-                                    choices = list("Revenue" = "Revenue", "Usage" = "Usage"))
+                                    choices = list("Revenue" = "Revenue", "PedRev" = "PedRev","Usage" = "Usage","PedUsage" = "PedUsage"))
                 )
               ),#end row
               
@@ -275,27 +275,38 @@ classGraph <- function(input, output, session, cust_class, df_original, df_total
   )
   #******************************************************************
   # Reactive dataframe of changes to amount paid
-  #******************************************************************
   df_change <- reactive({
     start.time <- Sys.time()
     df_change <- df_plots() %>% group_by(cust_id) %>% 
-      summarise(total_bill=sum(total_bill, na.rm=TRUE), 
+      summarise(total_bill=sum(total_bill, na.rm=TRUE),
+                actual_bill = sum(actual_bill,na.rm = TRUE),
                 baseline_bill=sum(baseline_bill, na.rm=TRUE),
-                hypothetical_usage=sum(hypothetical_usage, na.rm=TRUE), #calculating hypothetical and baseline usages
+                hypothetical_usage=sum(hypothetical_usage, na.rm=TRUE),
+                estimated_usage=sum(estimated_usage, na.rm=TRUE),  #calculating hypothetical and baseline usages
                 baseline_usage=sum(baseline_usage, na.rm=TRUE)) %>%
-      dplyr::select(total_bill, baseline_bill, hypothetical_usage, baseline_usage)
+      dplyr::select(total_bill,actual_bill, baseline_bill, hypothetical_usage,estimated_usage, baseline_usage)
     
-    if(input$barType == "Absolute"){
+    if (input$displayType == "Revenue"){  if(input$barType == "Absolute"){
       #calucating differences in usage
       df_change <- df_change %>% 
-          mutate(changes=total_bill-baseline_bill, changes_in_usage=hypothetical_usage-baseline_usage, change_group=1)
+        mutate(changes=total_bill-baseline_bill, changes_in_usage=hypothetical_usage-baseline_usage, change_group=1)
     }else{
       #calucating percent differences in usage
       df_change <- df_change %>% 
         mutate(changes=((total_bill-baseline_bill)/baseline_bill)*100, changes_in_usage=((hypothetical_usage-baseline_usage)/baseline_usage)*100, change_group=1)
-    }
+    }} else {if(input$barType == "Absolute"){
+      #calucating differences in usage
+      df_change <- df_change %>% 
+        mutate(changes=actual_bill-baseline_bill, changes_in_usage=estimated_usage-baseline_usage, change_group=1)
+    }else{
+      #calucating percent differences in usage
+      df_change <- df_change %>% 
+        mutate(changes=((actual_bill-baseline_bill)/baseline_bill)*100, changes_in_usage=((estimated_usage-baseline_usage)/baseline_usage)*100, change_group=1)
+    }}
     
     if (input$displayType == "Revenue"){
+      df_change <- df_change %>% filter(abs(changes) < mean(changes, na.rm=TRUE) + 2.5*sd(changes, na.rm=TRUE))
+    }else if (input$displayType == "PedRev"){
       df_change <- df_change %>% filter(abs(changes) < mean(changes, na.rm=TRUE) + 2.5*sd(changes, na.rm=TRUE))
     }
     else{
