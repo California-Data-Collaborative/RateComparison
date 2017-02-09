@@ -480,7 +480,7 @@ shinyServer(function(input, output, clientData, session) {
     
     bill_info <- RateParser::calculate_bill(DF(), hypothetical_rate_list())
     bill_info <- bill_info %>% ungroup %>% dplyr::arrange(sort_index)
-    
+   
     bill_info <- bill_info %>% dplyr::rename(variable_bill=commodity_charge,
                                              total_bill=bill)
     
@@ -490,7 +490,7 @@ shinyServer(function(input, output, clientData, session) {
   
     
     # select and return only relevent columns
-    mask <- grepl("variable.*|total.*|hypothetical.*|forecast.*", names(bill_info))
+    mask <- grepl("XR?[0-9].*|variable.*|total.*|hypothetical.*|forecast.*", names(bill_info))
     bill_info <- bill_info[mask]
     
     # This should work but weird bug causes "cust_class" to get matched also
@@ -500,18 +500,23 @@ shinyServer(function(input, output, clientData, session) {
   })
   
   forecast_bill_info <- reactive({
-    
-    bill_info <- RateParser::calculate_bill(df_forecast(), hypothetical_rate_list())
+    tmp <- df_forecast()
+    usage_col_mask <- !grepl("XR?[0-9]", names(tmp))
+    tmp <- tmp[,usage_col_mask]
+    bill_info <- RateParser::calculate_bill(tmp, hypothetical_rate_list())
     bill_info <- bill_info %>% ungroup %>% dplyr::arrange(sort_index)
-    
     bill_info <- bill_info %>% dplyr::rename(commodity_bill =commodity_charge,
                                              actual_bill=bill,priceE_usage=usage_ped)
-    
+    usage_col_mask <- grepl("X[0-9]", names(bill_info))
+    revenue_col_mask <- grepl("XR[0-9]", names(bill_info))
+    num_tiers <- sum(usage_col_mask)
+    colnames(bill_info)[usage_col_mask] <- c( paste("T", 1:num_tiers, sep=""))
+    colnames(bill_info)[revenue_col_mask] <- c( paste("TR", 1:num_tiers, sep=""))
     #adding baseline usage
     
     bill_info$estimated_usage <- bill_info$usage_ccf - bill_info$Forecast
     # select and return only relevent columns
-    mask <- grepl("XR?[0-9].*|commodity.*|actual.*|estimated.*|Forecast.*|priceE.*", names(bill_info))
+    mask <- grepl("TR?[0-9].*|commodity.*|actual.*|estimated.*|Forecast.*|priceE.*", names(bill_info))
     bill_info <- bill_info[mask]
     
     # This should work but weird bug causes "cust_class" to get matched also
@@ -611,7 +616,7 @@ baseline <- function(basedata){
   num_tiers <- sum(usage_col_mask)
   colnames(bill_info)[usage_col_mask] <- c( paste("B", 1:num_tiers, sep=""))
   colnames(bill_info)[revenue_col_mask] <- c( paste("BR", 1:num_tiers, sep=""))
-  
+ 
   bill_info <- bill_info %>% dplyr::rename(baseline_variable_bill=commodity_charge,
                                            baseline_bill=bill)
   #adding baseline usage
@@ -626,6 +631,10 @@ baseline <- function(basedata){
   
   return(bill_info)
 }
+
+
+
+
 
 
 
