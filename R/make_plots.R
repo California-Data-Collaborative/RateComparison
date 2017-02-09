@@ -49,13 +49,13 @@ plot_revenue_over_time <- function(data, display_type){
     print("Making line chart") 
     print(time.taken)
   }else if(display_type=="PedRev"){
-    monthly_revenue <- data %>%  group_by(usage_date) %>% 
-      summarise(revenue=sum(actual_bill, na.rm=TRUE),
-                baseline_revenue=sum(baseline_bill, na.rm=TRUE)) %>% 
-      mutate(Baseline = baseline_revenue/1000000) %>%
-      mutate(Hypothetical = revenue/1000000) %>%
+    monthly_revenue1 <- data %>%  group_by(usage_date) %>% 
+      summarise(revenue1=sum(actual_bill, na.rm=TRUE),
+                baseline_revenue1=sum(baseline_bill, na.rm=TRUE)) %>% 
+      mutate(Baseline = baseline_revenue1/1000000) %>%
+      mutate(Hypothetical = revenue1/1000000) %>%
       select(usage_date,Baseline,Hypothetical)
-    monthly_revenue <- melt(monthly_revenue, id="usage_date") %>% rename(Revenue=variable)
+    monthly_revenue1 <- melt(monthly_revenue1, id="usage_date") %>% rename(Revenue=variable)
     
     end.time <- Sys.time()
     time.taken <- end.time - start.time
@@ -63,7 +63,7 @@ plot_revenue_over_time <- function(data, display_type){
     print(time.taken)
     start.time <- Sys.time()
     
-    p <- ggplot(monthly_revenue, aes(x=usage_date, y=value, color=Revenue)) + 
+    p <- ggplot(monthly_revenue1, aes(x=usage_date, y=value, color=Revenue)) + 
       # geom_ribbon(aes(x=usage_date, ymax=rev_mill, ymin=base_rev_mill), fill="grey", alpha=.5) +
       geom_line() + 
       #geom_vline(xintercept=as.numeric(max(df$usage_date)),color='red3',linetype=2) +
@@ -315,11 +315,11 @@ plot_barchart_by_tiers <- function(data, display_type, bar_type){
  
  }  else if(display_type=="PedRev"){
    # flat rates leave XR1 as null so need to populate it 
-   if(!("XR1" %in% names(data)) || (sum(data$XR1, na.rm=TRUE) == 0 && sum(data$commodity_bill, na.rm=TRUE) > 0)){
-     data$XR1 <- data$commodity_bill
+   if(!("TR1" %in% names(data)) || (sum(data$TR1, na.rm=TRUE) == 0 && sum(data$commodity_bill, na.rm=TRUE) > 0)){
+     data$TR1 <- data$commodity_bill
    }
    # Select revenue in each tier
-   d <- colSums(data %>% select(matches("[B|X]R[0-9]")), na.rm=TRUE)
+   d <- colSums(data %>% select(matches("[B|T]R[0-9]")), na.rm=TRUE)
    d <- tbl_df(data.frame(lapply(d, function(x) t(data.frame(x))))) %>%
      mutate(id=1)
    d <- melt(d, id.vars="id" ) %>% 
@@ -328,13 +328,13 @@ plot_barchart_by_tiers <- function(data, display_type, bar_type){
             value = value/1000000.0)
    lab_str <- "Variable Rev. During Time Period (Mill. $)"
    
- }else{
+ }else if(display_type=="PedUsage"){
     # flat rates leave XR1 as null so need to populate it 
-    if(!("X1" %in% names(data)) || (sum(data$X1, na.rm=TRUE) == 0 && sum(data$variable_bill, na.rm=TRUE) > 0)){
-      data$X1 <- data$usage_ccf
+    if(!("T1" %in% names(data)) || (sum(data$T1, na.rm=TRUE) == 0 && sum(data$commodity_bill, na.rm=TRUE) > 0)){
+      data$T1 <- data$usage_ccf
     }
     # Select usage in each tier
-    d <- colSums(data %>% select(matches("[B|X][0-9]")), na.rm=TRUE)
+    d <- colSums(data %>% select(matches("[B|T][0-9]")), na.rm=TRUE)
     d <- tbl_df(data.frame(lapply(d, function(x) t(data.frame(x))))) %>%
          mutate(id=1)
     d <- melt(d, id.vars="id" ) %>% 
@@ -342,7 +342,21 @@ plot_barchart_by_tiers <- function(data, display_type, bar_type){
                 Tier = get_tier_name(variable),
                 value = value*0.00229569/1000)
     lab_str <- "Usage During Time Period (Thousand AF)"
-  }
+ }else {
+   # flat rates leave XR1 as null so need to populate it 
+   if(!("X1" %in% names(data)) || (sum(data$X1, na.rm=TRUE) == 0 && sum(data$variable_bill, na.rm=TRUE) > 0)){
+     data$X1 <- data$usage_ccf
+   }
+   # Select usage in each tier
+   d <- colSums(data %>% select(matches("[B|X][0-9]")), na.rm=TRUE)
+   d <- tbl_df(data.frame(lapply(d, function(x) t(data.frame(x))))) %>%
+     mutate(id=1)
+   d <- melt(d, id.vars="id" ) %>% 
+     mutate(type=ifelse(grepl("B.*", variable), "Baseline", "Hypothetical"),
+            Tier = get_tier_name(variable),
+            value = value*0.00229569/1000)
+   lab_str <- "Usage During Time Period (Thousand AF)"
+ }
 
   if(bar_type == "Absolute"){
     p <- ggplot(d, aes(type, value, fill=Tier)) + geom_bar(stat="identity") +
