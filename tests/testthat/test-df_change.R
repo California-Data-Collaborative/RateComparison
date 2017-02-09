@@ -1,9 +1,11 @@
 context("Df_change_for_plots")
 
-#read 1. sample_df_plots1.csv for changes in total and variable bills
-#     2. sample_df_plots2.csv for no changes in bills   
 
-sample_df_plots <- read.csv("sample_df_plots1.csv", stringsAsFactors = FALSE)
+##############In Progress##############
+#Add sample_df_plots data frame here
+
+barType <- "Absolute"
+displayType <- "Revenue"
 
 df_change_test_func <- function(df = sample_df_plots, barType = "Absolute", displayType = "Revenue"){
 
@@ -40,6 +42,7 @@ test_that("df change is OK", {
   
   expect_equal(nrow(df_change1), 493)
   expect_equal(colnames(df_change1), df_change_fields)
+  #expect_equal of calculated values here
   
 })
 
