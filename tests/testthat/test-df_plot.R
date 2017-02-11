@@ -44,10 +44,11 @@ test_that("df plot hypothetical info is OK", {
   
 })
 
+
 #baseline_bill_info function
 baseline_bill_info_func <- function(df = sample_df, owrs_file = "mnwd.owrs.txt"){
   
-  base_rate_list <- RateParser::read_owrs_file(owrs_file)
+  baseline_rate_list <- RateParser::read_owrs_file(owrs_file)
   
   bill_info <- RateParser::calculate_bill(df, baseline_rate_list)
   
@@ -78,10 +79,11 @@ test_that("df plot baseline info OK", {
                           "BR4", "BR5", "baseline_variable_bill", "baseline_bill", "baseline_usage")
     
 
- bill_info <- baseline_bill_info_func(df = sample_df)
+ bill_info <- baseline_bill_info_func()
  
  expect_equal(colnames(bill_info), baseline_bill_info)
 
 })
 
 #test_dir("C:/Users/avanjavakam/RateComparison/tests/testthat")
+#test_dir("C:/Users/anude/Documents/Github/RateComparison/tests/testthat")

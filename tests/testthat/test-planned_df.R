@@ -1,6 +1,8 @@
 context("planned_df")
 
 
+#run app once before running this unit test so that df gets loaded in the environment
+#Customer Class Generation test function
 cust_class_generation_func <- function(sample_df = df , cust_class_vec){
  
  recent_date <- max(df$usage_date)
@@ -31,7 +33,7 @@ cust_class_generation_func <- function(sample_df = df , cust_class_vec){
 }
 
 
-
+#test for sum of each individual class
 test_that("customer class generation is OK", {
 
   #class_proportions$Freq <- c(-1, -1, 1, 1, 1, 5)
@@ -60,3 +62,4 @@ test_that("customer class generation is OK", {
 })
 
 #test_dir("C:/Users/avanjavakam/RateComparison/tests/testthat")
+#test_dir("C:/Users/anude/Documents/Github/RateComparison/tests/testthat")
