@@ -398,31 +398,65 @@ plot_fixed_revenue <- function(data, bar_type){
   d <- colSums(data %>% select(baseline_variable_bill, baseline_bill, variable_bill, total_bill), 
                na.rm=TRUE)
   d <- tbl_df(data.frame(lapply(d, function(x) t(data.frame(x))))) %>%
-       mutate(baseline_fixed=baseline_bill-baseline_variable_bill,
-              hypthetical_fixed=total_bill-variable_bill, id=1) %>%
-       mutate(Baseline=100*baseline_fixed/baseline_bill,
-              Hypothetical=100*hypthetical_fixed/total_bill) %>%
-       select(Baseline, Hypothetical, id)
+    mutate(baseline_fixed=baseline_bill-baseline_variable_bill,
+           hypthetical_fixed=total_bill-variable_bill, id=1) %>%
+    mutate(Baseline=100*baseline_fixed/baseline_bill,
+           Hypothetical=100*hypthetical_fixed/total_bill) %>%
+    select(Baseline, Hypothetical, id)
   d <- melt(d, id.vars="id" ) 
   lab_str <- "Percent Fixed Revenue"
-
+  
   if( (sum(d$value) < 0.1) || is.nan(d$value) ){
     p <- ggplot() + 
       geom_hline(yintercept = 0, color="#CC0000") +
       xlab("") + ylab(lab_str)
   }else{
     #if(bar_type == "Absolute"){
-      p <- ggplot(d, aes(variable, value, fill=variable)) + geom_bar(stat="identity") +
-        xlab("") + ylab(lab_str) + #coord_flip() + 
-        scale_fill_manual( values=c("Hypothetical"="steelblue", "Baseline"="black") ) +
-        guides(fill=FALSE)
+    p <- ggplot(d, aes(variable, value, fill=variable)) + geom_bar(stat="identity") +
+      xlab("") + ylab(lab_str) + #coord_flip() + 
+      scale_fill_manual( values=c("Hypothetical"="steelblue", "Baseline"="black") ) +
+      guides(fill=FALSE)
     #}
     #else{
-      
+    
     #}
   }
   ggplotly(p) %>% config(displayModeBar = FALSE)
 }
+
+plot_fixed_revenue1 <- function(data, bar_type){
+  
+  # Select revenue in each tier
+  d <- colSums(data %>% select(baseline_variable_bill, baseline_bill, commodity_bill, actual_bill), 
+               na.rm=TRUE)
+  d <- tbl_df(data.frame(lapply(d, function(x) t(data.frame(x))))) %>%
+    mutate(baseline_fixed=baseline_bill-baseline_variable_bill,
+           hypthetical_fixed=actual_bill-commodity_bill, id=1) %>%
+    mutate(Baseline=100*baseline_fixed/baseline_bill,
+           Hypothetical=100*hypthetical_fixed/actual_bill) %>%
+    select(Baseline, Hypothetical, id)
+  d <- melt(d, id.vars="id" ) 
+  lab_str <- "Percent Fixed Revenue"
+  
+  if( (sum(d$value) < 0.1) || is.nan(d$value) ){
+    p <- ggplot() + 
+      geom_hline(yintercept = 0, color="#CC0000") +
+      xlab("") + ylab(lab_str)
+  }else{
+    #if(bar_type == "Absolute"){
+    p <- ggplot(d, aes(variable, value, fill=variable)) + geom_bar(stat="identity") +
+      xlab("") + ylab(lab_str) + #coord_flip() + 
+      scale_fill_manual( values=c("Hypothetical"="steelblue", "Baseline"="black") ) +
+      guides(fill=FALSE)
+    #}
+    #else{
+    
+    #}
+  }
+  ggplotly(p) %>% config(displayModeBar = FALSE)
+}
+
+
 
 #' Convert generic tier labels to more descriptive labels.
 #'
