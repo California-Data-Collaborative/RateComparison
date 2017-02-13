@@ -235,13 +235,13 @@ classGraph <- function(input, output, session, cust_class, df_original, df_total
   })
   
 
-  df_plots <- reactive({
-
-    combined <- dplyr::bind_cols(df_original(), df_total_bill(), df_baseline_bill(),df_forecast_bill()) %>%
+  df_plots <- reactive({ 
+    combined <- dplyr::bind_cols(df_original(), df_total_bill(), df_baseline_bill(),df_forecast_bill())%>% 
       filter(usage_date >= input$timeSlider[1],
              usage_date <= input$timeSlider[2],
              rate_code %in% input$RateCode)
-   
+    combined$actual_bill <- ifelse(is.na(combined$actual_bill), combined$baseline_bill, combined$actual_bill)
+    combined$estimated_usage <- ifelse(is.na(combined$estimated_usage), combined$baseline_usage, combined$estimated_usage)
     combined
   })
   
@@ -289,7 +289,7 @@ classGraph <- function(input, output, session, cust_class, df_original, df_total
     if (input$displayType == "Revenue"){  if(input$barType == "Absolute"){
       #calucating differences in usage
       df_change <- df_change %>% 
-        mutate(changes=total_bill-baseline_bill, changes_in_usage=hypothetical_usage-baseline_usage, change_group=1)
+        mutate(changes=total_bill-baseline_bill, changes_in_usage= hypothetical_usage-baseline_usage, change_group=1)
     }else{
       #calucating percent differences in usage
       df_change <- df_change %>% 
@@ -297,19 +297,24 @@ classGraph <- function(input, output, session, cust_class, df_original, df_total
     }} else {if(input$barType == "Absolute"){
       #calucating differences in usage
       df_change <- df_change %>% 
-        mutate(changes=actual_bill-baseline_bill, changes_in_usage=estimated_usage-baseline_usage, change_group=1)
+        mutate(changes=actual_bill-baseline_bill, changes_in_usage= estimated_usage-baseline_usage, change_group=1)
     }else{
       #calucating percent differences in usage
       df_change <- df_change %>% 
-        mutate(changes=((actual_bill-baseline_bill)/baseline_bill)*100, changes_in_usage=((estimated_usage-baseline_usage)/baseline_usage)*100, change_group=1)
+        mutate(changes=((actual_bill-baseline_bill)/baseline_bill)*100, changes_in_usage=((estimated_usage - baseline_usage)/baseline_usage)*100, change_group=1)
     }}
     
-    if (input$displayType == "Revenue"){
+    if (input$displayType == "PedRev"){
       df_change <- df_change %>% filter(abs(changes) < mean(changes, na.rm=TRUE) + 2.5*sd(changes, na.rm=TRUE))
-    }else if (input$displayType == "PedRev"){
+    }else if (input$displayType == "Revenue"){
       df_change <- df_change %>% filter(abs(changes) < mean(changes, na.rm=TRUE) + 2.5*sd(changes, na.rm=TRUE))
     }
-    else{
+    else if (input$displayType == "Usage"){
+      df_change$changes_in_usage <- (df_change$hypothetical_usage - df_change$baseline_usage)
+      df_change <- df_change %>% filter(abs(changes_in_usage) < mean(changes_in_usage, na.rm=TRUE) + 
+                                          2.5*sd(changes_in_usage, na.rm=TRUE))
+    } else {
+      df_change$changes_in_usage <- (df_change$estimated_usage - df_change$baseline_usage)
       df_change <- df_change %>% filter(abs(changes_in_usage) < mean(changes_in_usage, na.rm=TRUE) + 
                                           2.5*sd(changes_in_usage, na.rm=TRUE))
     }
@@ -332,9 +337,10 @@ classGraph <- function(input, output, session, cust_class, df_original, df_total
     plot_bill_change_boxplot( df_change(), input$displayType, input$barType )
   })
   
-  output$fixed_revenue_barchart <- renderPlotly({
-    plot_fixed_revenue(df_plots(), input$barType)
-  })
+  output$fixed_revenue_barchart <- renderPlotly({if (input$displayType == "Revenue"){
+    plot_fixed_revenue(df_plots(), input$barType)} else if(input$displayType == "PedRev") {plot_fixed_revenue1(df_plots(), input$barType)} else if(input$displayType == "Usage") {plot_fixed_revenue(df_plots(), input$barType)}
+  else {plot_fixed_revenue1(df_plots(), input$barType)}
+})
   
   return(input_list)
 }#End of classGraph Function
