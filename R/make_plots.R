@@ -263,7 +263,17 @@ plot_bill_change_boxplot <- function(data, display_type, bar_type){
        p <- ggplot(data, aes(change_group, changes)) + geom_boxplot(outlier.size=1) +
        coord_flip() + xlab("") + ylab("") + 
        theme(axis.ticks = element_blank(), axis.text.y = element_blank())
-     }
+     }} else if(display_type=="PedRev"){
+       if(sum(abs(data$changes)) < 1){
+         p <- ggplot() + 
+           geom_vline(xintercept = 0, color="#CC0000") +
+           xlab("")
+       }
+       else{
+         p <- ggplot(data, aes(change_group, changes)) + geom_boxplot(outlier.size=1) +
+           coord_flip() + xlab("") + ylab("") + 
+           theme(axis.ticks = element_blank(), axis.text.y = element_blank())
+       }
   }
   else{ #if usage is selected, plot changes in usage
      if(sum(abs(data$changes_in_usage)) < 1){  
@@ -325,7 +335,7 @@ plot_barchart_by_tiers <- function(data, display_type, bar_type){
    d <- melt(d, id.vars="id" ) %>% 
      mutate(type=ifelse(grepl("B.*", variable), "Baseline", "Hypothetical"),
             Tier = get_tier_name(variable),
-            value = value/1000000.0)
+            value = value/1000000.0,na.rm=TRUE)
    lab_str <- "Variable Rev. During Time Period (Mill. $)"
    
  }else if(display_type=="PedUsage"){
@@ -366,12 +376,16 @@ plot_barchart_by_tiers <- function(data, display_type, bar_type){
     
     if(display_type=="Revenue"){
       lab_str <- "Percent of Revenue in Each Tier"
+    }else if(display_type=="PedRev"){
+      lab_str <- "Percent of Revenue in Each Tier"
+    }else if(display_type =="PedUsage"){
+      lab_str <- "Percent of Usage in Each Tier"
     }else{
       lab_str <- "Percent of Usage in Each Tier"
     }
-    
-    hypothetical_perc_df <- d %>% filter(type == 'Hypothetical') %>% mutate(value = value/sum(value)*100)
-    baseline_perc_df <- d %>% filter(type == 'Baseline') %>% mutate(value = value/sum(value)*100)
+   
+    hypothetical_perc_df <- d %>% filter(type == 'Hypothetical') %>% mutate(value = value/sum(value,na.rm=TRUE)*100)
+    baseline_perc_df <- d %>% filter(type == 'Baseline') %>% mutate(value = value/sum(value,na.rm=TRUE)*100)
     perc_df <- rbind(hypothetical_perc_df, baseline_perc_df)
     p <- ggplot(perc_df, aes(type, value, fill=Tier)) + geom_bar(stat="identity") +
       xlab("") + ylab(paste(lab_str))
