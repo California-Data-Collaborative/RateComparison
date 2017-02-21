@@ -483,14 +483,13 @@ shinyServer(function(input, output, clientData, session) {
    
     bill_info <- bill_info %>% dplyr::rename(variable_bill=commodity_charge,
                                              total_bill=bill)
-    
     #adding baseline usage
-    bill_info$hypothetical_usage <- bill_info$usage_ccf
-    bill_info$forecast_usage <- bill_info$usage_ped
+    # bill_info$hypothetical_usage <- bill_info$usage_ccf
+    # bill_info$forecast_usage <- bill_info$usage_ped
   
     
     # select and return only relevent columns
-    mask <- grepl("XR?[0-9].*|variable.*|total.*|hypothetical.*|forecast.*", names(bill_info))
+    mask <- grepl("XR?[0-9].*|variable.*|total.*|hypothetical.*", names(bill_info))
     bill_info <- bill_info[mask]
     
     # This should work but weird bug causes "cust_class" to get matched also
@@ -506,17 +505,18 @@ shinyServer(function(input, output, clientData, session) {
     bill_info <- RateParser::calculate_bill(tmp, hypothetical_rate_list())
     bill_info <- bill_info %>% ungroup %>% dplyr::arrange(sort_index)
     bill_info <- bill_info %>% dplyr::rename(commodity_bill =commodity_charge,
-                                             actual_bill=bill,priceE_usage=usage_ped)
+                                             hypothetical_ped_bill=bill)
     usage_col_mask <- grepl("X[0-9]", names(bill_info))
     revenue_col_mask <- grepl("XR[0-9]", names(bill_info))
     num_tiers <- sum(usage_col_mask)
     colnames(bill_info)[usage_col_mask] <- c( paste("T", 1:num_tiers, sep=""))
     colnames(bill_info)[revenue_col_mask] <- c( paste("TR", 1:num_tiers, sep=""))
-    #adding baseline usage
     
-    bill_info$estimated_usage <- bill_info$usage_ccf - bill_info$Forecast
+    # PED has already ben factored in at this point
+    bill_info$hypothetical_usage <- bill_info$usage_ccf
+    
     # select and return only relevent columns
-    mask <- grepl("TR?[0-9].*|commodity.*|actual.*|estimated.*|Forecast.*|priceE.*", names(bill_info))
+    mask <- grepl("TR?[0-9].*|commodity.*|hypothetical_ped_bill|estimated.*|ped_change_in_usage|priceE.*", names(bill_info))
     bill_info <- bill_info[mask]
     
     # This should work but weird bug causes "cust_class" to get matched also
@@ -549,8 +549,8 @@ shinyServer(function(input, output, clientData, session) {
   df_forecast <- reactive({
     forecasted <- dplyr::bind_cols(DF(), total_bill_info(),baseline_bill_info()) 
     forecasted <- forecasted  %>%
-      mutate(Forecast = ((variable_bill-baseline_variable_bill)*forecast_usage)/baseline_variable_bill)
-    forecasted$usage_ccf <- forecasted$usage_ccf - forecasted$Forecast
+      mutate(ped_change_in_usage = 0.5*((variable_bill-baseline_variable_bill)*usage_ccf)/baseline_variable_bill)
+    forecasted$usage_ccf <- forecasted$usage_ccf - forecasted$ped_change_in_usage
     forecasted
   })
   
@@ -581,7 +581,8 @@ shinyServer(function(input, output, clientData, session) {
   for(c in cust_class_list){
     # class_rate <- baseline_rate_list$rate_structure[[c]]
     generated_inputs[[c]] <- callModule(classGraph, paste0("panel_",c), c, DF, total_bill_info, baseline_bill_info, 
-                                        forecast_bill_info,active_tab, hypothetical_rate_list, has_planning=input$Planning)
+                                        forecast_bill_info,active_tab, hypothetical_rate_list, 
+                                        has_planning=input$Planning, use_ped=input$usePED)
   }
   
   

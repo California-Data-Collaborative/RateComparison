@@ -15,15 +15,25 @@ library(stringi)
 #' 
 #' @return A plotly object created from a ggplot chart, with plotly's
 #' modebar removed.
-plot_revenue_over_time <- function(data, display_type){
+plot_revenue_over_time <- function(data, display_type, use_ped){
   start.time <- Sys.time()
   if(display_type=="Revenue"){
-    monthly_revenue <- data %>%  group_by(usage_date) %>% 
-                      summarise(revenue=sum(total_bill, na.rm=TRUE),
-                                baseline_revenue=sum(baseline_bill, na.rm=TRUE)) %>% 
-                      mutate(Baseline = baseline_revenue/1000000) %>%
-                      mutate(Hypothetical = revenue/1000000) %>%
-                      select(usage_date,Baseline,Hypothetical)
+    if(use_ped == TRUE){
+      monthly_revenue <- data %>%  group_by(usage_date) %>% 
+        summarise(revenue=sum(hypothetical_ped_bill, na.rm=TRUE),
+                  baseline_revenue=sum(baseline_bill, na.rm=TRUE))
+    }
+    else{
+      monthly_revenue <- data %>%  group_by(usage_date) %>% 
+        summarise(revenue=sum(total_bill, na.rm=TRUE),
+                  baseline_revenue=sum(baseline_bill, na.rm=TRUE))
+    }
+    
+    monthly_revenue <- monthly_revenue %>% 
+      mutate(Baseline = baseline_revenue/1000000) %>%
+      mutate(Hypothetical = revenue/1000000) %>%
+      select(usage_date,Baseline,Hypothetical)
+    
     monthly_revenue <- melt(monthly_revenue, id="usage_date") %>% rename(Revenue=variable)
   
     end.time <- Sys.time()
@@ -48,41 +58,10 @@ plot_revenue_over_time <- function(data, display_type){
     time.taken <- end.time - start.time
     print("Making line chart") 
     print(time.taken)
-  }else if(display_type=="PedRev"){
-    monthly_revenue1 <- data %>%  group_by(usage_date) %>% 
-      summarise(revenue1=sum(actual_bill, na.rm=TRUE),
-                baseline_revenue1=sum(baseline_bill, na.rm=TRUE)) %>% 
-      mutate(Baseline = baseline_revenue1/1000000) %>%
-      mutate(Hypothetical = revenue1/1000000) %>%
-      select(usage_date,Baseline,Hypothetical)
-    monthly_revenue1 <- melt(monthly_revenue1, id="usage_date") %>% rename(Revenue=variable)
-    
-    end.time <- Sys.time()
-    time.taken <- end.time - start.time
-    print("Calcing monthly_revenue")
-    print(time.taken)
-    start.time <- Sys.time()
-    
-    p <- ggplot(monthly_revenue1, aes(x=usage_date, y=value, color=Revenue)) + 
-      # geom_ribbon(aes(x=usage_date, ymax=rev_mill, ymin=base_rev_mill), fill="grey", alpha=.5) +
-      geom_line() + 
-      #geom_vline(xintercept=as.numeric(max(df$usage_date)),color='red3',linetype=2) +
-      scale_linetype_manual(values = c("Baseline"="dashed", "Hypothetical"="solid")) +
-      scale_color_manual(values=c("Baseline"="black", "Hypothetical"="steelblue")) +
-      xlab("") + ylab("Revenue (Million $)") + 
-      # theme(axis.text.x = element_text(angle = 30, hjust = 1)) +
-      # scale_x_date(labels = date_format("%m-%y"), date_breaks="1 months") +
-      scale_y_continuous(labels = comma)
-    #geom_text(data=data.table(date=max(df$usage_date),extracol=0),aes(date,extracol),label="forecast",color='red3',angle=45,vjust=-0.5,hjust=-0.5)
-    
-    end.time <- Sys.time()
-    time.taken <- end.time - start.time
-    print("Making line chart") 
-    print(time.taken)
   }
   else if(display_type=="PedUsage"){ #if usage is selected, plot monthly usage
     monthly_usage <- data %>%  group_by(usage_date) %>%  
-                     summarise(hypothetical_usage=sum(hypothetical_usage-Forecast, na.rm=TRUE),
+                     summarise(hypothetical_usage=sum(estimated_usage, na.rm=TRUE),
                                baseline_usage=sum(baseline_usage, na.rm=TRUE)) %>% 
                      mutate(Baseline = baseline_usage/1000000) %>%
                      mutate(Hypothetical = hypothetical_usage/1000000) %>%
@@ -112,7 +91,8 @@ plot_revenue_over_time <- function(data, display_type){
     print("Making line chart") 
     print(time.taken)
     
-  } else { monthly_usage <- data %>%  group_by(usage_date) %>%  
+  } else { 
+  monthly_usage <- data %>%  group_by(usage_date) %>%  
     summarise(hypothetical_usage=sum(hypothetical_usage, na.rm=TRUE),
               baseline_usage=sum(baseline_usage, na.rm=TRUE)) %>% 
     mutate(Baseline = baseline_usage/1000000) %>%
@@ -441,13 +421,13 @@ plot_fixed_revenue <- function(data, bar_type){
 plot_fixed_revenue1 <- function(data, bar_type){
   
   # Select revenue in each tier
-  d <- colSums(data %>% select(baseline_variable_bill, baseline_bill, commodity_bill, actual_bill), 
+  d <- colSums(data %>% select(baseline_variable_bill, baseline_bill, commodity_bill, hypothetical_ped_bill), 
                na.rm=TRUE)
   d <- tbl_df(data.frame(lapply(d, function(x) t(data.frame(x))))) %>%
     mutate(baseline_fixed=baseline_bill-baseline_variable_bill,
-           hypthetical_fixed=actual_bill-commodity_bill, id=1) %>%
+           hypthetical_fixed=hypothetical_ped_bill-commodity_bill, id=1) %>%
     mutate(Baseline=100*baseline_fixed/baseline_bill,
-           Hypothetical=100*hypthetical_fixed/actual_bill) %>%
+           Hypothetical=100*hypthetical_fixed/hypothetical_ped_bill) %>%
     select(Baseline, Hypothetical, id)
   d <- melt(d, id.vars="id" ) 
   lab_str <- "Percent Fixed Revenue"

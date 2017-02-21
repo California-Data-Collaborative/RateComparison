@@ -24,8 +24,11 @@ shinyUI(navbarPage(
   ),#end tabpanel for navar
   tabPanel("Scenario Planning",
      fluidRow(
-       column(2, checkboxInput("Planning", "Enable Scenario Planning", value = TRUE, 
-                               width = NULL)),
+       column(2, checkboxInput("Planning", "Enable scenario planning", value = TRUE, 
+                               width = NULL),
+              checkboxInput("usePED", "Estimate demand given price elasticity", value = TRUE, 
+                            width = NULL)
+       ),
        column(3, numericInput("Months", "Number of months to Forecast", 
                               3, min = 1, max = 24, step = 1,
                               width = NULL)
