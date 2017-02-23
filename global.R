@@ -76,7 +76,7 @@ less_than_date <- switch(utility_code,
 
 test_file <- switch(utility_code,
                     "IRWD"="data/irwd_test.csv",
-                    "MNWD"="data/mnwd_sample.csv",
+                    "MNWD"="data/mnwd_sample_revised.csv",
                     "LVMWD"="data/lvmwd_test.csv",
                     "SMWD"="data/smwd_test.csv",
                     "SMC"="data/smc_test.csv")

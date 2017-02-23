@@ -276,6 +276,7 @@ classGraph <- function(input, output, session, cust_class, df_original, df_total
   )
   #******************************************************************
   # Reactive dataframe of changes to amount paid
+  #******************************************************************
   df_change <- reactive({
     start.time <- Sys.time()
     df_change <- df_plots() %>% group_by(cust_id) %>% 

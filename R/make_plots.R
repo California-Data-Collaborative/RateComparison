@@ -20,9 +20,7 @@ plot_revenue_over_time <- function(data, display_type){
   if(display_type=="Revenue"){
     monthly_revenue <- data %>%  group_by(usage_date) %>% 
       summarise(revenue=sum(hypothetical_ped_bill, na.rm=TRUE),
-                baseline_revenue=sum(baseline_bill, na.rm=TRUE))
-
-    monthly_revenue <- monthly_revenue %>% 
+                baseline_revenue=sum(baseline_bill, na.rm=TRUE)) %>% 
       mutate(Baseline = baseline_revenue/1000000) %>%
       mutate(Hypothetical = revenue/1000000) %>%
       select(usage_date,Baseline,Hypothetical)
@@ -52,13 +50,13 @@ plot_revenue_over_time <- function(data, display_type){
     print("Making line chart") 
     print(time.taken)
   }
-  else if(display_type=="PedUsage"){ #if usage is selected, plot monthly usage
+  else{ 
     monthly_usage <- data %>%  group_by(usage_date) %>%  
-                     summarise(hypothetical_usage=sum(estimated_usage, na.rm=TRUE),
-                               baseline_usage=sum(baseline_usage, na.rm=TRUE)) %>% 
-                     mutate(Baseline = baseline_usage/1000000) %>%
-                     mutate(Hypothetical = hypothetical_usage/1000000) %>%
-                     select(usage_date,Baseline,Hypothetical)
+      summarise(hypothetical_usage=sum(hypothetical_usage, na.rm=TRUE),
+                baseline_usage=sum(baseline_usage, na.rm=TRUE)) %>% 
+      mutate(Baseline = baseline_usage/1000000) %>%
+      mutate(Hypothetical = hypothetical_usage/1000000) %>%
+      select(usage_date,Baseline,Hypothetical)
     monthly_usage <- melt(monthly_usage, id="usage_date") %>% rename(Usage=variable)
     
     end.time <- Sys.time()
@@ -68,53 +66,21 @@ plot_revenue_over_time <- function(data, display_type){
     start.time <- Sys.time()
     
     p <- ggplot(monthly_usage, aes(x=usage_date, y=value, color=Usage)) + 
-         # geom_ribbon(aes(x=usage_date, ymax=rev_mill, ymin=base_rev_mill), fill="grey", alpha=.5) +
-         geom_line() + 
-         #geom_vline(xintercept=as.numeric(max(df$usage_date)),color='red3',linetype=2) +
-         scale_linetype_manual(values = c("Baseline"="dashed", "Hypothetical"="solid")) +
-         scale_color_manual(values=c("Baseline"="black", "Hypothetical"="steelblue")) +
-         xlab("") + ylab("Usage (Million ccf)") + 
-         # theme(axis.text.x = element_text(angle = 30, hjust = 1)) +
-         # scale_x_date(labels = date_format("%m-%y"), date_breaks="1 months") +
-         scale_y_continuous(labels = comma)
-         #geom_text(data=data.table(date=max(df$usage_date),extracol=0),aes(date,extracol),label="forecast",color='red3',angle=45,vjust=-0.5,hjust=-0.5)
+      # geom_ribbon(aes(x=usage_date, ymax=rev_mill, ymin=base_rev_mill), fill="grey", alpha=.5) +
+      geom_line() + 
+      #geom_vline(xintercept=as.numeric(max(df$usage_date)),color='red3',linetype=2) +
+      scale_linetype_manual(values = c("Baseline"="dashed", "Hypothetical"="solid")) +
+      scale_color_manual(values=c("Baseline"="black", "Hypothetical"="steelblue")) +
+      xlab("") + ylab("Usage (Million ccf)") + 
+      # theme(axis.text.x = element_text(angle = 30, hjust = 1)) +
+      # scale_x_date(labels = date_format("%m-%y"), date_breaks="1 months") +
+      scale_y_continuous(labels = comma)
+    #geom_text(data=data.table(date=max(df$usage_date),extracol=0),aes(date,extracol),label="forecast",color='red3',angle=45,vjust=-0.5,hjust=-0.5)
     
     end.time <- Sys.time()
     time.taken <- end.time - start.time
     print("Making line chart") 
     print(time.taken)
-    
-  } else { 
-  monthly_usage <- data %>%  group_by(usage_date) %>%  
-    summarise(hypothetical_usage=sum(hypothetical_usage, na.rm=TRUE),
-              baseline_usage=sum(baseline_usage, na.rm=TRUE)) %>% 
-    mutate(Baseline = baseline_usage/1000000) %>%
-    mutate(Hypothetical = hypothetical_usage/1000000) %>%
-    select(usage_date,Baseline,Hypothetical)
-  monthly_usage <- melt(monthly_usage, id="usage_date") %>% rename(Usage=variable)
-  
-  end.time <- Sys.time()
-  time.taken <- end.time - start.time
-  print("Calcing monthly_usage")
-  print(time.taken)
-  start.time <- Sys.time()
-  
-  p <- ggplot(monthly_usage, aes(x=usage_date, y=value, color=Usage)) + 
-    # geom_ribbon(aes(x=usage_date, ymax=rev_mill, ymin=base_rev_mill), fill="grey", alpha=.5) +
-    geom_line() + 
-    #geom_vline(xintercept=as.numeric(max(df$usage_date)),color='red3',linetype=2) +
-    scale_linetype_manual(values = c("Baseline"="dashed", "Hypothetical"="solid")) +
-    scale_color_manual(values=c("Baseline"="black", "Hypothetical"="steelblue")) +
-    xlab("") + ylab("Usage (Million ccf)") + 
-    # theme(axis.text.x = element_text(angle = 30, hjust = 1)) +
-    # scale_x_date(labels = date_format("%m-%y"), date_breaks="1 months") +
-    scale_y_continuous(labels = comma)
-  #geom_text(data=data.table(date=max(df$usage_date),extracol=0),aes(date,extracol),label="forecast",color='red3',angle=45,vjust=-0.5,hjust=-0.5)
-  
-  end.time <- Sys.time()
-  time.taken <- end.time - start.time
-  print("Making line chart") 
-  print(time.taken)
   
   }
 
