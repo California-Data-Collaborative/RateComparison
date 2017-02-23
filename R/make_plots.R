@@ -15,20 +15,13 @@ library(stringi)
 #' 
 #' @return A plotly object created from a ggplot chart, with plotly's
 #' modebar removed.
-plot_revenue_over_time <- function(data, display_type, use_ped){
+plot_revenue_over_time <- function(data, display_type){
   start.time <- Sys.time()
   if(display_type=="Revenue"){
-    if(use_ped == TRUE){
-      monthly_revenue <- data %>%  group_by(usage_date) %>% 
-        summarise(revenue=sum(hypothetical_ped_bill, na.rm=TRUE),
-                  baseline_revenue=sum(baseline_bill, na.rm=TRUE))
-    }
-    else{
-      monthly_revenue <- data %>%  group_by(usage_date) %>% 
-        summarise(revenue=sum(total_bill, na.rm=TRUE),
-                  baseline_revenue=sum(baseline_bill, na.rm=TRUE))
-    }
-    
+    monthly_revenue <- data %>%  group_by(usage_date) %>% 
+      summarise(revenue=sum(hypothetical_ped_bill, na.rm=TRUE),
+                baseline_revenue=sum(baseline_bill, na.rm=TRUE))
+
     monthly_revenue <- monthly_revenue %>% 
       mutate(Baseline = baseline_revenue/1000000) %>%
       mutate(Hypothetical = revenue/1000000) %>%
@@ -165,60 +158,35 @@ plot_bill_change_histogram <- function(data, display_type, bar_type){
     time.taken <- end.time - start.time
     print("Making Revenue histogram") 
     print(time.taken)
-  }else if(display_type=="PedRev"){
-    if(sum(abs(data$changes)) < 1){
+  }
+  else{ #if usage is selected, plot changes in usage
+    if(sum(abs(data$changes_in_usage)) < 1){  
       p <- ggplot() + 
         geom_vline(xintercept = 0, color="#CC0000")
       if(bar_type == "Absolute"){
-        p <- p + xlab("Change in total amount paid ($)")
+        p <- p + xlab("Change in total amount used (ccf)")
       }else{
-        p <- p + xlab("% Change in total amount paid")   
+        p <- p + xlab("% Change in total amount used")   
       }
     }
     else{
-      p <- ggplot(data, aes(x=changes)) + geom_histogram() + 
-        geom_vline(xintercept = mean(data$changes, na.rm=TRUE), color="#CC0000") +
+      p <- ggplot(data, aes(x=changes_in_usage)) + geom_histogram() + 
+        geom_vline(xintercept = mean(data$changes_in_usage, na.rm=TRUE), color="#CC0000") +
         theme(axis.ticks = element_blank(), axis.text.y = element_blank())
       if(bar_type == "Absolute"){
-        p <- p + xlab("Change in total amount paid ($)") + ylab("")
+        p <- p + xlab("Change in total amount used (ccf)") + ylab("")
       }else{
-        p <- p + xlab("% Change in total amount paid") + ylab("")   
+        p <- p + xlab("% Change in total amount used") + ylab("")   
       }
     }
-    
+  
     end.time <- Sys.time()
     time.taken <- end.time - start.time
-    print("Making Revenue histogram") 
+    print("Making Usage histogram") 
     print(time.taken)
   }
-  else{ #if usage is selected, plot changes in usage
-  if(sum(abs(data$changes_in_usage)) < 1){  
-    p <- ggplot() + 
-      geom_vline(xintercept = 0, color="#CC0000")
-    if(bar_type == "Absolute"){
-      p <- p + xlab("Change in total amount used (ccf)")
-    }else{
-      p <- p + xlab("% Change in total amount used")   
-    }
-  }
-  else{
-    p <- ggplot(data, aes(x=changes_in_usage)) + geom_histogram() + 
-      geom_vline(xintercept = mean(data$changes_in_usage, na.rm=TRUE), color="#CC0000") +
-      theme(axis.ticks = element_blank(), axis.text.y = element_blank())
-    if(bar_type == "Absolute"){
-      p <- p + xlab("Change in total amount used (ccf)") + ylab("")
-    }else{
-      p <- p + xlab("% Change in total amount used") + ylab("")   
-    }
-  }
   
-  end.time <- Sys.time()
-  time.taken <- end.time - start.time
-  print("Making Usage histogram") 
-  print(time.taken)
-  
-}
-ggplotly(p) %>% config(displayModeBar = FALSE)
+  ggplotly(p) %>% config(displayModeBar = FALSE)
 }
 
 
@@ -243,18 +211,8 @@ plot_bill_change_boxplot <- function(data, display_type, bar_type){
        p <- ggplot(data, aes(change_group, changes)) + geom_boxplot(outlier.size=1) +
        coord_flip() + xlab("") + ylab("") + 
        theme(axis.ticks = element_blank(), axis.text.y = element_blank())
-     }} else if(display_type=="PedRev"){
-       if(sum(abs(data$changes)) < 1){
-         p <- ggplot() + 
-           geom_vline(xintercept = 0, color="#CC0000") +
-           xlab("")
-       }
-       else{
-         p <- ggplot(data, aes(change_group, changes)) + geom_boxplot(outlier.size=1) +
-           coord_flip() + xlab("") + ylab("") + 
-           theme(axis.ticks = element_blank(), axis.text.y = element_blank())
-       }
-  }
+     }
+  } 
   else{ #if usage is selected, plot changes in usage
      if(sum(abs(data$changes_in_usage)) < 1){  
        p <- ggplot() + 
@@ -289,12 +247,12 @@ plot_bill_change_boxplot <- function(data, display_type, bar_type){
 plot_barchart_by_tiers <- function(data, display_type, bar_type){
 
   if(display_type=="Revenue"){
-    # flat rates leave XR1 as null so need to populate it 
-    if(!("XR1" %in% names(data)) || (sum(data$XR1, na.rm=TRUE) == 0 && sum(data$variable_bill, na.rm=TRUE) > 0)){
-      data$XR1 <- data$variable_bill
+    # flat rates leave TR1 as null so need to populate it 
+    if(!("TR1" %in% names(data)) || (sum(data$TR1, na.rm=TRUE) == 0 && sum(data$variable_ped_bill, na.rm=TRUE) > 0)){
+      data$TR1 <- data$variable_ped_bill
     }
     # Select revenue in each tier
-    d <- colSums(data %>% select(matches("[B|X]R[0-9]")), na.rm=TRUE)
+    d <- colSums(data %>% select(matches("[B|T]R[0-9]")), na.rm=TRUE)
     d <- tbl_df(data.frame(lapply(d, function(x) t(data.frame(x))))) %>%
          mutate(id=1)
     d <- melt(d, id.vars="id" ) %>% 
@@ -302,43 +260,14 @@ plot_barchart_by_tiers <- function(data, display_type, bar_type){
                 Tier = get_tier_name(variable),
                 value = value/1000000.0)
     lab_str <- "Variable Rev. During Time Period (Mill. $)"
- 
- }  else if(display_type=="PedRev"){
-   # flat rates leave XR1 as null so need to populate it 
-   if(!("TR1" %in% names(data)) || (sum(data$TR1, na.rm=TRUE) == 0 && sum(data$commodity_bill, na.rm=TRUE) > 0)){
-     data$TR1 <- data$commodity_bill
-   }
-   # Select revenue in each tier
-   d <- colSums(data %>% select(matches("[B|T]R[0-9]")), na.rm=TRUE)
-   d <- tbl_df(data.frame(lapply(d, function(x) t(data.frame(x))))) %>%
-     mutate(id=1)
-   d <- melt(d, id.vars="id" ) %>% 
-     mutate(type=ifelse(grepl("B.*", variable), "Baseline", "Hypothetical"),
-            Tier = get_tier_name(variable),
-            value = value/1000000.0,na.rm=TRUE)
-   lab_str <- "Variable Rev. During Time Period (Mill. $)"
-   
- }else if(display_type=="PedUsage"){
-    # flat rates leave XR1 as null so need to populate it 
-    if(!("T1" %in% names(data)) || (sum(data$T1, na.rm=TRUE) == 0 && sum(data$commodity_bill, na.rm=TRUE) > 0)){
-      data$T1 <- data$usage_ccf
-    }
-    # Select usage in each tier
-    d <- colSums(data %>% select(matches("[B|T][0-9]")), na.rm=TRUE)
-    d <- tbl_df(data.frame(lapply(d, function(x) t(data.frame(x))))) %>%
-         mutate(id=1)
-    d <- melt(d, id.vars="id" ) %>% 
-         mutate(type=ifelse(grepl("B.*", variable), "Baseline", "Hypothetical"),
-                Tier = get_tier_name(variable),
-                value = value*0.00229569/1000)
-    lab_str <- "Usage During Time Period (Thousand AF)"
- }else {
-   # flat rates leave XR1 as null so need to populate it 
-   if(!("X1" %in% names(data)) || (sum(data$X1, na.rm=TRUE) == 0 && sum(data$variable_bill, na.rm=TRUE) > 0)){
-     data$X1 <- data$usage_ccf
+  }  
+  else{
+   # flat rates leave TR1 as null so need to populate it 
+   if(!("T1" %in% names(data)) || (sum(data$T1, na.rm=TRUE) == 0 && sum(data$variable_ped_bill, na.rm=TRUE) > 0)){
+     data$X1 <- data$hypothetical_usage
    }
    # Select usage in each tier
-   d <- colSums(data %>% select(matches("[B|X][0-9]")), na.rm=TRUE)
+   d <- colSums(data %>% select(matches("[B|T][0-9]")), na.rm=TRUE)
    d <- tbl_df(data.frame(lapply(d, function(x) t(data.frame(x))))) %>%
      mutate(id=1)
    d <- melt(d, id.vars="id" ) %>% 
@@ -356,11 +285,8 @@ plot_barchart_by_tiers <- function(data, display_type, bar_type){
     
     if(display_type=="Revenue"){
       lab_str <- "Percent of Revenue in Each Tier"
-    }else if(display_type=="PedRev"){
-      lab_str <- "Percent of Revenue in Each Tier"
-    }else if(display_type =="PedUsage"){
-      lab_str <- "Percent of Usage in Each Tier"
-    }else{
+    }
+    else{
       lab_str <- "Percent of Usage in Each Tier"
     }
    
@@ -387,69 +313,31 @@ plot_barchart_by_tiers <- function(data, display_type, bar_type){
 #' @return A plotly object created from a ggplot chart, with plotly's
 #' modebar removed.
 plot_fixed_revenue <- function(data, bar_type){
-  
-  # Select revenue in each tier
-  d <- colSums(data %>% select(baseline_variable_bill, baseline_bill, variable_bill, total_bill), 
-               na.rm=TRUE)
-  d <- tbl_df(data.frame(lapply(d, function(x) t(data.frame(x))))) %>%
-    mutate(baseline_fixed=baseline_bill-baseline_variable_bill,
-           hypthetical_fixed=total_bill-variable_bill, id=1) %>%
-    mutate(Baseline=100*baseline_fixed/baseline_bill,
-           Hypothetical=100*hypthetical_fixed/total_bill) %>%
-    select(Baseline, Hypothetical, id)
-  d <- melt(d, id.vars="id" ) 
-  lab_str <- "Percent Fixed Revenue"
-  
-  if( (sum(d$value) < 0.1) || is.nan(d$value) ){
-    p <- ggplot() + 
-      geom_hline(yintercept = 0, color="#CC0000") +
-      xlab("") + ylab(lab_str)
-  }else{
-    #if(bar_type == "Absolute"){
-    p <- ggplot(d, aes(variable, value, fill=variable)) + geom_bar(stat="identity") +
-      xlab("") + ylab(lab_str) + #coord_flip() + 
-      scale_fill_manual( values=c("Hypothetical"="steelblue", "Baseline"="black") ) +
-      guides(fill=FALSE)
-    #}
-    #else{
-    
-    #}
-  }
-  ggplotly(p) %>% config(displayModeBar = FALSE)
-}
 
-plot_fixed_revenue1 <- function(data, bar_type){
-  
   # Select revenue in each tier
-  d <- colSums(data %>% select(baseline_variable_bill, baseline_bill, commodity_bill, hypothetical_ped_bill), 
+  d <- colSums(data %>% select(baseline_variable_bill, baseline_bill, variable_ped_bill, hypothetical_ped_bill), 
                na.rm=TRUE)
   d <- tbl_df(data.frame(lapply(d, function(x) t(data.frame(x))))) %>%
     mutate(baseline_fixed=baseline_bill-baseline_variable_bill,
-           hypthetical_fixed=hypothetical_ped_bill-commodity_bill, id=1) %>%
+           hypthetical_fixed=hypothetical_ped_bill-variable_ped_bill, id=1) %>%
     mutate(Baseline=100*baseline_fixed/baseline_bill,
            Hypothetical=100*hypthetical_fixed/hypothetical_ped_bill) %>%
     select(Baseline, Hypothetical, id)
   d <- melt(d, id.vars="id" ) 
   lab_str <- "Percent Fixed Revenue"
-  
+
   if( (sum(d$value) < 0.1) || is.nan(d$value) ){
     p <- ggplot() + 
       geom_hline(yintercept = 0, color="#CC0000") +
       xlab("") + ylab(lab_str)
   }else{
-    #if(bar_type == "Absolute"){
     p <- ggplot(d, aes(variable, value, fill=variable)) + geom_bar(stat="identity") +
       xlab("") + ylab(lab_str) + #coord_flip() + 
       scale_fill_manual( values=c("Hypothetical"="steelblue", "Baseline"="black") ) +
-      guides(fill=FALSE)
-    #}
-    #else{
-    
-    #}
+      theme(legend.position = "none")
   }
   ggplotly(p) %>% config(displayModeBar = FALSE)
 }
-
 
 
 #' Convert generic tier labels to more descriptive labels.
