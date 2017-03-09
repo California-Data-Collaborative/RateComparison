@@ -16,14 +16,26 @@ shinyUI(navbarPage(
 
       column( 12, #"main panel",
               uiOutput('classTabs')
-      ) #end column
+      ),#end column
+      column( 8, #
+              downloadButton('downloadData', 'Download Full Data')
+      )
     )#end row
   ),#end tabpanel for navar
   tabPanel("Scenario Planning",
      fluidRow(
-       column(2, checkboxInput("Planning", "Enable Scenario Planning", value = TRUE, 
-                               width = NULL)),
-       column(3, numericInput("Months", "Number of months to Forecast", 
+       column(2, strong("Price elasticity of demand"), br(),
+              strong("(0 means no price response)")),
+       column(2, numericInput("PED", NULL, 
+                              0.24, min = 0, max = 2, step = 0.01,
+                              width = NULL)
+       )
+     ),
+     fluidRow(
+       column(2, checkboxInput("Planning", "Enable scenario planning", value = TRUE, 
+                               width = NULL)
+       ),
+       column(3, numericInput("Months", "Number of months to forecast", 
                               3, min = 1, max = 24, step = 1,
                               width = NULL)
        )
@@ -57,6 +69,15 @@ shinyUI(navbarPage(
                               1, min = -1000, max = 1000, step = 1,
                               width = NULL)),
        column(2, numericInput("EstUsagePerAccount_irrigation", NULL,
+                              75, min = 0, max = 1000, step = NA,
+                              width = NULL))
+     ),
+     fluidRow(
+       column(2, strong("Recycled")),
+       column(2, numericInput("Recycled", NULL, 
+                              1, min = -1000, max = 1000, step = 1,
+                              width = NULL)),
+       column(2, numericInput("EstUsagePerAccount_recycled", NULL,
                               75, min = 0, max = 1000, step = NA,
                               width = NULL))
      ),

@@ -20,10 +20,11 @@ shinyServer(function(input, output, clientData, session) {
     req(input$Irrigation)
     req(input$ResidentialMulti)
     
-    constant_Growth <- input$ResidentialSingle == 0 & input$ResidentialMulti == 0 & input$Irrigation == 0 & input$Commercial == 0 & input$Other == 0 & input$Institutional == 0
+    constant_Growth <- input$ResidentialSingle == 0 & input$ResidentialMulti == 0 & input$Irrigation == 0 & input$Commercial == 0 & input$Other == 0 & input$Institutional == 0& input$Recycled == 0
     
     
-    Growth <- input$ResidentialSingle + input$ResidentialMulti + input$Irrigation + input$Commercial + input$Other + input$Institutional
+    Growth <- input$ResidentialSingle + input$ResidentialMulti + input$Irrigation + input$Commercial + input$Other + input$Institutional+ input$Recycled
+    
     
   
     
@@ -60,7 +61,7 @@ shinyServer(function(input, output, clientData, session) {
       class_proportions <- as.data.frame(prop.table(table(df$cust_class)), stringsAsFactors = FALSE)
       
       class_proportions$Freq <- c(input$Commercial,input$Institutional, input$Irrigation,input$Other,input$ResidentialMulti,
-                                  input$ResidentialSingle)
+                                  input$ResidentialSingle,input$Recycled)
       
       negative_classes_df <- class_proportions[class_proportions$Freq < 0, ]
       
@@ -161,6 +162,7 @@ shinyServer(function(input, output, clientData, session) {
           new_recent_month_data[is.na(new_recent_month_data$sort_index) & new_recent_month_data$cust_class == "COMMERCIAL", "usage_ccf"] <- input$EstUsagePerAccount_commercial
           new_recent_month_data[is.na(new_recent_month_data$sort_index) & new_recent_month_data$cust_class == "INSTITUTIONAL", "usage_ccf"] <- input$EstUsagePerAccount_institutional
           new_recent_month_data[is.na(new_recent_month_data$sort_index) & new_recent_month_data$cust_class == "OTHER", "usage_ccf"] <- input$EstUsagePerAccount_other
+          new_recent_month_data[is.na(new_recent_month_data$sort_index) & new_recent_month_data$cust_class == "RECYCLED", "usage_ccf"] <- input$EstUsagePerAccount_recycled
           #new_recent_month_data[(nrow(new_recent_month_data)-(total_positive_classes*i)+1):nrow(new_recent_month_data), "usage_ccf"] <- input$EstUsagePerAccount
           
           
@@ -235,6 +237,7 @@ shinyServer(function(input, output, clientData, session) {
            new_recent_month_data[is.na(new_recent_month_data$sort_index) & new_recent_month_data$cust_class == "COMMERCIAL", "usage_ccf"] <- input$EstUsagePerAccount_commercial
            new_recent_month_data[is.na(new_recent_month_data$sort_index) & new_recent_month_data$cust_class == "INSTITUTIONAL", "usage_ccf"] <- input$EstUsagePerAccount_institutional
            new_recent_month_data[is.na(new_recent_month_data$sort_index) & new_recent_month_data$cust_class == "OTHER", "usage_ccf"] <- input$EstUsagePerAccount_other
+           new_recent_month_data[is.na(new_recent_month_data$sort_index) & new_recent_month_data$cust_class == "RECYCLED", "usage_ccf"] <- input$EstUsagePerAccount_recycled
            
            if("cust_loc_meter_size" %in% colnames(df)){
            #fill in meter size for new accounts
@@ -420,7 +423,7 @@ shinyServer(function(input, output, clientData, session) {
     ls <- baseline_rate_list
     
     
-    rate_parts <- c("service_charge", "flat_rate", "gpcd", "landscape_factor")
+    rate_parts <- c("service_charge", "flat_rate", "gpcd", "landscape_factor","PED")
     
     for(cust_class in cust_class_list){
       
@@ -477,15 +480,17 @@ shinyServer(function(input, output, clientData, session) {
     
     bill_info <- RateParser::calculate_bill(DF(), hypothetical_rate_list())
     bill_info <- bill_info %>% ungroup %>% dplyr::arrange(sort_index)
-    
+   
     bill_info <- bill_info %>% dplyr::rename(variable_bill=commodity_charge,
                                              total_bill=bill)
     
-    #adding baseline usage
-    bill_info$hypothetical_usage <- bill_info$usage_ccf
+    #in this case hypothetical same as baseline usage
+    # bill_info$hypothetical_usage <- bill_info$usage_ccf
+    # bill_info$forecast_usage <- bill_info$usage_ped
+  
     
     # select and return only relevent columns
-    mask <- grepl("XR?[0-9]|variable.*|total.*|hypothetical.*", names(bill_info))
+    mask <- grepl("XR?[0-9].*|variable.*|total.*|hypothetical.*", names(bill_info))
     bill_info <- bill_info[mask]
     
     # This should work but weird bug causes "cust_class" to get matched also
@@ -493,6 +498,34 @@ shinyServer(function(input, output, clientData, session) {
     
     return(bill_info)
   })
+  
+  forecast_bill_info <- reactive({
+    tmp <- df_forecast()
+    usage_col_mask <- !grepl("XR?[0-9]", names(tmp))
+    tmp <- tmp[,usage_col_mask]
+    bill_info <- RateParser::calculate_bill(tmp, hypothetical_rate_list())
+    bill_info <- bill_info %>% ungroup %>% dplyr::arrange(sort_index)
+    bill_info <- bill_info %>% dplyr::rename(variable_ped_bill =commodity_charge,
+                                             hypothetical_ped_bill=bill)
+    usage_col_mask <- grepl("X[0-9]", names(bill_info))
+    revenue_col_mask <- grepl("XR[0-9]", names(bill_info))
+    num_tiers <- sum(usage_col_mask)
+    colnames(bill_info)[usage_col_mask] <- c( paste("T", 1:num_tiers, sep=""))
+    colnames(bill_info)[revenue_col_mask] <- c( paste("TR", 1:num_tiers, sep=""))
+    
+    # PED has already ben factored in at this point
+    bill_info$hypothetical_usage <- bill_info$usage_ccf
+    
+    # select and return only relevent columns
+    mask <- grepl("TR?[0-9].*|commodity.*|hypothetical.*|ped_change_in_usage|variable_ped_bill", names(bill_info))
+    bill_info <- bill_info[mask]
+    
+    # This should work but weird bug causes "cust_class" to get matched also
+    #bill_info <- bill_info %>% select(matches("BR?[0-9]|baseline.*"))
+    
+    return(bill_info)
+  })
+  
   
   # Return the proper dataframe given planning status
   DF <- reactive({
@@ -508,6 +541,27 @@ shinyServer(function(input, output, clientData, session) {
     }
   })
   
+  df_download <- reactive({
+    combined <- dplyr::bind_cols(DF(), total_bill_info(),baseline_bill_info()) 
+    
+    combined
+  })
+  
+  df_forecast <- reactive({
+    forecasted <- dplyr::bind_cols(DF(), total_bill_info(),baseline_bill_info()) 
+    forecasted <- forecasted  %>%
+      mutate(ped_change_in_usage = input$PED*((variable_bill-baseline_variable_bill)*usage_ccf)/baseline_variable_bill)
+    forecasted$usage_ccf <- forecasted$usage_ccf - forecasted$ped_change_in_usage
+    forecasted
+  })
+  
+  
+  output$downloadData <- downloadHandler(
+    filename = function() { paste("TierUse_BillReport", '.csv', sep='') },
+    content = function(file) {
+      write.csv(df_download(),file)
+    }
+  )
   # Generate output panels for each customer class in the data
   output$classTabs <- renderUI({
     myTabs = lapply(1:length(cust_class_list), function(i){
@@ -528,7 +582,8 @@ shinyServer(function(input, output, clientData, session) {
   for(c in cust_class_list){
     # class_rate <- baseline_rate_list$rate_structure[[c]]
     generated_inputs[[c]] <- callModule(classGraph, paste0("panel_",c), c, DF, total_bill_info, baseline_bill_info, 
-                                        active_tab, hypothetical_rate_list, has_planning=input$Planning)
+                                        forecast_bill_info,active_tab, hypothetical_rate_list, 
+                                        has_planning=input$Planning)
   }
   
   
@@ -563,7 +618,7 @@ baseline <- function(basedata){
   num_tiers <- sum(usage_col_mask)
   colnames(bill_info)[usage_col_mask] <- c( paste("B", 1:num_tiers, sep=""))
   colnames(bill_info)[revenue_col_mask] <- c( paste("BR", 1:num_tiers, sep=""))
-  
+ 
   bill_info <- bill_info %>% dplyr::rename(baseline_variable_bill=commodity_charge,
                                            baseline_bill=bill)
   #adding baseline usage
@@ -578,6 +633,10 @@ baseline <- function(basedata){
   
   return(bill_info)
 }
+
+
+
+
 
 
 
