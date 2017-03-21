@@ -461,8 +461,7 @@ shinyServer(function(input, output, clientData, session) {
           
         }
       }
-      
-      
+     
       # link commodity_charge to hypothetical_rate_list
       if(!is.null(class_input$other_inputs$rateType)){
         if(class_input$other_inputs$rateType == "Flat" && !is.null(ls$rate_structure[[cust_class]][["flat_rate"]])){
@@ -472,6 +471,10 @@ shinyServer(function(input, output, clientData, session) {
           ls$rate_structure[[cust_class]][["commodity_charge"]] <- rate_type
           ls$rate_structure[[cust_class]][["tier_starts"]] <- hypothetical_tier_boxes()[[cust_class]][[rate_type]]$tier_starts
           ls$rate_structure[[cust_class]][["tier_prices"]] <- hypothetical_tier_boxes()[[cust_class]][[rate_type]]$tier_prices
+          
+          if(class_input$other_inputs$rateType == "Budget" && is.null(ls$rate_structure[[cust_class]]$budget)){
+            ls$rate_structure[[cust_class]][["budget"]] <- hypothetical_tier_boxes()[[cust_class]][[rate_type]]$budget
+          }
         }
       }
       
@@ -484,7 +487,7 @@ shinyServer(function(input, output, clientData, session) {
   # Calculate total bill
   #******************************************************************
   total_bill_info <- reactive({
-    
+ 
     bill_info <- RateParser::calculate_bill(DF(), hypothetical_rate_list())
     
     bill_info <- bill_info %>% ungroup %>% dplyr::arrange(sort_index)
@@ -603,11 +606,11 @@ shinyServer(function(input, output, clientData, session) {
   #******************************************************************
   baseline_bill_info <- reactive({
     switch(utility_code,
-         "IRWD"=irwd_baseline(basedata=DF()),
+         "IRWD"=baseline(basedata=DF()),
          "MNWD"=baseline(basedata=DF()),
-         "LVMWD"=lvmwd_baseline(basedata=DF()),
-         "SMWD"=smwd_baseline(basedata=DF()),
-         "SMC"=smc_baseline(basedata=DF())
+         "LVMWD"=baseline(basedata=DF()),
+         "SMWD"=baseline(basedata=DF()),
+         "SMC"=baseline(basedata=DF())
     )
   })
   
