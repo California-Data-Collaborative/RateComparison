@@ -90,10 +90,11 @@ classGraphOutput <- function(id, rate_codes){
                 fluidRow(
                   column(12,
                          ratePartInput(ns("landscape_factor"))
-                  ),
-                  column(12,
-                         ratePartInput(ns("PED"))
                   )
+                  # ,
+                  # column(12,
+                  #        ratePartInput(ns("PED"))
+                  # )
                 ),
                 fluidRow(
                   column(6,

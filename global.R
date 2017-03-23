@@ -64,7 +64,7 @@ owrs_file <- switch(utility_code,
                     "IRWD"="",
                     "MNWD"="mnwd.owrs",
                     "LVMWD"="data/lvmwd_simplified.owrs",
-                    "SMWD"="",
+                    "SMWD"="data/smwd-2017-01-01_simplified.owrs",
                     "SMC"="")
 
 baseline_rate_list <- RateParser::read_owrs_file(owrs_file)
@@ -86,8 +86,8 @@ less_than_date <- switch(utility_code,
 test_file <- switch(utility_code,
                     "IRWD"="data/irwd_test.csv",
                     "MNWD"="data/mnwd_sample_revised.csv",
-                    "LVMWD"="data/lvmwd_test2_comm_budgets.csv",
-                    "SMWD"="data/smwd_test.csv",
+                    "LVMWD"="data/lvmwd_test2_comm_budgets_monthly.csv",
+                    "SMWD"="data/smwd_test2.csv",
                     "SMC"="data/smc_test.csv")
 
 
