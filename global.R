@@ -54,6 +54,10 @@ read_data <- function(filename, cust_col, usage_col, month_col, year_col, et_col
   time.taken <- end.time - start.time
   print(time.taken)
   print("...loaded.")
+  
+  check_last_month(data)
+  check_first_month(data)
+  
   return(data)
 }
 
