@@ -4,7 +4,7 @@
 \alias{plot_bill_change_histogram}
 \title{Histogram of bill changes.}
 \usage{
-plot_bill_change_histogram(data)
+plot_bill_change_histogram(data, display_type)
 }
 \arguments{
 \item{data}{The dataframe filtered by date range and rate code.}

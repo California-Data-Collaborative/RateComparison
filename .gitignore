@@ -27,6 +27,7 @@ utility_code.R
 
 # RStudio files
 .Rproj.user/
+*.Rproj
 
 # produced vignettes
 vignettes/*.html

@@ -4,7 +4,7 @@
 \alias{plot_revenue_over_time}
 \title{Line chart of revenue over time.}
 \usage{
-plot_revenue_over_time(data)
+plot_revenue_over_time(data, display_type)
 }
 \arguments{
 \item{data}{The dataframe filtered by date range and rate code.}
