@@ -14,6 +14,7 @@ source("R/class_graphs.R")
 source("R/rate_inputs.R")
 
 
+
 #******************************************************************
 # Read in the data and map the columns to application columns
 #******************************************************************
@@ -24,7 +25,6 @@ read_data <- function(filename, cust_col, usage_col, month_col, year_col, et_col
   
   print("Reading data...")
   start.time <- Sys.time()
-  
   data <- tbl_df(read.csv(filename)) %>% 
     dplyr::rename_(.dots=setNames(list(cust_col), "cust_id")) %>%
     dplyr::rename_(.dots=setNames(list(usage_col), "usage_ccf")) %>%
@@ -54,11 +54,24 @@ read_data <- function(filename, cust_col, usage_col, month_col, year_col, et_col
   time.taken <- end.time - start.time
   print(time.taken)
   print("...loaded.")
+  
+  check_last_month(data)
+  check_first_month(data)
+  
   return(data)
 }
 
 generated_inputs <- list()
-baseline_rate_list <- RateParser::read_owrs_file("mnwd.owrs")
+
+
+owrs_file <- switch(utility_code,
+                    "IRWD"="",
+                    "MNWD"="mnwd.owrs",
+                    "LVMWD"="data/lvmwd_simplified.owrs",
+                    "SMWD"="data/smwd-2017-01-01_simplified.owrs",
+                    "SMC"="")
+
+baseline_rate_list <- RateParser::read_owrs_file(owrs_file)
 
 is_budget <- switch(utility_code,
                     "IRWD"=,
@@ -77,8 +90,8 @@ less_than_date <- switch(utility_code,
 test_file <- switch(utility_code,
                     "IRWD"="data/irwd_test.csv",
                     "MNWD"="data/mnwd_sample_revised.csv",
-                    "LVMWD"="data/lvmwd_test.csv",
-                    "SMWD"="data/smwd_test.csv",
+                    "LVMWD"="data/lvmwd_test2_comm_budgets_monthly.csv",
+                    "SMWD"="data/smwd_test2.csv",
                     "SMC"="data/smc_test.csv")
 
 
@@ -116,6 +129,7 @@ cust_class_list_from_data <- unique(df$cust_class)
 cust_class_list_from_data[(cust_class_list_from_data %in% cust_class_list)]
 classes_not_in_OWRS <- cust_class_list_from_data[!(cust_class_list_from_data %in% cust_class_list)]
 cust_class_list <- c(cust_class_list, classes_not_in_OWRS )
+cust_class_list <- cust_class_list[cust_class_list %in% cust_class_list_from_data]
 
 # Generate the defaults that will populate tier boxes for which a utility
 # has no value. For example, a budget-based utility still needs default values
@@ -127,6 +141,7 @@ for(c in cust_class_list){
   tier_boxes[[c]][["Tiered"]][["tier_prices"]] <- c(2.87, 4.29, 6.44, 10.07)
   tier_boxes[[c]][["Budget"]][["tier_starts"]] <- list(0, "40%", "101%", "131%")
   tier_boxes[[c]][["Budget"]][["tier_prices"]] <- c(1.11, 1.62, 3.92, 14.53)
+  tier_boxes[[c]][["Budget"]][["budget"]] <- "0.9*usage_ccf"
   
   if(baseline_rate_list$rate_structure[[c]]$commodity_charge %in% c("Tiered", "Budget") &&
      !is.null(baseline_rate_list$rate_structure[[c]]$tier_starts) &&

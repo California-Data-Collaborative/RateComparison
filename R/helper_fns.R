@@ -1,5 +1,40 @@
 
 library(ggplot2)
+library(lubridate)
+
+check_last_month <- function(data){
+  max_date <- max(data$usage_date)
+  
+  previous_count <- length(unique(dplyr::filter(data, usage_date == max_date %m-% months(1))$cust_id))
+  last_count <- length(unique(dplyr::filter(data, usage_date == max_date)$cust_id))
+  
+  if(last_count < 0.95*previous_count){
+    warning(paste("Last month of data has more than 5% fewer accounts than the second to last month. ",
+                  "This could be a data error or the result of bimonthly billing."))
+  }
+  else if(last_count > 1.05*previous_count){
+    warning(paste("Last month of data has more than 5% more accounts than the second to last month. ",
+                  "This could be a data error or the result of bimonthly billing."))
+  }
+}
+
+check_first_month <- function(data){
+  min_date <- min(data$usage_date)
+  
+  second_count <- length(unique(dplyr::filter(data, usage_date == min_date %m+% months(1))$cust_id))
+  first_count <- length(unique(dplyr::filter(data, usage_date == min_date)$cust_id))
+
+  if(first_count < 0.95*second_count){
+    warning(paste("First month of data has more than 5% fewer accounts than the second month. ",
+                  "This could be a data error or the result of bimonthly billing."))
+  }
+  else if(first_count > 1.05*second_count){
+    warning(paste("First month of data has more than 5% more accounts than the second month. ",
+                  "This could be a data error or the result of bimonthly billing."))
+  }
+}
+
+
 
 #******************************************************************
 # Split text box input into a vector of strings

@@ -13,20 +13,26 @@ shinyServer(function(input, output, clientData, session) {
   planneddf <- reactive({
     
     #Make sure they are not blank
-    req(input$ResidentialSingle)
-    req(input$Institutional)
-    req(input$Other)
-    req(input$Commercial)
-    req(input$Irrigation)
-    req(input$ResidentialMulti)
+    lapply(1:length(cust_class_list_from_data), function(i) {
+    req(input[[cust_class_list_from_data[i]]])
+    })
     
-    constant_Growth <- input$ResidentialSingle == 0 & input$ResidentialMulti == 0 & input$Irrigation == 0 & input$Commercial == 0 & input$Other == 0 & input$Institutional == 0& input$Recycled == 0
+    #If each of the input is zero
+    is_it_zero <- sapply(1:length(cust_class_list_from_data), function(i) {
+       input[[cust_class_list_from_data[i]]] == 0
+      
+    })
+
+    constant_Growth <- all(is_it_zero)
+    #class_inputs <- numeric()
     
+
+    class_inputs <- sapply(1:length(cust_class_list_from_data), function(i) {
+    input[[cust_class_list_from_data[i]]]
     
-    Growth <- input$ResidentialSingle + input$ResidentialMulti + input$Irrigation + input$Commercial + input$Other + input$Institutional+ input$Recycled
+    })
     
-    
-  
+    Growth <- sum(class_inputs)
     
     if(input$Planning == TRUE & input$Months != 0){
      
@@ -60,9 +66,9 @@ shinyServer(function(input, output, clientData, session) {
       #for generating customer class
       class_proportions <- as.data.frame(prop.table(table(df$cust_class)), stringsAsFactors = FALSE)
       
-      class_proportions$Freq <- c(input$Commercial,input$Institutional, input$Irrigation,input$Other,input$ResidentialMulti,
-                                  input$ResidentialSingle,input$Recycled)
-      
+
+      class_proportions$Freq <- class_inputs
+
       negative_classes_df <- class_proportions[class_proportions$Freq < 0, ]
       
       total_negative_classes <- sum(negative_classes_df$Freq)
@@ -113,9 +119,8 @@ shinyServer(function(input, output, clientData, session) {
               new_recent_month_data[(nrow(new_recent_month_data)+1):(nrow(new_recent_month_data)+(class_proportions$Freq[j]*i)), "cust_class"] <- class_proportions$Var1[j]
            
             }else{
-              class_proportions$Freq[j] <- abs(class_proportions$Freq[j])
-              new_recent_month_data <- new_recent_month_data[-(sample(1:nrow(filter(new_recent_month_data,cust_class == class_proportions$Var1[j])), 
-                                                                      size = class_proportions$Freq[j])), ]
+              to_del_accounts <- sample_n(filter(new_recent_month_data,cust_class == class_proportions$Var1[j]), size = abs(class_proportions$Freq[j]))
+              new_recent_month_data <- new_recent_month_data %>% filter(!sort_index %in% to_del_accounts$sort_index)
               
               
             }
@@ -156,13 +161,15 @@ shinyServer(function(input, output, clientData, session) {
           new_recent_month_data$usage_ccf[1:nrow(recent_month_data)] <- tmp$usage_ccf.y
           
           #fill in the usage for new accounts with the estimated usage input
-          new_recent_month_data[is.na(new_recent_month_data$sort_index) & new_recent_month_data$cust_class == "RESIDENTIAL_SINGLE", "usage_ccf"] <- input$EstUsagePerAccount
-          new_recent_month_data[is.na(new_recent_month_data$sort_index) & new_recent_month_data$cust_class == "RESIDENTIAL_MULTI", "usage_ccf"] <- input$EstUsagePerAccount_multi
-          new_recent_month_data[is.na(new_recent_month_data$sort_index) & new_recent_month_data$cust_class == "IRRIGATION", "usage_ccf"] <- input$EstUsagePerAccount_irrigation
-          new_recent_month_data[is.na(new_recent_month_data$sort_index) & new_recent_month_data$cust_class == "COMMERCIAL", "usage_ccf"] <- input$EstUsagePerAccount_commercial
-          new_recent_month_data[is.na(new_recent_month_data$sort_index) & new_recent_month_data$cust_class == "INSTITUTIONAL", "usage_ccf"] <- input$EstUsagePerAccount_institutional
-          new_recent_month_data[is.na(new_recent_month_data$sort_index) & new_recent_month_data$cust_class == "OTHER", "usage_ccf"] <- input$EstUsagePerAccount_other
-          new_recent_month_data[is.na(new_recent_month_data$sort_index) & new_recent_month_data$cust_class == "RECYCLED", "usage_ccf"] <- input$EstUsagePerAccount_recycled
+          lapply(1:length(cust_class_list_from_data), function(i) {
+            new_recent_month_data[is.na(new_recent_month_data$sort_index) & new_recent_month_data$cust_class == cust_class_list_from_data[i], "usage_ccf"] <- input[[paste0("EstUsagePerAccount_",cust_class_list_from_data[i])]] 
+          })
+          # new_recent_month_data[is.na(new_recent_month_data$sort_index) & new_recent_month_data$cust_class == "RESIDENTIAL_SINGLE", "usage_ccf"] <- input$EstUsagePerAccount
+          # new_recent_month_data[is.na(new_recent_month_data$sort_index) & new_recent_month_data$cust_class == "RESIDENTIAL_MULTI", "usage_ccf"] <- input$EstUsagePerAccount_multi
+          # new_recent_month_data[is.na(new_recent_month_data$sort_index) & new_recent_month_data$cust_class == "IRRIGATION", "usage_ccf"] <- input$EstUsagePerAccount_irrigation
+          # new_recent_month_data[is.na(new_recent_month_data$sort_index) & new_recent_month_data$cust_class == "COMMERCIAL", "usage_ccf"] <- input$EstUsagePerAccount_commercial
+          # new_recent_month_data[is.na(new_recent_month_data$sort_index) & new_recent_month_data$cust_class == "INSTITUTIONAL", "usage_ccf"] <- input$EstUsagePerAccount_institutional
+          # new_recent_month_data[is.na(new_recent_month_data$sort_index) & new_recent_month_data$cust_class == "OTHER", "usage_ccf"] <- input$EstUsagePerAccount_other
           #new_recent_month_data[(nrow(new_recent_month_data)-(total_positive_classes*i)+1):nrow(new_recent_month_data), "usage_ccf"] <- input$EstUsagePerAccount
           
           
@@ -204,9 +211,8 @@ shinyServer(function(input, output, clientData, session) {
                new_recent_month_data[(nrow(new_recent_month_data)+1):(nrow(new_recent_month_data)+(class_proportions$Freq[j]*i)), "cust_class"] <- class_proportions$Var1[j]
                
              }else{
-               class_proportions$Freq[j] <- abs(class_proportions$Freq[j])
-               new_recent_month_data <- new_recent_month_data[-(sample(1:nrow(filter(new_recent_month_data,cust_class == class_proportions$Var1[j])), 
-                                                                       size = class_proportions$Freq[j])), ]
+               to_del_accounts <- sample_n(filter(new_recent_month_data,cust_class == class_proportions$Var1[j]), size = abs(class_proportions$Freq[j]))
+               new_recent_month_data <- new_recent_month_data %>% filter(!sort_index %in% to_del_accounts$sort_index)
                
                
              }
@@ -231,14 +237,16 @@ shinyServer(function(input, output, clientData, session) {
            new_recent_month_data$usage_ccf[1:nrow(recent_month_data)] <- tmp$usage_ccf.y
            
            #fill in the usage for new accounts with the estimated usage input
-           new_recent_month_data[is.na(new_recent_month_data$sort_index) & new_recent_month_data$cust_class == "RESIDENTIAL_SINGLE", "usage_ccf"] <- input$EstUsagePerAccount
-           new_recent_month_data[is.na(new_recent_month_data$sort_index) & new_recent_month_data$cust_class == "RESIDENTIAL_MULTI", "usage_ccf"] <- input$EstUsagePerAccount_multi
-           new_recent_month_data[is.na(new_recent_month_data$sort_index) & new_recent_month_data$cust_class == "IRRIGATION", "usage_ccf"] <- input$EstUsagePerAccount_irrigation
-           new_recent_month_data[is.na(new_recent_month_data$sort_index) & new_recent_month_data$cust_class == "COMMERCIAL", "usage_ccf"] <- input$EstUsagePerAccount_commercial
-           new_recent_month_data[is.na(new_recent_month_data$sort_index) & new_recent_month_data$cust_class == "INSTITUTIONAL", "usage_ccf"] <- input$EstUsagePerAccount_institutional
-           new_recent_month_data[is.na(new_recent_month_data$sort_index) & new_recent_month_data$cust_class == "OTHER", "usage_ccf"] <- input$EstUsagePerAccount_other
-           new_recent_month_data[is.na(new_recent_month_data$sort_index) & new_recent_month_data$cust_class == "RECYCLED", "usage_ccf"] <- input$EstUsagePerAccount_recycled
-           
+           lapply(1:length(cust_class_list_from_data), function(i) {
+             new_recent_month_data[is.na(new_recent_month_data$sort_index) & new_recent_month_data$cust_class == cust_class_list_from_data[i], "usage_ccf"] <- input[[paste0("EstUsagePerAccount_",cust_class_list_from_data[i])]] 
+           })
+           # new_recent_month_data[is.na(new_recent_month_data$sort_index) & new_recent_month_data$cust_class == "RESIDENTIAL_SINGLE", "usage_ccf"] <- input$EstUsagePerAccount
+           # new_recent_month_data[is.na(new_recent_month_data$sort_index) & new_recent_month_data$cust_class == "RESIDENTIAL_MULTI", "usage_ccf"] <- input$EstUsagePerAccount_multi
+           # new_recent_month_data[is.na(new_recent_month_data$sort_index) & new_recent_month_data$cust_class == "IRRIGATION", "usage_ccf"] <- input$EstUsagePerAccount_irrigation
+           # new_recent_month_data[is.na(new_recent_month_data$sort_index) & new_recent_month_data$cust_class == "COMMERCIAL", "usage_ccf"] <- input$EstUsagePerAccount_commercial
+           # new_recent_month_data[is.na(new_recent_month_data$sort_index) & new_recent_month_data$cust_class == "INSTITUTIONAL", "usage_ccf"] <- input$EstUsagePerAccount_institutional
+           # new_recent_month_data[is.na(new_recent_month_data$sort_index) & new_recent_month_data$cust_class == "OTHER", "usage_ccf"] <- input$EstUsagePerAccount_other
+
            if("cust_loc_meter_size" %in% colnames(df)){
            #fill in meter size for new accounts
            new_recent_month_data[(nrow(recent_month_data)+(total_negative_classes*i)+1):(nrow(recent_month_data)+(extra_rows*i)),"meter_size"] <- getmode(df$meter_size)
@@ -337,9 +345,8 @@ shinyServer(function(input, output, clientData, session) {
             new_recent_month_data[(nrow(new_recent_month_data)+1):(nrow(new_recent_month_data)+(class_proportions$Freq[j]*i)), "cust_class"] <- class_proportions$Var1[j]
             
           }else{
-            class_proportions$Freq[j] <- abs(class_proportions$Freq[j])
-            new_recent_month_data <- new_recent_month_data[-(sample(1:nrow(filter(new_recent_month_data,cust_class == class_proportions$Var1[j])), 
-                                                                    size = class_proportions$Freq[j])), ]
+            to_del_accounts <- sample_n(filter(new_recent_month_data,cust_class == class_proportions$Var1[j]), size = abs(class_proportions$Freq[j]))
+            new_recent_month_data <- new_recent_month_data %>% filter(!sort_index %in% to_del_accounts$sort_index)
             
             
           }
@@ -454,8 +461,7 @@ shinyServer(function(input, output, clientData, session) {
           
         }
       }
-      
-      
+     
       # link commodity_charge to hypothetical_rate_list
       if(!is.null(class_input$other_inputs$rateType)){
         if(class_input$other_inputs$rateType == "Flat" && !is.null(ls$rate_structure[[cust_class]][["flat_rate"]])){
@@ -465,11 +471,15 @@ shinyServer(function(input, output, clientData, session) {
           ls$rate_structure[[cust_class]][["commodity_charge"]] <- rate_type
           ls$rate_structure[[cust_class]][["tier_starts"]] <- hypothetical_tier_boxes()[[cust_class]][[rate_type]]$tier_starts
           ls$rate_structure[[cust_class]][["tier_prices"]] <- hypothetical_tier_boxes()[[cust_class]][[rate_type]]$tier_prices
+          
+          if(class_input$other_inputs$rateType == "Budget" && is.null(ls$rate_structure[[cust_class]]$budget)){
+            ls$rate_structure[[cust_class]][["budget"]] <- hypothetical_tier_boxes()[[cust_class]][[rate_type]]$budget
+          }
         }
       }
       
     }
-    
+  
     ls
   })
   
@@ -477,8 +487,9 @@ shinyServer(function(input, output, clientData, session) {
   # Calculate total bill
   #******************************************************************
   total_bill_info <- reactive({
-    
+ 
     bill_info <- RateParser::calculate_bill(DF(), hypothetical_rate_list())
+    
     bill_info <- bill_info %>% ungroup %>% dplyr::arrange(sort_index)
    
     bill_info <- bill_info %>% dplyr::rename(variable_bill=commodity_charge,
@@ -595,11 +606,11 @@ shinyServer(function(input, output, clientData, session) {
   #******************************************************************
   baseline_bill_info <- reactive({
     switch(utility_code,
-         "IRWD"=irwd_baseline(basedata=DF()),
+         "IRWD"=baseline(basedata=DF()),
          "MNWD"=baseline(basedata=DF()),
-         "LVMWD"=lvmwd_baseline(basedata=DF()),
-         "SMWD"=smwd_baseline(basedata=DF()),
-         "SMC"=smc_baseline(basedata=DF())
+         "LVMWD"=baseline(basedata=DF()),
+         "SMWD"=baseline(basedata=DF()),
+         "SMC"=baseline(basedata=DF())
     )
   })
   
@@ -863,5 +874,5 @@ irwd_baseline <- function(basedata){
   bill_2016$baseline_usage <- bill_2016 %>% select(matches("[B][0-9]")) %>% rowSums()
   return( bind_rows(bill_2014, bill_2015, bill_2016) )
 }
-
+#test_dir("C:/Users/anude/Documents/GitHub/RateComparison/tests/testthat", reporter="summary")
 
