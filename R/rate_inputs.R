@@ -27,7 +27,7 @@ tierBox <- function(input, output, session, part_name, part_name_long,
   
   output$tierInfoBox <- renderUI({
     ns <- session$ns
-
+    
     # should use defaults?
     if(is.null(rate_part) || rate_type != rate_type_provided){
       box_info <- defaults[[rate_type]][[part_name]]
@@ -38,7 +38,7 @@ tierBox <- function(input, output, session, part_name, part_name_long,
     
     tagList(
       textAreaInput(ns("tier_box"), label=part_name_long, value=box_info,
-                    height=50)#text_height(input$depend_cols))
+                    height=150)#text_height(input$depend_cols))
     )
   })
   
@@ -80,26 +80,26 @@ ratePart <- function(input, output, session, part_name, part_name_long="", depen
     
     tagList(
       fluidRow(
-         column(1, checkboxInput(ns("expanded"), label=NULL, value = is_expanded)),
-         conditionalPanel(condition = sprintf("input['%s'] == false", ns("expanded")),
-           column(5, strong( paste0(part_name_long, " ($):" ) )),
-           column(5, numericInput(ns("simpleValue"), label=NULL, value=simple_value(simple_value_provided, part_name)) )
-         ),
-         conditionalPanel(condition = sprintf("input['%s'] == true", ns("expanded")),
-           column(5, strong( paste0(part_name_long, ":\n(depends on...)") ) ),
-           column(5, selectInput(ns("depend_cols"), label=NULL, choices=depends_col_list, 
-                       selected=c(current_selected), multiple=TRUE)
-           )
-         )
+        column(1, checkboxInput(ns("expanded"), label=NULL, value = is_expanded)),
+        conditionalPanel(condition = sprintf("input['%s'] == false", ns("expanded")),
+                         column(5, strong( paste0(part_name_long, " ($):" ) )),
+                         column(5, numericInput(ns("simpleValue"), label=NULL, value=simple_value(simple_value_provided, part_name)) )
+        ),
+        conditionalPanel(condition = sprintf("input['%s'] == true", ns("expanded")),
+                         column(5, strong( paste0(part_name_long, ":\n(depends on...)") ) ),
+                         column(5, selectInput(ns("depend_cols"), label=NULL, choices=depends_col_list, 
+                                               selected=c(current_selected), multiple=TRUE)
+                         )
+        )
       ),
       
       # Make the dropdown the proper height to match other input boxes
       tags$style(
         ".selectize-dropdown, .selectize-input, .selectize-input { 
         line-height: 29px; 
-        }"
+  }"
       )
-    )
+      )
     
   })
   
@@ -120,26 +120,26 @@ ratePart <- function(input, output, session, part_name, part_name_long="", depen
     tagList(
       # Display text entry boxes if the values depends on another
       conditionalPanel(condition = sprintf("input['%s'] == true", ns("expanded")),
-         fluidRow(
-           column(7, textAreaInput(ns("depend_values"), label="Values", 
-                                   value=unique_values(input$depend_cols),
-                                   height=text_height(input$depend_cols) )),
-           column(5, textAreaInput(ns("depend_charges"), label="Charges ($)", 
-                                   value=eval_uniques(input$depend_cols, value_map),
-                                   height=text_height(input$depend_cols)))
-         )
+                       fluidRow(
+                         column(7, textAreaInput(ns("depend_values"), label="Values", 
+                                                 value=unique_values(input$depend_cols, value_map),
+                                                 height=text_height(input$depend_cols, value_map) )),
+                         column(5, textAreaInput(ns("depend_charges"), label="Charges ($)", 
+                                                 value=eval_uniques(input$depend_cols, value_map),
+                                                 height=text_height(input$depend_cols, value_map)))
+                       )
       )
     )
     
   })
-
+  
   return(input)
 }
 
 
 simple_value <- function(simple_value_provided, part_name){
   if(is.null(simple_value_provided)){
-    ls <- list("flat_rate"=3, "gpcd"=55, "landscape_factor"=0.7)
+    ls <- list("flat_charge"= 9,"flat_rate"=0, "gpcd"=55, "landscape_factor"=0.7)
     value <- ls[[part_name]]
   }else{
     value <- simple_value_provided
@@ -148,40 +148,49 @@ simple_value <- function(simple_value_provided, part_name){
   value
 }
 
-
-unique_value_list <- function(colList){
+# Generate a vector of the unique values that will populate the dropdown
+# when a charge "depends on" a df column
+unique_value_list <- function(colList, value_map){
   
-#   uniqueList <- list()
-#   
-#   for(i in 1:length(colList)){
-#     col <- colList[i]
-#   }
-#   
-#   expand.grid(unique(df$meter_size), unique(df$meter_size), stringsAsFactors=FALSE)
+  #   uniqueList <- list()
+  #   
+  #   for(i in 1:length(colList)){
+  #     col <- colList[i]
+  #   }
+  #   
+  #   expand.grid(unique(df$meter_size), unique(df$meter_size), stringsAsFactors=FALSE)
+  
   
   if(is.null(colList)){
     retVal <- ""
+  }else if(!is.null(value_map)){
+    keys <- names(value_map)
+    all_uniques <- unique(df[[colList[1]]])
+    keys_not_in_map <- all_uniques[!(all_uniques %in% keys)]
+    retVal <- c(keys, keys_not_in_map)
   }else{
     sorted <- df %>%group_by_(colList[1]) %>% summarise_(count=sprintf("length(%s)", colList[1]) ) %>% 
-                arrange(desc(count))
+      arrange(desc(count))
     retVal <- sorted[[colList[1]]]
   }
   
   return(retVal)
 }
 
-unique_values <- function(colList){
-  ls <- unique_value_list(colList)
+unique_values <- function(colList, value_map){
+  ls <- unique_value_list(colList, value_map)
   return(paste0(ls, collapse="\n"))
 }
 
-num_uniques <- function(colList){
-  ls <- unique_value_list(colList)
+num_uniques <- function(colList, value_map){
+  ls <- unique_value_list(colList, value_map)
   return(length(ls))
 }
 
+# Evaluate the unique values given by unique_value_list to get the
+# charges associated with each value
 eval_uniques <- function(colList, value_map){
-  ls <- unique_value_list(colList)
+  ls <- unique_value_list(colList, value_map)
   retVal <- c()
   
   for(v in ls){
@@ -202,9 +211,10 @@ eval_uniques <- function(colList, value_map){
   return( paste0(retVal, collapse="\n") )
 }
 
-
-text_height <- function(colList){
-  return(26+21*num_uniques(colList))
+# return height (in pixels?) as a function 
+# of number of elements to display
+text_height <- function(colList, value_map){
+  return(26+21*num_uniques(colList, value_map))
 }
 
 
