@@ -25,12 +25,12 @@ classGraphOutput <- function(id, rate_codes){
               fluidRow(
                 column(8, 
                        radioButtons(ns("rateType"), label = "Rate Type", inline=TRUE,
-                                    choices = list("Flat" = "Flat", "Tiered" = "Tiered", "Budget" = "Budget"), 
+                                    choices = list("Sewer" = "Flat"), 
                                     selected = "Flat")
                 ),
                 column(4, 
                        radioButtons(ns("displayType"), label = "Display", selected = "Revenue", inline=FALSE,
-                                    choices = list("Revenue" = "Revenue", "Usage" = "Usage"))
+                                    choices = list("Flat Sewer Revenue" = "Revenue", "Variable Sewer Revenue" = "Revenue1"))
                 )
               ),#end row
               
@@ -45,20 +45,31 @@ classGraphOutput <- function(id, rate_codes){
               
               
               fluidRow(
+              
                 column(12,
-                       ratePartInput(ns("service_charge"))
+                       ratePartInput(ns("flat_charge"))
                 )
+               
+               
               ),
 
               
               # FLAT RATES
               conditionalPanel(
                 condition = sprintf("input['%s'] == 'Flat'", ns("rateType")),
-                fluidRow(
-                  column(12,
-                         ratePartInput(ns("flat_rate"))
-                  )
-                )#end row
+                conditionalPanel(
+                  condition = sprintf("input['%s'] == 'Revenue'", ns("displayType")),
+                  fluidRow(
+                    column(12,
+                           ratePartInput(ns("sewer_charge"))
+                    ))),
+                conditionalPanel(
+                  condition = sprintf("input['%s'] == 'Revenue1'", ns("displayType")),
+                  fluidRow(
+                    column(12,
+                           ratePartInput(ns("wastewater_charge"))
+                    )))
+                
               ),#end conditionalPanel
               
               # TIERED RATES
@@ -81,17 +92,7 @@ classGraphOutput <- function(id, rate_codes){
               # BUDGET BASED
               conditionalPanel(
                 condition = sprintf("input['%s'] == 'Budget'", ns("rateType")),
-                fluidRow(
-                  column(12,
-                         ratePartInput(ns("gpcd"))
-                  )
-                ),
                 
-                fluidRow(
-                  column(12,
-                         ratePartInput(ns("landscape_factor"))
-                  )
-                ),
                 fluidRow(
                   column(6,
                          fluidRow(
@@ -107,12 +108,8 @@ classGraphOutput <- function(id, rate_codes){
                 fluidRow(paste("Enter the starting value for each tier either as a CCF value, ",
                                " or as a percent of budget (water budget assumed as Indoor + Outdoor). ",
                                "Where:")
-                ),
-                fluidRow(br(),
-                         em("Indoor = GPCD * HHSize * (365/12/748)"),
-                         br(),
-                         em("Outdoor = ET_Factor * ET * LA  * (0.62/748)")
                 )
+              
               )
            
          )#end wellPanel
@@ -155,15 +152,15 @@ classGraph <- function(input, output, session, cust_class, df_original, df_total
   input_list <- list()
   input_list$other_inputs <- input
   
-  rate_part_name <- "service_charge"
+  rate_part_name <- "sewer_charge"
   input_list[[rate_part_name]] <- callModule(ratePart, rate_part_name, 
-             part_name=rate_part_name, part_name_long="Service Charge",
+             part_name=rate_part_name, part_name_long="Sewer Charge",
              depends_col_list=dropdown_cols,
              rate_part = rate_list()$rate_structure[[active_class()]][[rate_part_name]])
 
   rate_part_name2 <- "flat_rate"
   input_list[[rate_part_name2]] <- callModule(ratePart, rate_part_name2, 
-             part_name=rate_part_name2, part_name_long="Charge per CCF",
+             part_name=rate_part_name2, part_name_long="Water Charge per CCF",
              depends_col_list=dropdown_cols, 
              value_map = rate_list()$rate_structure[[active_class()]][[rate_part_name2]]$values)   
   
@@ -212,6 +209,17 @@ classGraph <- function(input, output, session, cust_class, df_original, df_total
                                               rate_type_provided="Budget", 
                                               rate_part=rate_list()$rate_structure[[active_class()]][["tier_starts"]]
   )
+ 
+  rate_part_name9 <- "flat_charge"
+  input_list[[rate_part_name9]] <- callModule(ratePart, rate_part_name9, 
+                                              part_name=rate_part_name9, part_name_long="Flat Sewer Charge",
+                                              depends_col_list=dropdown_cols, 
+                                              value_map = rate_list()$rate_structure[[active_class()]][[rate_part_name9]]$values)
+  rate_part_name10 <- "wastewater_charge"
+  input_list[[rate_part_name10]] <- callModule(ratePart, rate_part_name10, 
+                                             part_name=rate_part_name10, part_name_long="Sewer Charge Variable",
+                                             depends_col_list=dropdown_cols,
+                                             rate_part = rate_list()$rate_structure[[active_class()]][[rate_part_name10]])
   
   observe({
     updateSliderInput(session, "timeSlider", label = "Time Range", 
@@ -265,9 +273,18 @@ classGraph <- function(input, output, session, cust_class, df_original, df_total
       dplyr::select(total_bill, baseline_bill, hypothetical_usage, baseline_usage) %>% 
       #calucating differences in usage
       mutate(changes=total_bill-baseline_bill, changes_in_usage=hypothetical_usage-baseline_usage, change_group=1)
-    
+    df_change1 <- df_plots() %>% group_by(cust_id) %>% 
+      summarise(total_bill=sum(total_bill1, na.rm=TRUE), 
+                baseline_bill=sum(baseline_bill1, na.rm=TRUE),
+                hypothetical_usage=sum(hypothetical_usage, na.rm=TRUE), #calculating hypothetical and baseline usages
+                baseline_usage=sum(baseline_usage, na.rm=TRUE)) %>%
+      dplyr::select(total_bill, baseline_bill, hypothetical_usage, baseline_usage) %>% 
+      #calucating differences in usage
+      mutate(changes=total_bill-baseline_bill, changes_in_usage=hypothetical_usage-baseline_usage, change_group=1)
     if (input$displayType == "Revenue"){
       df_change <- df_change %>% filter(abs(changes) < mean(changes, na.rm=TRUE) + 2.5*sd(changes, na.rm=TRUE))
+    }else if (input$displayType == "Revenue1"){
+      df_change <- df_change1 %>% filter(abs(changes) < mean(changes, na.rm=TRUE) + 2.5*sd(changes, na.rm=TRUE))
     }
     else{
       df_change <- df_change %>% filter(abs(changes_in_usage) < mean(changes_in_usage, na.rm=TRUE) + 
