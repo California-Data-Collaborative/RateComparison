@@ -40,7 +40,7 @@ is_rate_type <- function(rate_part){
 }
 
 get_long_part_name <- function(name){
-  long_names <- list("service_charge"="Service Charge")
+  long_names <- list("sewer_charge"="Sewer Charge")
   ln <- long_names[[name]]
   # browser()
   if(is.character(ln)){ return(ln) }
