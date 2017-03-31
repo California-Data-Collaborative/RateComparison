@@ -246,7 +246,7 @@ shinyServer(function(input, output, clientData, session) {
     ls <- baseline_rate_list
     
     
-    rate_parts <- c("service_charge", "flat_rate", "gpcd", "landscape_factor")
+    rate_parts <- c( "flat_rate", "gpcd", "landscape_factor","sewer_charge","flat_charge","wastewater_charge")
     
     for(cust_class in cust_class_list){
       
@@ -305,7 +305,7 @@ shinyServer(function(input, output, clientData, session) {
     bill_info <- bill_info %>% ungroup %>% dplyr::arrange(sort_index)
     
     bill_info <- bill_info %>% dplyr::rename(variable_bill=commodity_charge,
-                                             total_bill=bill)
+                                             total_bill=bill,total_bill1=bill1)
     
     #adding baseline usage
     bill_info$hypothetical_usage <- bill_info$usage_ccf
@@ -387,7 +387,7 @@ baseline <- function(basedata){
   colnames(bill_info)[revenue_col_mask] <- c( paste("BR", 1:num_tiers, sep=""))
   
   bill_info <- bill_info %>% dplyr::rename(baseline_variable_bill=commodity_charge,
-                                           baseline_bill=bill)
+                                           baseline_bill=bill,baseline_bill1=bill1)
   #adding baseline usage
   bill_info$baseline_usage <- bill_info$usage_ccf
   
