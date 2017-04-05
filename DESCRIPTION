@@ -7,6 +7,7 @@ Description: The RateComparison package is an R Shiny application for exploring 
 Version: 0.2.0
 Imports:
     dplyr,
+    tidyr,
     ggplot2,
     plotly,
     reshape2,
