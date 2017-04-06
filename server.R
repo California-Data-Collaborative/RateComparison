@@ -165,8 +165,8 @@ shinyServer(function(input, output, clientData, session) {
            new_month_data <- add_date_cols(new_month_data, recent_date_Vec[i])
            
            #fill in average usage by account and month
-           tmp <- left_join(new_month_data[1:recent_month_len], monthlyusagebyaccount, by = c('cust_id','usage_month'))
-           
+           tmp <- left_join(new_month_data[1:recent_month_len,], monthlyusagebyaccount, by = c('cust_id','usage_month'))
+         
            new_month_data$usage_ccf[1:recent_month_len] <- tmp$usage_ccf.y
            
            #fill in the usage for new accounts with the estimated usage input

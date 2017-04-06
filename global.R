@@ -69,7 +69,7 @@ owrs_file <- switch(utility_code,
                     "MNWD"="mnwd.owrs",
                     "LVMWD"="data/lvmwd_simplified.owrs",
                     "SMWD"="data/smwd-2017-01-01_simplified.owrs",
-                    "SMC"="")
+                    "SMC"="data/smc-2017-01-01_simplified.owrs")
 
 baseline_rate_list <- RateParser::read_owrs_file(owrs_file)
 
@@ -92,7 +92,7 @@ test_file <- switch(utility_code,
                     "MNWD"="data/mnwd_sample_revised.csv",
                     "LVMWD"="data/lvmwd_test2_comm_budgets_monthly.csv",
                     "SMWD"="data/smwd_test2.csv",
-                    "SMC"="data/smc_test.csv")
+                    "SMC"="data/smc_test2.csv")
 
 
 

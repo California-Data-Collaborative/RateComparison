@@ -1,2 +1,2 @@
 
-utility_code <- "MNWD"
+utility_code <- "SMC"

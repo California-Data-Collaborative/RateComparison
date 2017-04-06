@@ -58,7 +58,8 @@ get_monthly_usage_by_account <- function(data){
     left_join(df_out, by=c("usage_month", "cust_id")) %>%
     left_join(rate_code_means, by=c("usage_month", "rate_code")) %>%
     mutate(usage_ccf = ifelse(is.na(usage_ccf), rate_code_usage, usage_ccf)) %>%
-    select(usage_month, cust_id, usage_ccf)
+    dplyr::select(usage_month, cust_id, usage_ccf) %>%
+    distinct(cust_id, usage_month, .keep_all=TRUE)
   
   df_out
 }
