@@ -35,6 +35,29 @@ check_first_month <- function(data){
 }
 
 #******************************************************************
+# Make sure that each rate code is mapped to at most 1 customer class.
+# Throws an error if this assumption is violated.
+#******************************************************************
+check_duplicated_rate_codes <- function(data){
+  tmp <- data %>% group_by(rate_code, cust_class) %>% summarise(num=1) %>% 
+    group_by(rate_code) %>% summarise(is_duped = length(cust_class) > 1)  
+  
+  stopif(any(tmp$is_duped), paste("A rate_code is mapped to more that one cust_class.",
+                                  "Please ensure consistent mapping to customer classes."))
+}
+
+#******************************************************************
+# Make sure that every class present in the data is also defined in the OWRS file.
+#******************************************************************
+check_missing_classes <- function(owrs_classes, data_classes, owrs_file_name){
+  classes_not_in_OWRS <- data_classes[!(data_classes %in% owrs_classes)]
+  stopif(length(classes_not_in_OWRS) > 0,
+         paste("Customer class(es)",  paste(classes_not_in_OWRS, collapse=", "),
+               "are present in the data but no rate information is defined in OWRS file",
+               owrs_file_name))
+}
+
+#******************************************************************
 # calculate mean monthly usage for each account. If an account has no meter reads
 # in a given month, then the monthly mean for that account's rate code is used instead
 #******************************************************************

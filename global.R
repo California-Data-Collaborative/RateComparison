@@ -110,6 +110,9 @@ if(is_budget){
                   meter_size_col="cust_loc_meter_size", less_than_date=less_than_date)
 }
 
+#error checking of data
+check_duplicated_rate_codes(df)
+
 
 # The columns that will appear in the "depends on" dropdowns
 not_included_cols <- c("cust_id", "sort_index", "usage_year", "usage_ccf", "irr_area", 
@@ -126,9 +129,10 @@ print(min_date, max_date)
 cust_class_list <- names(baseline_rate_list$rate_structure)
 #in case there are any classes in the data that are not defined in the ORWS file
 cust_class_list_from_data <- unique(df$cust_class)
-cust_class_list_from_data[(cust_class_list_from_data %in% cust_class_list)]
-classes_not_in_OWRS <- cust_class_list_from_data[!(cust_class_list_from_data %in% cust_class_list)]
-cust_class_list <- c(cust_class_list, classes_not_in_OWRS )
+
+# error checking
+check_missing_classes(cust_class_list, cust_class_list_from_data, owrs_file)
+
 cust_class_list <- cust_class_list[cust_class_list %in% cust_class_list_from_data]
 
 # Generate the defaults that will populate tier boxes for which a utility
