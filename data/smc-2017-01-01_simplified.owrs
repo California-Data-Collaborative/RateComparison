@@ -1,0 +1,85 @@
+---
+metadata:
+  effective_date: 2017-01-01
+  utility_name: "City of Santa Monica"
+  bill_frequency: bimonthly
+rate_structure:
+  RESIDENTIAL_SINGLE:
+    service_charge: 0
+    tier_starts:
+      - 0
+      - 15
+      - 41
+      - 149
+    tier_prices:
+      - 3.01
+      - 4.50
+      - 6.76
+      - 10.57
+    commodity_charge: Tiered
+    bill: service_charge+commodity_charge
+  RESIDENTIAL_MULTI:
+    service_charge: 0
+    tier_starts:
+      - 0
+      - 5
+      - 10
+      - 21
+    tier_prices:
+      - 3.01
+      - 4.50
+      - 6.76
+      - 10.57
+    commodity_charge: Tiered
+    bill: service_charge+commodity_charge
+  IRRIGATION:
+    service_charge: 0
+    tier_starts:
+      - 0
+      - 211
+    tier_prices:
+      - 4.27
+      - 10.53
+    commodity_charge: Tiered
+    bill: service_charge+commodity_charge
+  COMMERCIAL:
+    service_charge: 0
+    tier_starts:
+      - 0
+      - 211
+    tier_prices:
+      - 4.27
+      - 10.53
+    commodity_charge: Tiered
+    bill: service_charge+commodity_charge
+  INDUSTRIAL:
+    service_charge: 0
+    tier_starts:
+      - 0
+      - 211
+    tier_prices:
+      - 4.27
+      - 10.53
+    commodity_charge: Tiered
+    bill: service_charge+commodity_charge
+  INSTITUTIONAL:
+    service_charge: 0
+    tier_starts:
+      - 0
+      - 211
+    tier_prices:
+      - 4.27
+      - 10.53
+    commodity_charge: Tiered
+    bill: service_charge+commodity_charge
+  OTHER:
+    service_charge: 0
+    tier_starts:
+      - 0
+      - 211
+    tier_prices:
+      - 4.27
+      - 10.53
+    commodity_charge: Tiered
+    bill: service_charge+commodity_charge
+
