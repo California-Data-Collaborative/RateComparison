@@ -69,7 +69,7 @@ owrs_file <- switch(utility_code,
                     "MNWD"="mnwd.owrs",
                     "LVMWD"="data/lvmwd_simplified.owrs",
                     "SMWD"="data/smwd-2017-01-01_simplified.owrs",
-                    "SMC"="")
+                    "SMC"="data/smc-2017-01-01_simplified.owrs")
 
 baseline_rate_list <- RateParser::read_owrs_file(owrs_file)
 
@@ -92,7 +92,7 @@ test_file <- switch(utility_code,
                     "MNWD"="data/mnwd_sample_revised.csv",
                     "LVMWD"="data/lvmwd_test2_comm_budgets_monthly.csv",
                     "SMWD"="data/smwd_test2.csv",
-                    "SMC"="data/smc_test.csv")
+                    "SMC"="data/smc_test2.csv")
 
 
 
@@ -110,6 +110,9 @@ if(is_budget){
                   meter_size_col="cust_loc_meter_size", less_than_date=less_than_date)
 }
 
+#error checking of data
+check_duplicated_rate_codes(df)
+
 
 # The columns that will appear in the "depends on" dropdowns
 not_included_cols <- c("cust_id", "sort_index", "usage_year", "usage_ccf", "irr_area", 
@@ -122,14 +125,8 @@ min_date <- min(df$usage_date)
 max_date <- max(df$usage_date)
 print(min_date, max_date)
 
-# list of unique customer classes in the data
-cust_class_list <- names(baseline_rate_list$rate_structure)
-#in case there are any classes in the data that are not defined in the ORWS file
-cust_class_list_from_data <- unique(df$cust_class)
-cust_class_list_from_data[(cust_class_list_from_data %in% cust_class_list)]
-classes_not_in_OWRS <- cust_class_list_from_data[!(cust_class_list_from_data %in% cust_class_list)]
-cust_class_list <- c(cust_class_list, classes_not_in_OWRS )
-cust_class_list <- cust_class_list[cust_class_list %in% cust_class_list_from_data]
+cust_class_list <- get_cust_class_list(df, baseline_rate_list, owrs_file)
+
 
 # Generate the defaults that will populate tier boxes for which a utility
 # has no value. For example, a budget-based utility still needs default values

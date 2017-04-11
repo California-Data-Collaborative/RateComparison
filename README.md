@@ -5,11 +5,11 @@ This is an open project of the [California Data Collaborative](http://california
 
 ## In Action
 
-This section will link to a live demo version of the tool running on public data.
+A [live demo of the tool is available here](https://demo.californiadatacollaborative.com/smc/rate-tool/). This demo uses public water use data from the City of Santa Monica](https://data.smgov.net/Public-Services/Water-Usage/4nnq-5vzx).
 
 ## Getting Started
 
-It's easy to get the tool running on a [sample of public data from the City of Santa Monica](https://data.smgov.net/Public-Services/Water-Usage/4nnq-5vzx)*, 
+It's easy to get the tool running locally using [data](https://data.smgov.net/Public-Services/Water-Usage/4nnq-5vzx) from the City of Santa Monica*, 
 
 1. Ensure that `R` is [installed](https://www.r-project.org/).
 

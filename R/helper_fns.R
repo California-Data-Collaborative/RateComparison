@@ -35,6 +35,45 @@ check_first_month <- function(data){
 }
 
 #******************************************************************
+# Make sure that each rate code is mapped to at most 1 customer class.
+# Throws an error if this assumption is violated.
+#******************************************************************
+check_duplicated_rate_codes <- function(data){
+  tmp <- data %>% group_by(rate_code, cust_class) %>% summarise(num=1) %>% 
+    group_by(rate_code) %>% summarise(is_duped = length(cust_class) > 1)  
+  
+  stopif(any(tmp$is_duped), paste("A rate_code is mapped to more that one cust_class.",
+                                  "Please ensure consistent mapping to customer classes."))
+}
+
+#******************************************************************
+# Make sure that every class present in the data is also defined in the OWRS file.
+#******************************************************************
+check_missing_classes <- function(owrs_classes, data_classes, owrs_file_name){
+  classes_not_in_OWRS <- data_classes[!(data_classes %in% owrs_classes)]
+  stopif(length(classes_not_in_OWRS) > 0,
+         paste("Customer class(es)",  paste(classes_not_in_OWRS, collapse=", "),
+               "are present in the data but no rate information is defined in OWRS file",
+               owrs_file_name))
+}
+
+#******************************************************************
+# Create the list of customer classes to display
+#******************************************************************
+get_cust_class_list <- function(data, base_rates, owrs_file){
+  # list of unique customer classes in the data
+  cust_class_list <- names(base_rates$rate_structure)
+  #in case there are any classes in the data that are not defined in the ORWS file
+  cust_class_list_from_data <- unique(data$cust_class)
+  
+  # error checking
+  check_missing_classes(cust_class_list, cust_class_list_from_data, owrs_file)
+  
+  cust_class_list <- cust_class_list[cust_class_list %in% cust_class_list_from_data]
+  cust_class_list
+}
+
+#******************************************************************
 # calculate mean monthly usage for each account. If an account has no meter reads
 # in a given month, then the monthly mean for that account's rate code is used instead
 #******************************************************************
@@ -58,7 +97,8 @@ get_monthly_usage_by_account <- function(data){
     left_join(df_out, by=c("usage_month", "cust_id")) %>%
     left_join(rate_code_means, by=c("usage_month", "rate_code")) %>%
     mutate(usage_ccf = ifelse(is.na(usage_ccf), rate_code_usage, usage_ccf)) %>%
-    select(usage_month, cust_id, usage_ccf)
+    dplyr::select(usage_month, cust_id, usage_ccf) %>%
+    distinct(cust_id, usage_month, .keep_all=TRUE)
   
   df_out
 }
