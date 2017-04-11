@@ -58,6 +58,22 @@ check_missing_classes <- function(owrs_classes, data_classes, owrs_file_name){
 }
 
 #******************************************************************
+# Create the list of customer classes to display
+#******************************************************************
+get_cust_class_list <- function(data, base_rates, owrs_file){
+  # list of unique customer classes in the data
+  cust_class_list <- names(base_rates$rate_structure)
+  #in case there are any classes in the data that are not defined in the ORWS file
+  cust_class_list_from_data <- unique(data$cust_class)
+  
+  # error checking
+  check_missing_classes(cust_class_list, cust_class_list_from_data, owrs_file)
+  
+  cust_class_list <- cust_class_list[cust_class_list %in% cust_class_list_from_data]
+  cust_class_list
+}
+
+#******************************************************************
 # calculate mean monthly usage for each account. If an account has no meter reads
 # in a given month, then the monthly mean for that account's rate code is used instead
 #******************************************************************

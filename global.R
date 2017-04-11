@@ -125,15 +125,8 @@ min_date <- min(df$usage_date)
 max_date <- max(df$usage_date)
 print(min_date, max_date)
 
-# list of unique customer classes in the data
-cust_class_list <- names(baseline_rate_list$rate_structure)
-#in case there are any classes in the data that are not defined in the ORWS file
-cust_class_list_from_data <- unique(df$cust_class)
+cust_class_list <- get_cust_class_list(df, baseline_rate_list, owrs_file)
 
-# error checking
-check_missing_classes(cust_class_list, cust_class_list_from_data, owrs_file)
-
-cust_class_list <- cust_class_list[cust_class_list %in% cust_class_list_from_data]
 
 # Generate the defaults that will populate tier boxes for which a utility
 # has no value. For example, a budget-based utility still needs default values

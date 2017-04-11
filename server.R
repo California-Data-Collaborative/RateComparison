@@ -13,20 +13,20 @@ shinyServer(function(input, output, clientData, session) {
   planneddf <- reactive({
     
     #Make sure account growth inputs are not blank
-    lapply(1:length(cust_class_list_from_data), function(i) {
-      req(input[[cust_class_list_from_data[i]]])
+    lapply(1:length(cust_class_list), function(i) {
+      req(input[[cust_class_list[i]]])
     })
     
     #If each of the account growth inputs is zero
-    is_it_zero <- sapply(1:length(cust_class_list_from_data), function(i) {
-       input[[cust_class_list_from_data[i]]] == 0
+    is_it_zero <- sapply(1:length(cust_class_list), function(i) {
+       input[[cust_class_list[i]]] == 0
       
     })
     no_growth <- all(is_it_zero)
 
     # get value of all class growth inputs
-    class_inputs <- sapply(1:length(cust_class_list_from_data), function(i) {
-      input[[cust_class_list_from_data[i]]]
+    class_inputs <- sapply(1:length(cust_class_list), function(i) {
+      input[[cust_class_list[i]]]
     })
     total_monthly_change <- sum(class_inputs)
     
@@ -128,8 +128,8 @@ shinyServer(function(input, output, clientData, session) {
           new_month_data$usage_ccf[1:recent_month_len] <- tmp$usage_ccf.y
           
           #fill in the usage for new accounts with the estimated usage input
-          lapply(1:length(cust_class_list_from_data), function(i) {
-            new_month_data[is.na(new_month_data$sort_index) & new_month_data$cust_class == cust_class_list_from_data[i], "usage_ccf"] <- input[[paste0("EstUsagePerAccount_",cust_class_list_from_data[i])]] 
+          lapply(1:length(cust_class_list), function(i) {
+            new_month_data[is.na(new_month_data$sort_index) & new_month_data$cust_class == cust_class_list[i], "usage_ccf"] <- input[[paste0("EstUsagePerAccount_",cust_class_list[i])]] 
           })
           
           #fill in meter size for new accounts
@@ -170,8 +170,8 @@ shinyServer(function(input, output, clientData, session) {
            new_month_data$usage_ccf[1:recent_month_len] <- tmp$usage_ccf.y
            
            #fill in the usage for new accounts with the estimated usage input
-           lapply(1:length(cust_class_list_from_data), function(i) {
-             new_month_data[is.na(new_month_data$sort_index) & new_month_data$cust_class == cust_class_list_from_data[i], "usage_ccf"] <- input[[paste0("EstUsagePerAccount_",cust_class_list_from_data[i])]] 
+           lapply(1:length(cust_class_list), function(i) {
+             new_month_data[is.na(new_month_data$sort_index) & new_month_data$cust_class == cust_class_list[i], "usage_ccf"] <- input[[paste0("EstUsagePerAccount_",cust_class_list[i])]] 
            })
 
            if("cust_loc_meter_size" %in% colnames(df)){
