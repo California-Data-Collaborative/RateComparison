@@ -5,7 +5,9 @@ This is an open project of the [California Data Collaborative](http://california
 
 ## In Action
 
-A [live demo of the tool is available here](https://demo.californiadatacollaborative.com/smc/rate-tool/). This demo uses public water use data from the City of Santa Monica](https://data.smgov.net/Public-Services/Water-Usage/4nnq-5vzx).
+A [live demo of the tool is available here](https://demo.californiadatacollaborative.com/smc/rate-tool/). This demo uses [public water use data from the City of Santa Monica](https://data.smgov.net/Public-Services/Water-Usage/4nnq-5vzx).
+
+![a screenshot of the tool](www/demo_screenshot_smc.PNG)
 
 ## Getting Started
 
