@@ -481,13 +481,7 @@ shinyServer(function(input, output, clientData, session) {
   # Calculate bills and tiers for the MNWD residential baseline rate
   #******************************************************************
   baseline_bill_info <- reactive({
-    switch(utility_code,
-         "IRWD"=baseline(basedata=DF()),
-         "MNWD"=baseline(basedata=DF()),
-         "LVMWD"=baseline(basedata=DF()),
-         "SMWD"=baseline(basedata=DF()),
-         "SMC"=baseline(basedata=DF())
-    )
+    baseline(basedata=DF())
   })
   
 })

@@ -195,7 +195,7 @@ eval_uniques <- function(colList, value_map){
   
   for(v in ls){
     print(v)
-    if(v != ""){
+    if(v != "" & !is.na(v) & !is.null(v)){
       value <- value_map[[v]]
       
       if(!is.null(value)){
