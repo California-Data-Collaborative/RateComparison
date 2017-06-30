@@ -478,7 +478,7 @@ shinyServer(function(input, output, clientData, session) {
 
   
   #******************************************************************
-  # Calculate bills and tiers for the MNWD residential baseline rate
+  # Calculate bills and tiers for the baseline rate
   #******************************************************************
   baseline_bill_info <- reactive({
     baseline(basedata=DF())
