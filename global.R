@@ -6,7 +6,7 @@ library(lubridate)
 library(data.table)
 
 #set the utility_code from the config file
-source("R/utility_code.R")
+source("data/config.R")
 source("R/helper_fns.R", local=TRUE)
 source("R/make_plots.R", local=TRUE)
 
@@ -39,11 +39,11 @@ read_data <- function(filename, cust_col, usage_col, month_col, year_col, et_col
     dplyr::mutate(cust_class = as.character(cust_class)) %>%
     dplyr::mutate(water_type = as.character(water_type)) %>%
     dplyr::mutate(meter_size = as.character(meter_size)) %>%
-    dplyr::filter(usage_date < as.Date(less_than_date)) %>%
+    # dplyr::filter(usage_date < as.Date(less_than_date)) %>%
     dplyr::arrange(usage_date, cust_class) %>%
     dplyr::mutate(sort_index=1:nrow(.))
   
-  if(!is.null(et_col)&!is.null(hhsize_col)&!is.null(irr_area_col)){
+  if( all( c(et_col, hhsize_col, irr_area_col) %in% names(data)) ){
     data <- data %>%
       dplyr::rename_(.dots=setNames(list(et_col), "et_amount")) %>%
       dplyr::rename_(.dots=setNames(list(hhsize_col), "hhsize")) %>%
@@ -64,55 +64,21 @@ read_data <- function(filename, cust_col, usage_col, month_col, year_col, et_col
 generated_inputs <- list()
 
 
-owrs_file <- switch(utility_code,
-                    "IRWD"="",
-                    "MNWD"="mnwd.owrs",
-                    "LVMWD"="data/lvmwd_simplified.owrs",
-                    "SMWD"="data/smwd-2017-01-01_simplified.owrs",
-                    "SMC"="data/smc-2017-01-01_simplified.owrs",
-                    "EMWD"="data/emwd_simplified.owrs")
-
+owrs_file <- "data/ratefile.owrs"
 baseline_rate_list <- RateParser::read_owrs_file(owrs_file)
 
-is_budget <- switch(utility_code,
-                    "IRWD"=,
-                    "MNWD"=,
-                    "LVMWD"=,
-                    "EMWD"=,
-                    "SMWD"=TRUE,
-                    "SMC"=FALSE)
-
-less_than_date <- switch(utility_code,
-                         "IRWD"="2017-01-01",
-                         "MNWD"="2017-01-01",
-                         "LVMWD"="2017-01-01",
-                           "SMWD"="2016-01-01",
-                         "SMC"="2017-01-01",
-                         "EMWD"="2017-01-01")
-
-test_file <- switch(utility_code,
-                    "IRWD"="data/irwd_test.csv",
-                    "MNWD"="data/mnwd_sample_revised.csv",
-                    "LVMWD"="data/lvmwd_test2_comm_budgets_monthly.csv",
-                    "SMWD"="data/smwd_test2.csv",
-                    "SMC"="data/smc_test2.csv",
-                    "EMWD"="data/emwd_sample.csv")
+data_file <- "data/data.csv"
 
 
 
 # Read data from file and rename the columns to be compatable with internal calls
-if(is_budget){
-  df <- read_data(test_file, cust_col="cust_loc_id", usage_col="usage_ccf", month_col="usage_month", 
-                  year_col="usage_year", et_col="usage_et_amount", hhsize_col="cust_loc_hhsize", 
-                  irr_area_col="cust_loc_irr_area_sf", cust_class_col= "cust_loc_rate_class", 
-                  rate_code_col = "cust_loc_class_from_utility", water_type_col="cust_loc_water_type",
-                  meter_size_col="cust_loc_meter_size", less_than_date=less_than_date)
-} else{
-  df <- read_data(test_file, cust_col="cust_loc_id", usage_col="usage_ccf", month_col="usage_month", 
-                  year_col="usage_year", cust_class_col= "cust_loc_rate_class", 
-                  rate_code_col = "cust_loc_class_from_utility", water_type_col="cust_loc_water_type",
-                  meter_size_col="cust_loc_meter_size", less_than_date=less_than_date)
-}
+df <- read_data(data_file, cust_col="cust_loc_id", usage_col="usage_ccf", month_col="usage_month", 
+                year_col="usage_year", et_col="usage_et_amount", hhsize_col="cust_loc_hhsize", 
+                irr_area_col="cust_loc_irr_area_sf", cust_class_col= "cust_loc_rate_class", 
+                rate_code_col = "cust_loc_class_from_utility", water_type_col="cust_loc_water_type",
+                meter_size_col="cust_loc_meter_size")
+is_budget <- all( c("et_amount", "hhsize", "irr_area") %in% names(data))
+
 
 #error checking of data
 check_duplicated_rate_codes(df)
