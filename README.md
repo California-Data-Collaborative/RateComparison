@@ -19,6 +19,8 @@ It's easy to get the tool running locally using [data](https://data.smgov.net/Pu
 
 3. Clone this repository.
 
+4. Copy the three files in the `smc_example` directory into the `data` directory.
+
 4. Run the Shiny app, either [from the command line](http://shiny.rstudio.com/articles/running.html) or using the "Run App" button from within RStudio.
 
 \**The data provided in this github has been modified by dropping unneeded columns and by renaming others.*

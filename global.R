@@ -43,7 +43,7 @@ read_data <- function(filename, cust_col, usage_col, month_col, year_col, et_col
     dplyr::arrange(usage_date, cust_class) %>%
     dplyr::mutate(sort_index=1:nrow(.))
   
-  if(!is.null(et_col)&!is.null(hhsize_col)&!is.null(irr_area_col)){
+  if( all( c(et_col, hhsize_col, irr_area_col) %in% names(data)) ){
     data <- data %>%
       dplyr::rename_(.dots=setNames(list(et_col), "et_amount")) %>%
       dplyr::rename_(.dots=setNames(list(hhsize_col), "hhsize")) %>%
@@ -72,18 +72,13 @@ data_file <- "data/data.csv"
 
 
 # Read data from file and rename the columns to be compatable with internal calls
-if(is_budget){
-  df <- read_data(data_file, cust_col="cust_loc_id", usage_col="usage_ccf", month_col="usage_month", 
-                  year_col="usage_year", et_col="usage_et_amount", hhsize_col="cust_loc_hhsize", 
-                  irr_area_col="cust_loc_irr_area_sf", cust_class_col= "cust_loc_rate_class", 
-                  rate_code_col = "cust_loc_class_from_utility", water_type_col="cust_loc_water_type",
-                  meter_size_col="cust_loc_meter_size")#, less_than_date=less_than_date)
-} else{
-  df <- read_data(data_file, cust_col="cust_loc_id", usage_col="usage_ccf", month_col="usage_month", 
-                  year_col="usage_year", cust_class_col= "cust_loc_rate_class", 
-                  rate_code_col = "cust_loc_class_from_utility", water_type_col="cust_loc_water_type",
-                  meter_size_col="cust_loc_meter_size")#, less_than_date=less_than_date)
-}
+df <- read_data(data_file, cust_col="cust_loc_id", usage_col="usage_ccf", month_col="usage_month", 
+                year_col="usage_year", et_col="usage_et_amount", hhsize_col="cust_loc_hhsize", 
+                irr_area_col="cust_loc_irr_area_sf", cust_class_col= "cust_loc_rate_class", 
+                rate_code_col = "cust_loc_class_from_utility", water_type_col="cust_loc_water_type",
+                meter_size_col="cust_loc_meter_size")
+is_budget <- all( c("et_amount", "hhsize", "irr_area") %in% names(data))
+
 
 #error checking of data
 check_duplicated_rate_codes(df)
