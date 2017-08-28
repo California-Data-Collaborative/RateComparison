@@ -43,7 +43,7 @@ shinyUI(navbarPage(
      fluidRow(
        column(2),
        column(2, h4("Monthly Growth/Decline\n(# of accounts)")),
-       column(2, h4("Estimated Usage per\nNew Account (ccf)"))
+       column(2, h4("Estimated Usage per\nNew Account (# billing units)"))
      ),
  
      lapply(1:length(cust_class_list), function(i) {

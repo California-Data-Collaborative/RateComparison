@@ -6,10 +6,18 @@ library(lubridate)
 library(data.table)
 
 #set the utility_code from the config file
+unit_type <- NULL
 source("data/config.R")
+if(!is.null(unit_type) && unit_type == "kgal"){
+  af_conversion <- 0.00306889
+}else{
+  unit_type <- "ccf"
+  af_conversion <- 0.00229569
+}
+
+
 source("R/helper_fns.R", local=TRUE)
 source("R/make_plots.R", local=TRUE)
-
 source("R/class_graphs.R")
 source("R/rate_inputs.R")
 

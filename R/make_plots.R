@@ -54,8 +54,8 @@ plot_revenue_over_time <- function(data, display_type){
     monthly_usage <- data %>%  group_by(usage_date) %>%  
       summarise(hypothetical_usage=sum(hypothetical_usage, na.rm=TRUE),
                 baseline_usage=sum(baseline_usage, na.rm=TRUE)) %>% 
-      mutate(Baseline = baseline_usage/1000000) %>%
-      mutate(Hypothetical = hypothetical_usage/1000000) %>%
+      mutate(Baseline = baseline_usage*af_conversion/1000) %>%
+      mutate(Hypothetical = hypothetical_usage*af_conversion/1000) %>%
       select(usage_date,Baseline,Hypothetical)
     monthly_usage <- melt(monthly_usage, id="usage_date") %>% rename(Usage=variable)
     
@@ -71,7 +71,7 @@ plot_revenue_over_time <- function(data, display_type){
       #geom_vline(xintercept=as.numeric(max(df$usage_date)),color='red3',linetype=2) +
       scale_linetype_manual(values = c("Baseline"="dashed", "Hypothetical"="solid")) +
       scale_color_manual(values=c("Baseline"="black", "Hypothetical"="steelblue")) +
-      xlab("") + ylab("Usage (Million ccf)") + 
+      xlab("") + ylab("Usage (Thousand AF)") + 
       # theme(axis.text.x = element_text(angle = 30, hjust = 1)) +
       # scale_x_date(labels = date_format("%m-%y"), date_breaks="1 months") +
       scale_y_continuous(labels = comma)
@@ -130,7 +130,7 @@ plot_bill_change_histogram <- function(data, display_type, bar_type){
       p <- ggplot() + 
         geom_vline(xintercept = 0, color="#CC0000")
       if(bar_type == "Absolute"){
-        p <- p + xlab("Change in total amount used (ccf)")
+        p <- p + xlab(paste("Change in total amount used (",unit_type,")") )
       }else{
         p <- p + xlab("% Change in total amount used")   
       }
@@ -140,7 +140,7 @@ plot_bill_change_histogram <- function(data, display_type, bar_type){
         geom_vline(xintercept = mean(data$changes_in_usage, na.rm=TRUE), color="#CC0000") +
         theme(axis.ticks = element_blank(), axis.text.y = element_blank())
       if(bar_type == "Absolute"){
-        p <- p + xlab("Change in total amount used (ccf)") + ylab("")
+        p <- p + xlab(paste("Change in total amount used (",unit_type,")") ) + ylab("")
       }else{
         p <- p + xlab("% Change in total amount used") + ylab("")   
       }
@@ -239,7 +239,7 @@ plot_barchart_by_tiers <- function(data, display_type, bar_type){
    d <- melt(d, id.vars="id" ) %>% 
      mutate(type=ifelse(grepl("B.*", variable), "Baseline", "Hypothetical"),
             Tier = get_tier_name(variable),
-            value = value*0.00229569/1000)
+            value = value*af_conversion/1000)
    lab_str <- "Usage During Time Period (Thousand AF)"
  }
 

@@ -108,7 +108,7 @@ classGraphOutput <- function(id, rate_codes){
                          )
                   )
                 ),#end row
-                fluidRow(paste("Enter the starting value for each tier either as a CCF value, ",
+                fluidRow(paste("Enter the starting value for each tier either as a billing unit value, ",
                                " or as a percent of budget (water budget assumed as Indoor + Outdoor). ",
                                "Where:")
                 ),
@@ -172,7 +172,7 @@ classGraph <- function(input, output, session, cust_class, df_original, df_total
 
   rate_part_name2 <- "flat_rate"
   input_list[[rate_part_name2]] <- callModule(ratePart, rate_part_name2, 
-             part_name=rate_part_name2, part_name_long="Charge per CCF",
+             part_name=rate_part_name2, part_name_long="Charge per unit",
              depends_col_list=dropdown_cols, 
              value_map = rate_list()$rate_structure[[active_class()]][[rate_part_name2]]$values)   
   
@@ -208,7 +208,7 @@ classGraph <- function(input, output, session, cust_class, df_original, df_total
   
   rate_part_name7 <- "tiered_starts"
   input_list[[rate_part_name7]] <- callModule(tierBox, rate_part_name7, 
-                                              part_name=rate_part_name7, part_name_long="Tier Starts (CCF)", 
+                                              part_name=rate_part_name7, part_name_long="Tier Starts (billing units)", 
                                               rate_type=rate_list()$rate_structure[[active_class()]][["commodity_charge"]], 
                                               rate_type_provided="Tiered", 
                                               rate_part=rate_list()$rate_structure[[active_class()]][["tier_starts"]]
@@ -216,7 +216,7 @@ classGraph <- function(input, output, session, cust_class, df_original, df_total
   
   rate_part_name8 <- "budget_starts"
   input_list[[rate_part_name8]] <- callModule(tierBox, rate_part_name8, 
-                                              part_name=rate_part_name8, part_name_long="Tier Starts (CCF)", 
+                                              part_name=rate_part_name8, part_name_long="Tier Starts (billing units)", 
                                               rate_type=rate_list()$rate_structure[[active_class()]][["commodity_charge"]], 
                                               rate_type_provided="Budget", 
                                               rate_part=rate_list()$rate_structure[[active_class()]][["tier_starts"]]
