@@ -217,6 +217,9 @@ plot_barchart_by_tiers <- function(data, display_type, bar_type){
     if(!("TR1" %in% names(data)) || (sum(data$TR1, na.rm=TRUE) == 0 && sum(data$variable_ped_bill, na.rm=TRUE) > 0)){
       data$TR1 <- data$variable_ped_bill
     }
+    if(!("BR1" %in% names(data)) || (sum(data$BR1, na.rm=TRUE) == 0 && sum(data$baseline_variable_bill, na.rm=TRUE) > 0)){
+      data$BR1 <- data$baseline_variable_bill
+    }
     # Select revenue in each tier
     d <- colSums(data %>% select(matches("[B|T]R[0-9]")), na.rm=TRUE)
     d <- tbl_df(data.frame(lapply(d, function(x) t(data.frame(x))))) %>%
