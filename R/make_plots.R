@@ -232,8 +232,11 @@ plot_barchart_by_tiers <- function(data, display_type, bar_type){
   }  
   else{
    # flat rates leave TR1 as null so need to populate it 
-   if(!("T1" %in% names(data)) || (sum(data$T1, na.rm=TRUE) == 0 && sum(data$variable_ped_bill, na.rm=TRUE) > 0)){
-     data$X1 <- data$hypothetical_usage
+   if(!("T1" %in% names(data)) || (sum(data$T1, na.rm=TRUE) == 0 && sum(data$hypothetical_usage, na.rm=TRUE) > 0)){
+     data$T1 <- data$hypothetical_usage
+   }
+   if(!("B1" %in% names(data)) || (sum(data$B1, na.rm=TRUE) == 0 && sum(data$baseline_usage, na.rm=TRUE) > 0)){
+     data$B1 <- data$baseline_usage
    }
    # Select usage in each tier
    d <- colSums(data %>% select(matches("[B|T][0-9]")), na.rm=TRUE)
