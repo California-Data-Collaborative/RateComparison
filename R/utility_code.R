@@ -1,2 +1,0 @@
-
-utility_code <- "SMC"

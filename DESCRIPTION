@@ -4,7 +4,7 @@ Description: The RateComparison package is an R Shiny application for exploring 
     revenue, demand and equity impacts caused by a shift in water rates. The app compares
     a baseline rate structure (usually the utility's current/historical rates) against
     a hypothetical rate structure specified by the user.
-Version: 0.2.0
+Version: 0.3.0
 Imports:
     dplyr,
     tidyr,
