@@ -88,14 +88,19 @@ get_monthly_usage_by_account <- function(data){
     group_by(cust_id,usage_month) %>% 
     summarise(usage_ccf = mean(usage_ccf,na.rm=TRUE))
   
+  customer_means <- data %>%
+    group_by(cust_id) %>% 
+    summarise(customer_usage = mean(usage_ccf,na.rm=TRUE))
+  
   rate_code_means <- data %>% 
     group_by(rate_code, usage_month) %>% 
     summarise(rate_code_usage = mean(usage_ccf,na.rm=TRUE))
   
-  
   df_out <- months %>% left_join(cust_id_with_rate_code, by="cust_id")  %>% 
     left_join(df_out, by=c("usage_month", "cust_id")) %>%
     left_join(rate_code_means, by=c("usage_month", "rate_code")) %>%
+    left_join(customer_means, by=c("cust_id")) %>%
+    mutate(usage_ccf = ifelse(is.na(usage_ccf), customer_usage, usage_ccf)) %>%
     mutate(usage_ccf = ifelse(is.na(usage_ccf), rate_code_usage, usage_ccf)) %>%
     dplyr::select(usage_month, cust_id, usage_ccf) %>%
     distinct(cust_id, usage_month, .keep_all=TRUE)
