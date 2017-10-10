@@ -10,9 +10,11 @@ unit_type <- NULL
 source("data/config.R")
 if(!is.null(unit_type) && unit_type == "kgal"){
   af_conversion <- 0.00306889
+  unit_conversion <- 0.748049
 }else{
   unit_type <- "ccf"
   af_conversion <- 0.00229569
+  unit_conversion <- 1
 }
 
 
@@ -56,6 +58,10 @@ read_data <- function(filename, cust_col, usage_col, month_col, year_col, et_col
       dplyr::rename_(.dots=setNames(list(et_col), "et_amount")) %>%
       dplyr::rename_(.dots=setNames(list(hhsize_col), "hhsize")) %>%
       dplyr::rename_(.dots=setNames(list(irr_area_col), "irr_area"))
+  }
+  
+  if(unit_conversion != 1){
+    data$usage_ccf <- round(unit_conversion*data$usage_ccf)
   }
   
   end.time <- Sys.time()
