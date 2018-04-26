@@ -5,6 +5,9 @@ library(scales)
 library(reshape2)
 library(stringi)
 
+# define standard colors
+colorvec <- c('steelblue', 'darkolivegreen4', 'lightgoldenrod2', 'sienna2', 'tomato3')
+
 #' Line chart of revenue over time.
 #'
 #' \code{plot_revenue_over_time} returns a line chart showing revenue over 
@@ -247,8 +250,14 @@ plot_barchart_by_tiers <- function(data, display_type, bar_type){
             Tier = get_tier_name(variable),
             value = value*af_conversion/1000)
    lab_str <- "Usage During Time Period (Thousand AF)"
- }
+  }
 
+  # Get tier labels and colors in the proper order
+  tiernames <- unique(d$Tier)
+  tiernames <- tiernames[order(tiernames)]
+  d$Tier <- factor(d$Tier, levels=rev(tiernames) )
+  colorvec_tmp <- rev(colorvec[1:length(tiernames)])
+  
   if(bar_type == "Absolute"){
     p <- ggplot(d, aes(type, value, fill=Tier)) + geom_bar(stat="identity") +
       xlab("") + ylab(lab_str)
@@ -269,6 +278,8 @@ plot_barchart_by_tiers <- function(data, display_type, bar_type){
       xlab("") + ylab(paste(lab_str))
     
   }
+  
+  p <- p + scale_fill_manual(values = colorvec_tmp)
   ggplotly(p) %>% config(displayModeBar = FALSE)
 }
 
