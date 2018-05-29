@@ -84,14 +84,13 @@ baseline_rate_list <- RateParser::read_owrs_file(owrs_file)
 data_file <- "data/data.csv"
 
 
-
 # Read data from file and rename the columns to be compatable with internal calls
 df <- read_data(data_file, cust_col="cust_loc_id", usage_col="usage_ccf", month_col="usage_month", 
                 year_col="usage_year", et_col="usage_et_amount", hhsize_col="cust_loc_hhsize", 
                 irr_area_col="cust_loc_irr_area_sf", cust_class_col= "cust_loc_rate_class", 
                 rate_code_col = "cust_loc_class_from_utility", water_type_col="cust_loc_water_type",
                 meter_size_col="cust_loc_meter_size")
-is_budget <- all( c("et_amount", "hhsize", "irr_area") %in% names(data))
+is_budget <- all( c("et_amount", "hhsize", "irr_area") %in% names(df))
 
 
 #error checking of data
