@@ -6,7 +6,7 @@ library(reshape2)
 library(stringi)
 
 # define standard colors
-colorvec <- c('steelblue', 'darkolivegreen4', 'lightgoldenrod2', 'sienna2', 'tomato3')
+colorvec <- c('#39668C', '#3EAB45', '#D9C24F', '#D99F4F', '#D9534F')
 
 #' Line chart of revenue over time.
 #'
