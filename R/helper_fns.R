@@ -108,6 +108,37 @@ get_monthly_usage_by_account <- function(data){
   df_out
 }
 
+get_monthly_budget_by_account <- function(data){
+  # All possible combinations of usage_month & cust_id, 
+  # even those that aren't present in the data
+  months <- tidyr::expand(data, usage_month, cust_id)
+  
+  cust_id_with_rate_code <- data %>% distinct(cust_id, rate_code) %>% select(cust_id, rate_code)
+  
+  df_out <- data %>% 
+    group_by(cust_id,usage_month) %>% 
+    summarise(budget = mean(budget,na.rm=TRUE))
+  
+  customer_means <- data %>%
+    group_by(cust_id) %>% 
+    summarise(customer_usage = mean(budget,na.rm=TRUE))
+  
+  rate_code_means <- data %>% 
+    group_by(rate_code, usage_month) %>% 
+    summarise(rate_code_usage = mean(budget,na.rm=TRUE))
+  
+  df_out <- months %>% left_join(cust_id_with_rate_code, by="cust_id")  %>% 
+    left_join(df_out, by=c("usage_month", "cust_id")) %>%
+    left_join(rate_code_means, by=c("usage_month", "rate_code")) %>%
+    left_join(customer_means, by=c("cust_id")) %>%
+    mutate(budget = ifelse(is.na(budget), customer_usage, budget)) %>%
+    mutate(budget = ifelse(is.na(budget), rate_code_usage, budget)) %>%
+    dplyr::select(usage_month, cust_id, budget) %>%
+    distinct(cust_id, usage_month, .keep_all=TRUE)
+  
+  df_out
+}
+
 add_date_cols <- function(data, the_date){
   data[, "usage_date"] <- the_date
   data[, "usage_month"] <- month(the_date)

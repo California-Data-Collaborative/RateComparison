@@ -36,6 +36,7 @@ shinyServer(function(input, output, clientData, session) {
       
       #for mean usage_ccf
       monthlyusagebyaccount <- get_monthly_usage_by_account(df)
+      monthlybudgetbyaccount <- get_monthly_budget_by_account(df)
       
       month_Vec <- 1:input$Months
       
@@ -126,6 +127,7 @@ shinyServer(function(input, output, clientData, session) {
           #fill in average usage by account and month
           tmp <- left_join(new_month_data[1:recent_month_len,], monthlyusagebyaccount, by = c('cust_id','usage_month'))
           new_month_data$usage_ccf[1:recent_month_len] <- tmp$usage_ccf.y
+          new_month_data$budget_calced[1:recent_month_len] <- tmp$usage_ccf.y
           
           #fill in the usage for new accounts with the estimated usage input
           lapply(1:length(cust_class_list), function(i) {
@@ -209,6 +211,11 @@ shinyServer(function(input, output, clientData, session) {
            #fill in average usage by account and month
            tmp <- left_join(new_month_data, monthlyusagebyaccount, by = c('cust_id','usage_month'))
            new_month_data$usage_ccf <- tmp$usage_ccf.y
+           
+           if("budget" %in% colnames(recent_month_data)){
+             tmp <- left_join(new_month_data, monthlybudgetbyaccount, by = c('cust_id','usage_month'))
+             new_month_data$budget <- tmp$budget.y
+           }
            
            planneddflist[[i]] <- new_month_data
            

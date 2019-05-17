@@ -36,7 +36,7 @@ shinyUI(navbarPage(
                                width = NULL)
        ),
        column(3, numericInput("Months", "Number of months to forecast", 
-                              3, min = 1, max = 24, step = 1,
+                              12, min = 1, max = 24, step = 1,
                               width = NULL)
        )
      ),
@@ -50,7 +50,7 @@ shinyUI(navbarPage(
        fluidRow(
          column(2, strong(cust_class_list[i])),
          column(2, numericInput(cust_class_list[i], NULL, 
-                                1, min = -1000, max = 1000, step = 1,
+                                0, min = -1000, max = 1000, step = 1,
                                 width = NULL)
          ),
          column(2, numericInput(paste0("EstUsagePerAccount_",cust_class_list[i]), NULL,

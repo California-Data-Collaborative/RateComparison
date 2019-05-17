@@ -91,7 +91,11 @@ df <- read_data(data_file, cust_col="cust_loc_id", usage_col="usage_ccf", month_
                 rate_code_col = "cust_loc_class_from_utility", water_type_col="cust_loc_water_type",
                 meter_size_col="cust_loc_meter_size")
 is_budget <- all( c("et_amount", "hhsize", "irr_area") %in% names(df))
-
+df$cust_class = ifelse(df$cust_class=="March East", "March_East", df$cust_class)
+df$cust_class = ifelse(df$cust_class=="Rainbow/Rock Mountain", "Rainbow/Rock_Mountain", df$cust_class)
+df$cust_class = ifelse(df$cust_class=="Not Priced", "Not_Priced", df$cust_class)
+df <- df %>% distinct(cust_id, usage_ccf, usage_month, usage_year, .keep_all = TRUE)
+df <- df %>% filter(usage_year != 2019) %>% filter(usage_year <= 2017 | usage_month < 11)
 
 #error checking of data
 check_duplicated_rate_codes(df)
